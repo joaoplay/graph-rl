@@ -1,0 +1,4 @@
+
+[submodule "reward/o2calculator"]
+	path = reward/o2calculator
+	url = git@github.com:joaoplay/o2calculator.git

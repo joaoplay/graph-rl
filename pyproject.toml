@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "graph-rl"
+version = "0.1.0"
+description = ""
+authors = ["João Brás Simões <joaosbraz@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "~3.9"
+torch = [
+    {url = "https://download.pytorch.org/whl/cpu/torch-1.10.1-cp39-none-macosx_10_9_x86_64.whl", markers = "sys_platform == 'darwin'"},
+    {url = "https://download.pytorch.org/whl/cu113/torch-1.10.1%2Bcu113-cp39-cp39-linux_x86_64.whl", markers = "sys_platform == 'linux'"}
+]
+networkx = "*"
+numpy = "*"
+matplotlib = "*"
+tqdm = "*"
+neptune-client = "*"
+o2calculator = {file= "packages/o2calculator-0.1.1-py3-none-any.whl"}
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
