@@ -1,1 +1,1 @@
-# graph-rl
+# GraphRL - Generating Graphs using Reinforcement Learning
