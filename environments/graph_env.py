@@ -4,7 +4,7 @@ from typing import Optional, List
 import numpy as np
 from o2calculator.calculator import calculate_network_irrigation
 
-from environments.stop_conditions.stop_condition import StopCondition
+from environments.stop_conditions import StopCondition
 from graphs.edge_budget.edge_budget import BaseEdgeBudget
 from graphs.edge_budget.infinite_edge_budget import InfiniteEdgeBudget
 from graphs.graph_state import GraphState

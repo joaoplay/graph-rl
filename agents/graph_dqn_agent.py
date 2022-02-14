@@ -1,5 +1,6 @@
 import itertools
 import random
+from typing import Dict
 
 import numpy as np
 import torch
@@ -37,21 +38,17 @@ class GraphDQNAgent(BaseAgent):
     and training Q-network, respectively.
     """
 
-    def __init__(self, environment: GraphEnv, batch_size: int = 50, warm_up: int = 4,
-                 embedding_dim: int = 50, hidden_output_dim: int = 50, num_node_features: int = 4,
+    def __init__(self, environment: GraphEnv, start_node_selection_dqn_params: Dict,
+                 end_node_selection_dqn_params: Dict, batch_size: int = 50, warm_up: int = 4,
                  learning_rate: float = 0.001, eps_start: float = 1, eps_step_denominator: float = 2,
                  eps_end: float = 0.1, random_seed: int = 50, validation_interval: int = 1000,
                  target_network_copy_interval: int = 50, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         """
-
         :param environment: A GraphEnv environments
         :param batch_size: The number of graphs given to the agent in a single simulation. The agent plays every GraphEnv
                            "at the same time"
         :param warm_up: Execute N simulations before starting the training process. These simulations do not affect training
                         and are useful for sanity check purpose
-        :param embedding_dim: FIXME
-        :param hidden_output_dim: FIXME
-        :param num_node_features: FIXME
         :param learning_rate: FIXME
         """
         super().__init__(environment)
@@ -67,16 +64,16 @@ class GraphDQNAgent(BaseAgent):
         self.eps_step = None
         self.q_networks = MultiActionModeDQN(action_modes=self.action_modes,
                                              embedding_dim={
-                                                 ACTION_MODE_SELECTING_START_NODE: embedding_dim,
-                                                 ACTION_MODE_SELECTING_END_NODE: embedding_dim,
+                                                 ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params['embedding_dim'],
+                                                 ACTION_MODE_SELECTING_END_NODE: end_node_selection_dqn_params['embedding_dim'],
                                              },
                                              hidden_output_dim={
-                                                 ACTION_MODE_SELECTING_START_NODE: hidden_output_dim,
-                                                 ACTION_MODE_SELECTING_END_NODE: hidden_output_dim,
+                                                 ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params['hidden_output_dim'],
+                                                 ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params['hidden_output_dim'],
                                              },
                                              num_node_features={
-                                                 ACTION_MODE_SELECTING_START_NODE: num_node_features,
-                                                 ACTION_MODE_SELECTING_END_NODE: num_node_features,
+                                                 ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params['num_node_features'],
+                                                 ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params['num_node_features'],
                                              },
                                              action_output_dim={
                                                  ACTION_MODE_SELECTING_START_NODE: 1,
@@ -84,16 +81,16 @@ class GraphDQNAgent(BaseAgent):
                                              })
         self.target_q_networks = MultiActionModeDQN(action_modes=self.action_modes,
                                                     embedding_dim={
-                                                        ACTION_MODE_SELECTING_START_NODE: embedding_dim,
-                                                        ACTION_MODE_SELECTING_END_NODE: embedding_dim,
+                                                        ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params['embedding_dim'],
+                                                        ACTION_MODE_SELECTING_END_NODE: end_node_selection_dqn_params['embedding_dim'],
                                                     },
                                                     hidden_output_dim={
-                                                        ACTION_MODE_SELECTING_START_NODE: hidden_output_dim,
-                                                        ACTION_MODE_SELECTING_END_NODE: hidden_output_dim,
+                                                        ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params['hidden_output_dim'],
+                                                        ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params['hidden_output_dim'],
                                                     },
                                                     num_node_features={
-                                                        ACTION_MODE_SELECTING_START_NODE: num_node_features,
-                                                        ACTION_MODE_SELECTING_END_NODE: num_node_features,
+                                                        ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params['num_node_features'],
+                                                        ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params['num_node_features'],
                                                     },
                                                     action_output_dim={
                                                         ACTION_MODE_SELECTING_START_NODE: 1,

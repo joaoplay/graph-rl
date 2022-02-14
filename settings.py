@@ -1,5 +1,4 @@
 import os
-
 import neptune.new as neptune
 
 NEPTUNE_INSTANCE = run = neptune.init(project="jbsimoes/graph-rl",

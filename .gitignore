@@ -96,3 +96,6 @@ ENV/
 static/*
 configs.staging.sh
 configs.production.sh
+
+multirun/
+outputs/
