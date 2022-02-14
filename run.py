@@ -28,7 +28,6 @@ def parse_stop_conditions(stop_conditions_list):
 
 @hydra.main(config_path="configs", config_name="default_config")
 def run_from_config_file(cfg: DictConfig):
-    print(cfg)
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
     graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
@@ -43,16 +42,3 @@ def run_from_config_file(cfg: DictConfig):
 
 if __name__ == '__main__':
     run_from_config_file()
-
-    """NEPTUNE_INSTANCE['config/params'] = DEFAULT_PARAMS
-
-    graph_generator = SingleVesselGraphGenerator(size_x=10, size_y=10, interval_between_nodes=1)
-    graphs = graph_generator.generate_multiple_graphs(1)
-
-    environment = GraphEnv(stop_conditions=DEFAULT_STOP_CONDITIONS)
-
-    agent = GraphDQNAgent(environment=environment, validation_interval=2)
-
-    agent.train(graphs, graphs, 20)
-
-    plt.show()"""
