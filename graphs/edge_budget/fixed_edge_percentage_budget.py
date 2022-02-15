@@ -1,6 +1,6 @@
 import numpy as np
 
-from graphs.edge_budget.edge_budget import BaseEdgeBudget
+from graphs.edge_budget.base_edge_budget import BaseEdgeBudget
 from graphs.graph_state import GraphState
 
 

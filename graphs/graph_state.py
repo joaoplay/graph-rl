@@ -30,7 +30,7 @@ class GraphState:
          ```nx.convert_node_labels_to_integers(nx_graph, first_label=0, ordering='default', label_attribute=None)```
     """
 
-    def __init__(self, nx_graph, nx_neighbourhood_graph) -> None:
+    def __init__(self, nx_graph, nx_neighbourhood_graph, allow_void_actions=True) -> None:
         """
         :param nx_graph: The NetworkX Graph representing the current graph structure.
         :param nx_neighbourhood_graph: A NetworkX Graph which represent the valid neighborhood of each node.
@@ -67,6 +67,8 @@ class GraphState:
         # This attribute is very important. At the end of a given simulation step, every forbidden action (for the state
         # after applying a given action) is stored and essential to discard every invalid action
         self.forbidden_actions = None
+
+        self.allow_void_actions = allow_void_actions
 
     def invalidate_selected_start_node(self):
         """
@@ -129,14 +131,13 @@ class GraphState:
         nodes_with_no_edges_available = set([node_id for node_id in self.node_labels
                                              if self.node_degrees[node_id] == (self.num_nodes - 1)])
 
-        # Pick all nodes that are neither isolated nor full of edges
-        remaining_nodes = self.all_nodes_set - isolated_nodes - nodes_with_no_edges_available
+        invalid_nodes = set()
+        if not self.allow_void_actions:
+            # Pick all nodes that are neither isolated nor full of edges
+            remaining_nodes = self.all_nodes_set - isolated_nodes - nodes_with_no_edges_available
+            invalid_nodes = set([node for node in remaining_nodes if len(self.get_invalid_end_nodes(start_node=node)) == self.num_nodes])
 
-        # VERY IMPORTANT: After some preliminary simulations, the graph stuck in the generation process trying to
-        # select start nodes with no end node available.
-        nodes_with_end_node_not_available = set([node for node in remaining_nodes if len(self.get_invalid_end_nodes(start_node=node)) == self.num_nodes])
-
-        return isolated_nodes | nodes_with_end_node_not_available
+        return isolated_nodes | invalid_nodes
 
     def get_invalid_end_nodes(self, start_node=None):
         # Use the start_node passed as parameter whenever defined. Otherwise, use the selected start node

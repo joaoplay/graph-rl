@@ -5,7 +5,7 @@ import numpy as np
 from o2calculator.calculator import calculate_network_irrigation
 
 from environments.stop_conditions import StopCondition
-from graphs.edge_budget.edge_budget import BaseEdgeBudget
+from graphs.edge_budget.base_edge_budget import BaseEdgeBudget
 from graphs.edge_budget.infinite_edge_budget import InfiniteEdgeBudget
 from graphs.graph_state import GraphState
 
@@ -41,18 +41,18 @@ class GraphEnv:
 
     """
 
-    def __init__(self, stop_conditions: List[StopCondition]) -> None:
+    def __init__(self, stop_conditions: List[StopCondition], stop_after_void_action: bool = False) -> None:
         super().__init__()
 
         # Batch of graphs
         self.graphs_list: Optional[list[GraphState]] = None
         # A 1D array with the same size as graphs_list length. It stores the reward values for each graph as long as the
         # finish conditions are met.
-        self.rewards = None
         self.edges_budget: Optional[BaseEdgeBudget] = None
         self.action_modes = DEFAULT_ACTION_MODES
         self.stop_conditions = stop_conditions
         self.steps_counter = 0
+        self.stop_after_void_action = stop_after_void_action
 
     def step(self, actions):
         """
@@ -69,18 +69,8 @@ class GraphEnv:
                 # The current graph budget is exhausted. Just ignore the current graph and move to the next one.
                 continue
 
-            if actions[graph_idx] == -1:
-                # An undefined action was found
+            if self.stop_after_void_action and actions[graph_idx] == -1:
                 self.edges_budget.force_exhausting(graph_idx)
-                # Calculate reward
-                reward = self.calculate_reward(self.graphs_list[graph_idx])
-
-                if abs(reward) < REWARD_EPS:
-                    # Truncate negative or near zero rewards to 0
-                    reward = 0
-
-                # Save reward and move to the new graph
-                self.rewards[graph_idx] = reward
                 continue
 
             # Get the current graph state and its remaining edges budget
@@ -96,19 +86,11 @@ class GraphEnv:
             # Update edges budget
             self.edges_budget.increment_used_budget(graph_idx, edge_insertion_cost)
 
-            if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE and self.graphs_list[
-                graph_idx].allowed_actions_not_found:
-                # A new edge was added and no valid start nodes are available. The current graph reached a dead end and therefore
+            if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
+               and self.graphs_list[graph_idx].allowed_actions_not_found:
+                # A new edge was added and no valid start nodes are available. The current graph reached a dead end, and therefore
                 # it's time to end the generation process.
                 self.edges_budget.force_exhausting(graph_idx)
-                # Calculate corresponding reward
-                reward = self.calculate_reward(new_graph)
-
-                if abs(reward) < REWARD_EPS:
-                    reward = 0
-
-                # Save reward
-                self.rewards[graph_idx] = reward
 
         self.steps_counter += 1
 
@@ -161,7 +143,6 @@ class GraphEnv:
         :return:
         """
         self.graphs_list = graphs_list
-        self.rewards = np.zeros(len(graphs_list), dtype=np.float)
         self.edges_budget = InfiniteEdgeBudget(self.graphs_list)
         self.steps_counter = 0
 
@@ -230,6 +211,19 @@ class GraphEnv:
         :return:
         """
         return all([sc.is_satisfied(self) for sc in self.stop_conditions])
+
+    def calculate_reward_all_graphs(self):
+        rewards = np.zeros(len(self.graphs_list), dtype=np.float)
+        for graph_idx in range(len(self.graphs_list)):
+            graph = self.graphs_list[graph_idx]
+            reward = self.calculate_reward(graph)
+            if abs(reward) < REWARD_EPS:
+                reward = 0
+
+            # Save reward
+            rewards[graph_idx] = reward
+
+        return rewards
 
     @staticmethod
     def calculate_reward(graph):

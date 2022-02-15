@@ -5,5 +5,6 @@ defaults:
   - exploratory_actions: exploratory_1
   - environment: environment_1
   - stop_conditions: stop_conditions_1
-
-number_of_graphs: 100
+number_of_graphs: 2
+random_seed: 50
+stop_after_void_action: False

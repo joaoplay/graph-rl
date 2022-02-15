@@ -1,4 +1,5 @@
 import itertools
+import logging
 import random
 from typing import Dict
 
@@ -21,6 +22,9 @@ from settings import USE_CUDA
 from util import draw_nx_graph_with_coordinates
 
 
+log = logging.getLogger(__name__)
+
+
 class GraphDQNAgent(BaseAgent):
     """
     GraphDQNAgent is responsible for interacting with a batch of graphs, adding and removing edges between two nodes. The
@@ -41,7 +45,7 @@ class GraphDQNAgent(BaseAgent):
     def __init__(self, environment: GraphEnv, start_node_selection_dqn_params: Dict,
                  end_node_selection_dqn_params: Dict, batch_size: int = 50, warm_up: int = 4,
                  learning_rate: float = 0.001, eps_start: float = 1, eps_step_denominator: float = 2,
-                 eps_end: float = 0.1, random_seed: int = 50, validation_interval: int = 1000,
+                 eps_end: float = 0.1, validation_interval: int = 1000,
                  target_network_copy_interval: int = 50, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         """
         :param environment: A GraphEnv environments
@@ -105,8 +109,6 @@ class GraphDQNAgent(BaseAgent):
         self.validation_interval = validation_interval
         self.current_action_mode = None
         self.current_training_step = 0
-        self.random_generator = random.Random()
-        self.random_generator.seed(random_seed)
         # This variable is defined whenever a pair of exploratory actions were chosen.
         self.current_exploratory_actions = None
 
@@ -155,10 +157,10 @@ class GraphDQNAgent(BaseAgent):
 
         self.eps_step = max_steps / self.eps_step_denominator
 
-        pbar = tqdm(range(max_steps), unit='steps')
         # Initialize Adam optimizer
         optimizer = optim.Adam(self.q_networks.parameters(), lr=self.learning_rate)
-        for self.current_training_step in pbar:
+        for self.current_training_step in range(max_steps):
+            log.info(f'Training Step: {self.current_training_step}')
             with torch.no_grad():
                 # Sample a batch of data
                 data_batch = self.sample_batch(train_data, train_data_batch_sampler)
@@ -220,6 +222,8 @@ class GraphDQNAgent(BaseAgent):
             # Calculate loss and gradients. Back-Propagate gradients
             loss = nn.MSELoss()(q_sa, rewards_tensor)
 
+            log.info(f'Training Loss: {loss}')
+
             neptune_logging.log_batch_training_result(loss, rewards_tensor)
 
             optimizer.zero_grad()
@@ -237,16 +241,16 @@ class GraphDQNAgent(BaseAgent):
             return -1, -1
 
         # Choose a start node
-        start_node = self.random_generator.choice(list(valid_start_nodes))
+        start_node = np.random.choice(list(valid_start_nodes))
 
         # Get all possible end nodes
         valid_end_nodes = graph.get_valid_end_nodes(start_node=start_node)
 
+        end_node = -1
         if valid_end_nodes is not None and len(valid_end_nodes) > 0:
-            end_node = self.random_generator.choice(list(valid_end_nodes))
-            return start_node, end_node
-        else:
-            return -1, -1
+            end_node = np.random.choice(list(valid_end_nodes))
+
+        return start_node, end_node
 
     def choose_exploratory_actions(self):
         """
@@ -296,7 +300,7 @@ class GraphDQNAgent(BaseAgent):
             self.eps = self.eps_end + max(0., (self.eps_start - self.eps_end)
                                           * (self.eps_step - max(0., self.current_training_step)) / self.eps_step)
 
-            if self.random_generator.random() < self.eps:
+            if np.random.random() < self.eps:
                 # Select an exploratory action
                 selected_start_nodes, selected_end_nodes = self.choose_exploratory_actions()
                 self.current_exploratory_actions = (selected_start_nodes, selected_end_nodes)
@@ -320,7 +324,6 @@ class GraphDQNAgent(BaseAgent):
         Start a fresh simulation using the train_graphs. The agent plays N environments simultaneously,
         storing the result of each step in an experience buffer.
 
-        :param store_experience:
         :param graphs:
         :return:
         """
@@ -361,7 +364,7 @@ class GraphDQNAgent(BaseAgent):
             non_terminal_graphs_states = [non_exhausted_graphs_before[i] for i in non_terminal_graphs_idx]
             # Get actions of all non-terminal graphs
             non_terminal_graphs_actions = [actions[i] for i in non_terminal_graphs_idx]
-            # Get rewards
+            # The reward of all non-terminal graphs is ZERO
             rewards = np.zeros(len(non_terminal_graphs_actions))
             # Get new state for all non-terminal graphs
             non_terminal_graphs_next_state = self.environment.clone_current_state(non_exhausted_graphs_after)
@@ -393,7 +396,14 @@ class GraphDQNAgent(BaseAgent):
             time_step += 1
 
         # Simulation is over! Now we need to store the final states in the experience buffer.
-        rewards = self.environment.rewards
+        rewards = self.environment.calculate_reward_all_graphs()
+
+        # FIXME: This step should be refactored in a near future. It might be replaced by a decent handling of the stop
+        #        conditions.
+        for graph_idx in range(len(graphs)):
+            if final_states[graph_idx] is None:
+                final_states[graph_idx] = self.environment.clone_current_state(graph_indexes=[graph_idx])
+                final_actions[graph_idx] = actions[graph_idx]
 
         dummy_final_next_states = [(None, None, None) for _ in range(len(final_states))]
         experience_buffer = self.experience_buffers.get_experience_buffer(self.current_action_mode)
@@ -424,7 +434,7 @@ class GraphDQNAgent(BaseAgent):
             time_step += 1
 
         # Simulation is over! Now we need to store the final states in the experience buffer.
-        rewards = self.environment.rewards
+        rewards = self.environment.calculate_reward_all_graphs()
 
         fig, ax = plt.subplots()
         draw_nx_graph_with_coordinates(self.environment.graphs_list[0].nx_graph, ax)

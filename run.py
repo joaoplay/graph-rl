@@ -1,4 +1,5 @@
 import hydra
+import numpy as np
 from omegaconf import DictConfig, OmegaConf
 
 from agents.graph_dqn_agent import GraphDQNAgent
@@ -28,12 +29,14 @@ def parse_stop_conditions(stop_conditions_list):
 
 @hydra.main(config_path="configs", config_name="default_config")
 def run_from_config_file(cfg: DictConfig):
+    np.random.seed(cfg.random_seed)
+
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
     graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
     parsed_stop_conditions = parse_stop_conditions(cfg.stop_conditions)
 
-    environment = GraphEnv(stop_conditions=parsed_stop_conditions)
+    environment = GraphEnv(stop_conditions=parsed_stop_conditions, stop_after_void_action=cfg.stop_after_void_action)
     agent = GraphDQNAgent(environment=environment, start_node_selection_dqn_params=cfg.start_node_selection_dqn,
                           end_node_selection_dqn_params=cfg.end_node_selection_dqn, **cfg.core, **cfg.exploratory_actions)
 
