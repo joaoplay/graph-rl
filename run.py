@@ -36,7 +36,8 @@ def run_from_config_file(cfg: DictConfig):
 
     parsed_stop_conditions = parse_stop_conditions(cfg.stop_conditions)
 
-    environment = GraphEnv(stop_conditions=parsed_stop_conditions, stop_after_void_action=cfg.stop_after_void_action)
+    environment = GraphEnv(stop_conditions=parsed_stop_conditions, stop_after_void_action=cfg.stop_after_void_action,
+                           max_edges_percentage=cfg.max_edges_percentage)
     agent = GraphDQNAgent(environment=environment, start_node_selection_dqn_params=cfg.start_node_selection_dqn,
                           end_node_selection_dqn_params=cfg.end_node_selection_dqn, **cfg.core, **cfg.exploratory_actions)
 

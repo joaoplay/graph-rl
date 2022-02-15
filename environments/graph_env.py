@@ -6,6 +6,7 @@ from o2calculator.calculator import calculate_network_irrigation
 
 from environments.stop_conditions import StopCondition
 from graphs.edge_budget.base_edge_budget import BaseEdgeBudget
+from graphs.edge_budget.fixed_edge_percentage_budget import FixedEdgePercentageBudget
 from graphs.edge_budget.infinite_edge_budget import InfiniteEdgeBudget
 from graphs.graph_state import GraphState
 
@@ -41,7 +42,7 @@ class GraphEnv:
 
     """
 
-    def __init__(self, stop_conditions: List[StopCondition], stop_after_void_action: bool = False) -> None:
+    def __init__(self, stop_conditions: List[StopCondition], max_edges_percentage=None, stop_after_void_action: bool = False) -> None:
         super().__init__()
 
         # Batch of graphs
@@ -53,6 +54,7 @@ class GraphEnv:
         self.stop_conditions = stop_conditions
         self.steps_counter = 0
         self.stop_after_void_action = stop_after_void_action
+        self.max_edges_percentage = max_edges_percentage
 
     def step(self, actions):
         """
@@ -143,7 +145,12 @@ class GraphEnv:
         :return:
         """
         self.graphs_list = graphs_list
-        self.edges_budget = InfiniteEdgeBudget(self.graphs_list)
+
+        if self.max_edges_percentage is None:
+            self.edges_budget = InfiniteEdgeBudget(self.graphs_list)
+        else:
+            self.edges_budget = FixedEdgePercentageBudget(self.graphs_list, fixed_edge_percentage=self.max_edges_percentage)
+
         self.steps_counter = 0
 
         for graph_idx in range(len(self.graphs_list)):
