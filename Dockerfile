@@ -13,7 +13,8 @@ ENV PYTHON_VERSION 3.9
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV USE_CUDA=1
+ARG USE_CUDA=0
+ENV USE_CUDA=${USE_CUDA}
 
 RUN apt-get update && apt-get install -y  build-essential zlib1g-dev \
 libncurses5-dev libgdbm-dev libnss3-dev \
