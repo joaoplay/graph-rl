@@ -32,7 +32,9 @@ def run_from_config_file(cfg: DictConfig):
     np.random.seed(cfg.random_seed)
 
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
-    graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
+    train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
+
+    validation_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
     parsed_stop_conditions = parse_stop_conditions(cfg.stop_conditions)
 
@@ -41,7 +43,7 @@ def run_from_config_file(cfg: DictConfig):
     agent = GraphDQNAgent(environment=environment, start_node_selection_dqn_params=cfg.start_node_selection_dqn,
                           end_node_selection_dqn_params=cfg.end_node_selection_dqn, **cfg.core, **cfg.exploratory_actions)
 
-    agent.train(graphs, graphs, 20)
+    agent.train(train_graphs, validation_graphs, cfg.max_steps)
 
 
 if __name__ == '__main__':
