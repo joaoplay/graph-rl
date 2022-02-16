@@ -5,7 +5,7 @@ defaults:
   - exploratory_actions: exploratory_1
   - environment: environment_1
   - stop_conditions: stop_conditions_steps_plus_edges
-number_of_graphs: 10
+number_of_graphs: 2
 random_seed: 50
-stop_after_void_action: False
+stop_after_void_action: True
 max_edges_percentage: 0.4

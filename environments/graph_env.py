@@ -65,13 +65,19 @@ class GraphEnv:
         :return:
         """
 
+        #print(f"Step: {self.steps_counter} | Action Mode: {self.current_action_mode}")
+
         for graph_idx in range(len(self.graphs_list)):
 
+            #print(f"Graph {graph_idx} | Action: {actions[graph_idx]}")
+
             if self.edges_budget.is_exhausted(graph_idx):
+                #print("Already exhausted")
                 # The current graph budget is exhausted. Just ignore the current graph and move to the next one.
                 continue
 
             if self.stop_after_void_action and actions[graph_idx] == -1:
+                #print("Invalid action found")
                 self.edges_budget.force_exhausting(graph_idx)
                 continue
 
@@ -90,6 +96,7 @@ class GraphEnv:
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
                and self.graphs_list[graph_idx].allowed_actions_not_found:
+                #print("No start nodes found. This graph is done!")
                 # A new edge was added and no valid start nodes are available. The current graph reached a dead end, and therefore
                 # it's time to end the generation process.
                 self.edges_budget.force_exhausting(graph_idx)
@@ -217,7 +224,7 @@ class GraphEnv:
         Check all stop conditions
         :return:
         """
-        return all([sc.is_satisfied(self) for sc in self.stop_conditions])
+        return any([sc.is_satisfied(self) for sc in self.stop_conditions])
 
     def calculate_reward_all_graphs(self):
         rewards = np.zeros(len(self.graphs_list), dtype=np.float)

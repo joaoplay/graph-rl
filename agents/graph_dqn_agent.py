@@ -219,6 +219,9 @@ class GraphDQNAgent(BaseAgent):
             # Get q-value for the current state
             _, q_sa, _ = self.q_networks(action_mode, states, actions)
 
+            print("Rewards: ", rewards_tensor)
+            print("Max next state reward", q_sa)
+
             # Calculate loss and gradients. Back-Propagate gradients
             loss = nn.MSELoss()(q_sa, rewards_tensor)
 
@@ -246,9 +249,13 @@ class GraphDQNAgent(BaseAgent):
         # Get all possible end nodes
         valid_end_nodes = graph.get_valid_end_nodes(start_node=start_node)
 
+        #print(valid_end_nodes)
+
         end_node = -1
         if valid_end_nodes is not None and len(valid_end_nodes) > 0:
             end_node = np.random.choice(list(valid_end_nodes))
+        else:
+            return -1, -1
 
         return start_node, end_node
 
@@ -296,6 +303,7 @@ class GraphDQNAgent(BaseAgent):
         """
 
         if self.current_action_mode == ACTION_MODE_SELECTING_START_NODE:
+            #print("Selecting start node")
             # It's time to select a start node.
             self.eps = self.eps_end + max(0., (self.eps_start - self.eps_end)
                                           * (self.eps_step - max(0., self.current_training_step)) / self.eps_step)
@@ -304,20 +312,32 @@ class GraphDQNAgent(BaseAgent):
                 # Select an exploratory action
                 selected_start_nodes, selected_end_nodes = self.choose_exploratory_actions()
                 self.current_exploratory_actions = (selected_start_nodes, selected_end_nodes)
+
+                #print("Choosing random actions: ", self.current_exploratory_actions)
+
                 return selected_start_nodes
             else:
                 # Choose a greedy action using the DQN
                 self.current_exploratory_actions = None
-                return self.choose_greedy_actions()
+
+                greedy_actions = self.choose_greedy_actions()
+                #print("Choosing greedy action: ", greedy_actions)
+
+                return greedy_actions
         else:
+            #print("Selecting end node")
             # A start node is already selected. It's now time to select the end node
             if self.current_exploratory_actions is not None:
+                #print("A previous end node exists: ", self.current_exploratory_actions[1])
                 # If an exploratory action was chosen in the previous step, we already know the next action. It is stored
                 # in the current_exploratory_actions
                 return self.current_exploratory_actions[1]
             else:
                 # Choose an end node from the DQN
-                return self.choose_greedy_actions()
+                greedy_actions = self.choose_greedy_actions()
+                #print("Choosing greedy action: ", greedy_actions)
+
+                return greedy_actions
 
     def simulate_for_training(self, graphs):
         """
@@ -388,6 +408,9 @@ class GraphDQNAgent(BaseAgent):
             if len(non_terminal_graphs_actions) > 0:
                 # Add new entry to the replay buffer
                 experience_buffer = self.experience_buffers.get_experience_buffer(self.current_action_mode)
+
+                print(f"Adding Experience Intermediate: {non_terminal_graphs_actions}")
+
                 experience_buffer.append_many(non_terminal_graphs_states, non_terminal_graphs_actions, rewards,
                                               [False] * len(non_terminal_graphs_actions),
                                               non_terminal_graphs_next_state)
@@ -404,6 +427,8 @@ class GraphDQNAgent(BaseAgent):
             if final_states[graph_idx] is None:
                 final_states[graph_idx] = self.environment.clone_current_state(graph_indexes=[graph_idx])
                 final_actions[graph_idx] = actions[graph_idx]
+
+        print(f"Adding Experience Final: {final_actions}")
 
         dummy_final_next_states = [(None, None, None) for _ in range(len(final_states))]
         experience_buffer = self.experience_buffers.get_experience_buffer(self.current_action_mode)
