@@ -219,8 +219,8 @@ class GraphDQNAgent(BaseAgent):
             # Get q-value for the current state
             _, q_sa, _ = self.q_networks(action_mode, states, actions)
 
-            print("Rewards: ", rewards_tensor)
-            print("Max next state reward", q_sa)
+            # print("Rewards: ", rewards_tensor)
+            # print("Max next state reward", q_sa)
 
             # Calculate loss and gradients. Back-Propagate gradients
             loss = nn.MSELoss()(q_sa, rewards_tensor)
@@ -249,13 +249,7 @@ class GraphDQNAgent(BaseAgent):
         # Get all possible end nodes
         valid_end_nodes = graph.get_valid_end_nodes(start_node=start_node)
 
-        #print(valid_end_nodes)
-
-        end_node = -1
-        if valid_end_nodes is not None and len(valid_end_nodes) > 0:
-            end_node = np.random.choice(list(valid_end_nodes))
-        else:
-            return -1, -1
+        end_node = np.random.choice(list(valid_end_nodes))
 
         return start_node, end_node
 
@@ -409,7 +403,7 @@ class GraphDQNAgent(BaseAgent):
                 # Add new entry to the replay buffer
                 experience_buffer = self.experience_buffers.get_experience_buffer(self.current_action_mode)
 
-                print(f"Adding Experience Intermediate: {non_terminal_graphs_actions}")
+                #print(f"Adding Experience Intermediate: {non_terminal_graphs_states}")
 
                 experience_buffer.append_many(non_terminal_graphs_states, non_terminal_graphs_actions, rewards,
                                               [False] * len(non_terminal_graphs_actions),
@@ -421,14 +415,16 @@ class GraphDQNAgent(BaseAgent):
         # Simulation is over! Now we need to store the final states in the experience buffer.
         rewards = self.environment.calculate_reward_all_graphs()
 
+        neptune_logging.log_training_simulation_results(np.mean(rewards))
+
         # FIXME: This step should be refactored in a near future. It might be replaced by a decent handling of the stop
         #        conditions.
         for graph_idx in range(len(graphs)):
             if final_states[graph_idx] is None:
-                final_states[graph_idx] = self.environment.clone_current_state(graph_indexes=[graph_idx])
+                final_states[graph_idx] = self.environment.clone_current_state(graph_indexes=[graph_idx])[0]
                 final_actions[graph_idx] = actions[graph_idx]
 
-        print(f"Adding Experience Final: {final_actions}")
+        #print(f"Adding Experience Final: {final_states}")
 
         dummy_final_next_states = [(None, None, None) for _ in range(len(final_states))]
         experience_buffer = self.experience_buffers.get_experience_buffer(self.current_action_mode)
@@ -460,6 +456,8 @@ class GraphDQNAgent(BaseAgent):
 
         # Simulation is over! Now we need to store the final states in the experience buffer.
         rewards = self.environment.calculate_reward_all_graphs()
+
+        neptune_logging.log_validation_simulation_results(np.mean(rewards))
 
         fig, ax = plt.subplots()
         draw_nx_graph_with_coordinates(self.environment.graphs_list[0].nx_graph, ax)

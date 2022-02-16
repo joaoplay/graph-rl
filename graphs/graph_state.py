@@ -93,6 +93,23 @@ class GraphState:
         """
         self.selected_start_node = start_node_id
 
+    def add_or_remove_edge(self, start_node, end_node):
+        nx_graph_clone = deepcopy(self.nx_graph)
+
+        if nx_graph_clone.has_edge(start_node, end_node):
+            nx_graph_clone.remove_edge(start_node, end_node)
+            edge_cost = -DEFAULT_EDGE_INSERTION_COST
+        elif nx_graph_clone.has_edge(end_node, start_node):
+            nx_graph_clone.remove_edge(end_node, start_node)
+            edge_cost = -DEFAULT_EDGE_INSERTION_COST
+        else:
+            nx_graph_clone.add_edge(start_node, end_node)
+            edge_cost = DEFAULT_EDGE_INSERTION_COST
+
+        graph_state = self.__class__(nx_graph_clone, deepcopy(self.nx_neighbourhood_graph))
+
+        return graph_state, edge_cost
+
     def add_edge(self, start_node, end_node):
         """
         Create an edge between to nodes in the graph
@@ -105,6 +122,13 @@ class GraphState:
 
         graph_state = self.__class__(nx_graph_clone, deepcopy(self.nx_neighbourhood_graph))
         return graph_state, DEFAULT_EDGE_INSERTION_COST
+
+    def remove_edge(self, start_node, end_node):
+        nx_graph_clone = deepcopy(self.nx_graph)
+        nx_graph_clone.remove_edge(start_node, end_node)
+
+        graph_state = self.__class__(nx_graph_clone, deepcopy(self.nx_neighbourhood_graph))
+        return graph_state, -DEFAULT_EDGE_INSERTION_COST
 
     def get_node_features(self):
         raise NotImplementedError()
@@ -128,16 +152,16 @@ class GraphState:
         # Identify all isolated nodes. Nodes with zero degree
         isolated_nodes = set(nx.isolates(self.nx_graph))
         # Identify nodes with no edges available. FIXME: Is it correct? Probably we should check the neighborhood graph instead.
-        nodes_with_no_edges_available = set([node_id for node_id in self.node_labels
-                                             if self.node_degrees[node_id] == (self.num_nodes - 1)])
+        # nodes_with_no_edges_available = set([node_id for node_id in self.node_labels
+        #                                   if self.node_degrees[node_id] == (self.num_nodes - 1)])
 
-        invalid_nodes = set()
+        """invalid_nodes = set()
         if not self.allow_void_actions:
             # Pick all nodes that are neither isolated nor full of edges
             remaining_nodes = self.all_nodes_set - isolated_nodes - nodes_with_no_edges_available
-            invalid_nodes = set([node for node in remaining_nodes if len(self.get_invalid_end_nodes(start_node=node)) == self.num_nodes])
+            invalid_nodes = set([node for node in remaining_nodes if len(self.get_invalid_end_nodes(start_node=node)) == self.num_nodes])"""
 
-        return isolated_nodes | invalid_nodes
+        return isolated_nodes
 
     def get_invalid_end_nodes(self, start_node=None):
         # Use the start_node passed as parameter whenever defined. Otherwise, use the selected start node
@@ -147,15 +171,15 @@ class GraphState:
         invalid_end_nodes = set()
         invalid_end_nodes.add(start_node)
 
-        existing_edges = self.edge_pairs.reshape(-1, 2)
+        # existing_edges = self.edge_pairs.reshape(-1, 2)
 
         # Exclude all nodes that already have an edge FROM the selected node
-        existing_left = existing_edges[existing_edges[:, 0] == start_node]
-        invalid_end_nodes.update(np.ravel(existing_left[:, 1]))
+        """existing_left = existing_edges[existing_edges[:, 0] == start_node]
+        invalid_end_nodes.update(np.ravel(existing_left[:, 1]))"""
 
         # Exclude all nodes that already have an edge TO the selected node
-        existing_right = existing_edges[existing_edges[:, 1] == start_node]
-        invalid_end_nodes.update(np.ravel(existing_right[:, 0]))
+        """existing_right = existing_edges[existing_edges[:, 1] == start_node]
+        invalid_end_nodes.update(np.ravel(existing_right[:, 0]))"""
 
         select_node_neighbors = set(self.nx_neighbourhood_graph.neighbors(start_node))
         all_nodes = set(self.nx_neighbourhood_graph.nodes)

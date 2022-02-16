@@ -77,7 +77,7 @@ class GraphEnv:
                 continue
 
             if self.stop_after_void_action and actions[graph_idx] == -1:
-                #print("Invalid action found")
+                raise Exception("Invalid action found")
                 self.edges_budget.force_exhausting(graph_idx)
                 continue
 
@@ -122,9 +122,11 @@ class GraphEnv:
         """
         if not graph.start_node_is_selected:
             # A start node is not selected
-            if not graph.allowed_actions_not_found:
-                # Ensure that the start node selection is feasible.
-                graph.select_start_node(action)
+
+            # if not graph.allowed_actions_not_found:
+            # Ensure that the start node selection is feasible.
+
+            graph.select_start_node(action)
 
             # Update forbidden actions
             graph.populate_forbidden_actions(remaining_budget)
@@ -133,9 +135,11 @@ class GraphEnv:
         else:
             # A start node is already selected. It's time to select the end node and create a new edge.
             edge_insertion_cost = 0
-            if not graph.allowed_actions_not_found:
-                # Ensure that the start node selection is feasible.
-                graph, edge_insertion_cost = graph.add_edge(graph.selected_start_node, action)
+
+            #if not graph.allowed_actions_not_found:
+            # Ensure that the start node selection is feasible.
+
+            graph, edge_insertion_cost = graph.add_or_remove_edge(graph.selected_start_node, action)
 
             # Invalidate the currently selected start node. A new start node will be selected in the next simulation step.
             graph.invalidate_selected_start_node()
