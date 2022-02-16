@@ -15,7 +15,7 @@ numpy = "^1.22"
 matplotlib = "^3.5"
 tqdm = "^4.62"
 neptune-client = "^0.14"
-o2calculator = {file= "packages/o2calculator-0.1.2-py3-none-any.whl"}
+o2calculator = {file= "packages/o2calculator-0.1.1-py3-none-any.whl"}
 hydra-core = "^1.1"
 
 [tool.poetry.dev-dependencies]
