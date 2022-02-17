@@ -4,9 +4,9 @@ defaults:
   - end_node_selection_dqn: end_dqn_1
   - exploratory_actions: exploratory_1
   - environment: environment_1
-  - stop_conditions: stop_conditions_steps_plus_edges
+  - stop_conditions: stop_conditions_steps
 number_of_graphs: 10
 random_seed: 50
 stop_after_void_action: True
-max_edges_percentage: 0.4
+max_edges_percentage: null
 max_steps: 5000

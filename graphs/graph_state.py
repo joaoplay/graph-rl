@@ -161,7 +161,7 @@ class GraphState:
             remaining_nodes = self.all_nodes_set - isolated_nodes - nodes_with_no_edges_available
             invalid_nodes = set([node for node in remaining_nodes if len(self.get_invalid_end_nodes(start_node=node)) == self.num_nodes])"""
 
-        return isolated_nodes
+        return set()  # isolated_nodes
 
     def get_invalid_end_nodes(self, start_node=None):
         # Use the start_node passed as parameter whenever defined. Otherwise, use the selected start node
@@ -181,11 +181,11 @@ class GraphState:
         """existing_right = existing_edges[existing_edges[:, 1] == start_node]
         invalid_end_nodes.update(np.ravel(existing_right[:, 0]))"""
 
-        select_node_neighbors = set(self.nx_neighbourhood_graph.neighbors(start_node))
+        """select_node_neighbors = set(self.nx_neighbourhood_graph.neighbors(start_node))
         all_nodes = set(self.nx_neighbourhood_graph.nodes)
         non_neighbor_nodes = all_nodes - select_node_neighbors
 
-        invalid_end_nodes.update(non_neighbor_nodes)
+        invalid_end_nodes.update(non_neighbor_nodes)"""
 
         return invalid_end_nodes
 
