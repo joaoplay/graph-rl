@@ -171,15 +171,15 @@ class GraphState:
         invalid_end_nodes = set()
         invalid_end_nodes.add(start_node)
 
-        # existing_edges = self.edge_pairs.reshape(-1, 2)
+        existing_edges = self.edge_pairs.reshape(-1, 2)
 
         # Exclude all nodes that already have an edge FROM the selected node
-        """existing_left = existing_edges[existing_edges[:, 0] == start_node]
-        invalid_end_nodes.update(np.ravel(existing_left[:, 1]))"""
+        #existing_left = existing_edges[existing_edges[:, 0] == start_node]
+        #invalid_end_nodes.update(np.ravel(existing_left[:, 1]))
 
         # Exclude all nodes that already have an edge TO the selected node
-        """existing_right = existing_edges[existing_edges[:, 1] == start_node]
-        invalid_end_nodes.update(np.ravel(existing_right[:, 0]))"""
+        #existing_right = existing_edges[existing_edges[:, 1] == start_node]
+        #invalid_end_nodes.update(np.ravel(existing_right[:, 0]))
 
         """select_node_neighbors = set(self.nx_neighbourhood_graph.neighbors(start_node))
         all_nodes = set(self.nx_neighbourhood_graph.nodes)

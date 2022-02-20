@@ -1,7 +1,9 @@
 import networkx as nx
+from matplotlib import pyplot as plt
 from networkx import Graph
 
 from graphs.graph_state import GraphState
+from util import draw_nx_graph_with_coordinates
 
 
 class FluidNetworkState(GraphState):
@@ -30,10 +32,33 @@ class FluidNetworkState(GraphState):
         Prepare a graph state before sending it to the fluid network
         :return:
         """
-
         nx_graph_copy = self.nx_graph.to_undirected()
-
         nx_graph_copy.remove_nodes_from(list(nx.isolates(nx_graph_copy)))
+
+        # FIXME: Move it to a separated method
+        nodes_data = nx_graph_copy.nodes(data=True)
+        input_nodes = [x for x, y in nodes_data if y['node_type'] == 1]
+        output_nodes = [x for x, y in nodes_data if y['node_type'] == 2]
+
+        no_flow_nodes = set()
+        for component in nx.connected_components(nx_graph_copy):
+            in_node_found = False
+            for in_node in input_nodes:
+                if in_node in component:
+                    in_node_found = True
+                    break
+
+            out_node_found = True
+            for out_node in output_nodes:
+                if out_node in component:
+                    out_node_found = True
+                    break
+
+            if not in_node_found or not out_node_found:
+                no_flow_nodes.update(component)
+
+        nx_graph_copy.remove_nodes_from(no_flow_nodes)
+
         nx_graph_copy = nx.convert_node_labels_to_integers(nx_graph_copy, first_label=0, ordering='default',
                                                            label_attribute=None)
 
@@ -41,7 +66,10 @@ class FluidNetworkState(GraphState):
 
         edges_list = list(zip(*set(list(nx_graph_copy.edges) + inverse_edges)))
 
-        node_features = [list(node[1].values()) for node in nx_graph_copy.nodes.data()]
+        # Sort node features by node index (ascending order)
+        node_features_by_node = list(nx_graph_copy.nodes.data())
+        node_features_by_node.sort()
+        node_features = [list(node[1].values()) for node in node_features_by_node]
         edges_features = [[1] for _ in range(len(edges_list[0]))]
 
         return node_features, edges_list, edges_features

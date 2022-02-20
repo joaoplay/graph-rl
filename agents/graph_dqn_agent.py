@@ -1,6 +1,5 @@
 import itertools
 import logging
-import random
 from typing import Dict
 
 import numpy as np
@@ -56,6 +55,7 @@ class GraphDQNAgent(BaseAgent):
         :param learning_rate: FIXME
         """
         super().__init__(environment)
+
         self.action_modes = action_modes
         self.experience_buffers = MultiActionModeExperienceBuffer(action_modes)
         self.warm_up = warm_up
@@ -249,6 +249,8 @@ class GraphDQNAgent(BaseAgent):
         # Get all possible end nodes
         valid_end_nodes = graph.get_valid_end_nodes(start_node=start_node)
 
+        # print(f"Start Node {start_node} | Invalid End Nodes: {graph.get_invalid_end_nodes(start_node=start_node)}")
+
         end_node = np.random.choice(list(valid_end_nodes))
 
         return start_node, end_node
@@ -281,9 +283,10 @@ class GraphDQNAgent(BaseAgent):
         actions, _, _ = self.q_networks(action_mode=self.current_action_mode, states=cur_env_states, actions=None,
                                         greedy_acts=True)
         actions = list(actions.view(-1).cpu().numpy())
+
         return actions
 
-    def choose_actions(self):
+    def choose_actions(self, execute_exploratory_actions=False):
         """
         Choose the next action given the current state of graph env. Note that we are working with batches. We call
         the Q-Network using a batch of graphs whenever we want to act greedily.
@@ -295,6 +298,9 @@ class GraphDQNAgent(BaseAgent):
         :return: Returns a 1-D array with the best action for each graph. If GraphEnv contains a batch of 10 graphs, this method
         return a (10, 1) array
         """
+
+        if not execute_exploratory_actions:
+            return self.choose_greedy_actions()
 
         if self.current_action_mode == ACTION_MODE_SELECTING_START_NODE:
             #print("Selecting start node")
@@ -356,7 +362,7 @@ class GraphDQNAgent(BaseAgent):
             # Set the current action mode
             self.current_action_mode = next(action_mode_selector)
             # Decide the next action. Both greedy and exploratory actions are considered.
-            actions = self.choose_actions()
+            actions = self.choose_actions(execute_exploratory_actions=True)
 
             # Keep track on the non-exhausted graphs before stepping forward
             non_exhausted_indices_before = self.environment.non_exhausted_graph_ids
@@ -415,7 +421,12 @@ class GraphDQNAgent(BaseAgent):
         # Simulation is over! Now we need to store the final states in the experience buffer.
         rewards = self.environment.calculate_reward_all_graphs()
 
+        log.info(f"Mean Reward: {np.mean(rewards)} | Reward Std: {np.std(rewards)}")
         neptune_logging.log_training_simulation_results(np.mean(rewards))
+
+        #fig, ax = plt.subplots()
+        #draw_nx_graph_with_coordinates(graphs[0].nx_graph, ax)
+        #plt.show()
 
         # FIXME: This step should be refactored in a near future. It might be replaced by a decent handling of the stop
         #        conditions.
@@ -434,6 +445,8 @@ class GraphDQNAgent(BaseAgent):
         return rewards
 
     def simulate_for_validation(self, graphs):
+        print("Validating")
+
         # Init simulation environments with the current train_graphs
         self.environment.init(graphs)
 
@@ -457,11 +470,20 @@ class GraphDQNAgent(BaseAgent):
         # Simulation is over! Now we need to store the final states in the experience buffer.
         rewards = self.environment.calculate_reward_all_graphs()
 
+        # Log rewards
         neptune_logging.log_validation_simulation_results(np.mean(rewards))
 
+        # Save image of the first graph
         fig, ax = plt.subplots()
         draw_nx_graph_with_coordinates(self.environment.graphs_list[0].nx_graph, ax)
         neptune_logging.upload_graph_plot(fig, self.current_training_step)
+
+        # Compute statistics (insertion and removal frequency)
+        actions_stats = self.environment.action_type_statistics
+        for graph_idx, stat in enumerate(actions_stats):
+            fig, ax = plt.subplots()
+            ax.hist(stat, bins=[0, 0.8, 1, 1.8])
+            neptune_logging.upload_action_frequency(fig, self.current_training_step, graph_idx)
 
         return rewards
 

@@ -29,4 +29,4 @@ def draw_nx_graph_with_coordinates(networkx_graph, ax):
     node_x = nx.get_node_attributes(networkx_graph, 'x')
     node_y = nx.get_node_attributes(networkx_graph, 'y')
     coordinates = merge_dicts(node_x, node_y)
-    nx.draw(networkx_graph, coordinates, ax)
+    nx.draw(networkx_graph, coordinates, ax, connectionstyle="arc3,rad=0.1", arrowsize=1, with_labels=True)

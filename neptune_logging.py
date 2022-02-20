@@ -22,3 +22,8 @@ def log_validation_simulation_results(average_reward):
 
 def upload_graph_plot(plot, iteration):
     NEPTUNE_INSTANCE[f'validation/visualization/graphs/training-step-{iteration}.jpeg'].upload(File.as_image(plot))
+
+
+def upload_action_frequency(plot, iteration, graph_idx):
+    NEPTUNE_INSTANCE[f'validation/visualization/action-frequency/hist-it{iteration}-graph{graph_idx}.jpeg'].upload(
+        File.as_image(plot))

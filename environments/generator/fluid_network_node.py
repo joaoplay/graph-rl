@@ -19,5 +19,10 @@ class FluidNetworkNode(GraphNode):
 
         return features_dict
 
+    def __str__(self) -> str:
+        return f'Coordinates: {self.coordinates} | Pressure: {self.pressure} | Node Type: {self.node_type}'
+
+
+
 
 

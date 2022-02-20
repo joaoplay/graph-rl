@@ -2,6 +2,8 @@ from copy import deepcopy
 from typing import Optional, List
 
 import numpy as np
+from matplotlib import pyplot as plt
+
 from o2calculator.calculator import calculate_network_irrigation
 
 from environments.stop_conditions import StopCondition
@@ -9,6 +11,7 @@ from graphs.edge_budget.base_edge_budget import BaseEdgeBudget
 from graphs.edge_budget.fixed_edge_percentage_budget import FixedEdgePercentageBudget
 from graphs.edge_budget.infinite_edge_budget import InfiniteEdgeBudget
 from graphs.graph_state import GraphState
+from util import draw_nx_graph_with_coordinates
 
 REWARD_EPS = 1e-4
 
@@ -55,6 +58,7 @@ class GraphEnv:
         self.steps_counter = 0
         self.stop_after_void_action = stop_after_void_action
         self.max_edges_percentage = max_edges_percentage
+        self.action_type_statistics = []
 
     def step(self, actions):
         """
@@ -78,8 +82,8 @@ class GraphEnv:
 
             if self.stop_after_void_action and actions[graph_idx] == -1:
                 raise Exception("Invalid action found")
-                self.edges_budget.force_exhausting(graph_idx)
-                continue
+                # self.edges_budget.force_exhausting(graph_idx)
+                # continue
 
             # Get the current graph state and its remaining edges budget
             current_graph = self.graphs_list[graph_idx]
@@ -87,6 +91,12 @@ class GraphEnv:
 
             # Execute action and get the resulting graph (a deepcopy) and the insertion cost (in terms of edge budget)
             new_graph, edge_insertion_cost = self.execute_action(current_graph, actions[graph_idx], remaining_budget)
+
+            # Log statistics
+            if edge_insertion_cost == 1:
+                self.action_type_statistics[graph_idx] += [0]
+            elif edge_insertion_cost == -1:
+                self.action_type_statistics[graph_idx] += [1]
 
             # Save the new graph
             self.graphs_list[graph_idx] = new_graph
@@ -96,7 +106,7 @@ class GraphEnv:
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
                and self.graphs_list[graph_idx].allowed_actions_not_found:
-                #print("No start nodes found. This graph is done!")
+                # print("No start nodes found. This graph is done!")
                 # A new edge was added and no valid start nodes are available. The current graph reached a dead end, and therefore
                 # it's time to end the generation process.
                 self.edges_budget.force_exhausting(graph_idx)
@@ -111,8 +121,7 @@ class GraphEnv:
         """
         return self.steps_counter % len(self.action_modes)
 
-    @staticmethod
-    def execute_action(graph: GraphState, action, remaining_budget):
+    def execute_action(self, graph: GraphState, action, remaining_budget):
         """
         Execute an action on a given graph. This is applied to start node and end node selection.
         :param graph: A Graph state object
@@ -161,6 +170,9 @@ class GraphEnv:
             self.edges_budget = InfiniteEdgeBudget(self.graphs_list)
         else:
             self.edges_budget = FixedEdgePercentageBudget(self.graphs_list, fixed_edge_percentage=self.max_edges_percentage)
+
+        # Init simulation statistics array
+        self.action_type_statistics = [[] for i in range(len(graphs_list))]
 
         self.steps_counter = 0
 
@@ -246,8 +258,11 @@ class GraphEnv:
     @staticmethod
     def calculate_reward(graph):
         prepared_data = graph.prepare_for_reward_evaluation()
-        irrigation = calculate_network_irrigation(*prepared_data, [10, 10], [100, 100])
+
+        irrigation = calculate_network_irrigation(*prepared_data, [10, 10], [0.1, 0.1])
 
         irrigation_score = np.mean(irrigation)
+        nodes_degree = np.array(list(graph.nx_graph.degree))
+        edges_score = np.mean(nodes_degree[1])
 
         return irrigation_score

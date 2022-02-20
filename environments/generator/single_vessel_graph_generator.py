@@ -1,12 +1,14 @@
 from copy import deepcopy
 
 import networkx as nx
+from matplotlib import pyplot as plt
 
 from environments.generator.fluid_network_node import FluidNetworkNode
 from environments.generator.full_graph_generator import FullGraphGenerator
 from environments.generator.graph_node import GraphNode
 from environments.generator.utils import id_generator
 from graphs.fluid_network_state import FluidNetworkState
+from util import draw_nx_graph_with_coordinates
 
 
 class SingleVesselGraphGenerator:

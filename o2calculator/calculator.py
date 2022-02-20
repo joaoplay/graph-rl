@@ -3,6 +3,7 @@ from collections import OrderedDict
 
 import numpy
 import numpy as np
+from matplotlib import pyplot as plt
 from numpy.ma import sqrt
 
 
@@ -152,12 +153,12 @@ def build_edges_source(edges, edges_features, pressures):
     return edges_source
 
 
-def build_source(edges, nodes_features, edges_source, env_size, n_cells):
+def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
     """
     Build source 3D map with source values. The number of cells in each dimension is determined by Lx, ly and Lz.
     Note that each cell is not necessarily a cube.
+    :param cell_size:
     :param n_cells:
-    :param env_size:
     :param edges: An edge list with shape (2, num_edges). [
                                                             [edge_1_start_node_id, edge_2_start_node_id]
                                                             [edge_1_end_node_id, edge_2_end_node_id]
@@ -168,12 +169,9 @@ def build_source(edges, nodes_features, edges_source, env_size, n_cells):
     """
     # Init source matrix with zeros
     source = np.zeros(n_cells)
-    n_cells = np.array(n_cells)
+    source_test = np.zeros(n_cells)
 
     n_dims = len(n_cells)
-
-    # Calculate the size of each cells, in each dimension (x, y and z)
-    grid_size = np.divide(env_size, n_cells, dtype=float)
 
     # Iterate over every edge
     for edge_idx in range(len(edges[0])):
@@ -187,20 +185,24 @@ def build_source(edges, nodes_features, edges_source, env_size, n_cells):
         # travelling
         min_coordinates = np.minimum(start_node_features[0:n_dims], end_node_features[0:n_dims], dtype=float)
         max_coordinates = np.maximum(start_node_features[0:n_dims], end_node_features[0:n_dims], dtype=float)
-        min_cell = np.divide(min_coordinates, grid_size, out=np.zeros_like(min_coordinates), where=grid_size != 0) \
+        min_cell = np.divide(min_coordinates, cell_size, out=np.zeros_like(min_coordinates), where=cell_size != 0) \
             .astype(int)
-        max_cell = np.divide(max_coordinates, grid_size, out=np.zeros_like(max_coordinates), where=grid_size != 0) \
+        max_cell = np.divide(max_coordinates, cell_size, out=np.zeros_like(max_coordinates), where=cell_size != 0) \
             .astype(int)
 
-        # FIXME: We need to support 2D and 3D. Remove for loop
+        indexes = (slice(min_cell[0], min(max_cell[0] + 1, n_cells[0])),
+                   slice(min_cell[1], min(max_cell[1] + 1, n_cells[1])))
 
-        for cell_x in range(min_cell[0], max_cell[0] + 1):
+        # FIXME: We need to support 2D and 3D.
+        source[indexes] = np.maximum(edges_source[edge_idx], source[indexes])
+
+        """for cell_x in range(min_cell[0], max_cell[0] + 1):
             for cell_y in range(min_cell[1], max_cell[1] + 1):
                 # This is here for the edge case where the cell is out of boundaries. We fix it to the previous cell
                 coordinates = np.minimum(np.array([cell_x, cell_y]), n_cells - 1)
                 # Set source of the current cell
-                source[coordinates[0], coordinates[1]] = np.maximum(edges_source[edge_idx],
-                                                                    source[coordinates[0], coordinates[1]])
+                source_test[coordinates[0], coordinates[1]] = np.maximum(edges_source[edge_idx],
+                                                                         source_test[coordinates[0], coordinates[1]])"""
 
     return source
 
@@ -249,7 +251,7 @@ def calculate_pressures(matrix, static_pressures):
     return np.dot(matrix, static_pressures)
 
 
-def calculate_network_irrigation(node_features, edges_list, edges_features, environment_dim, n_cells):
+def calculate_network_irrigation(node_features, edges_list, edges_features, environment_dim, cell_size):
     # Build matrix from adjacency matrix and features
     matrix = build_pressures_matrix(node_features, edges_list, edges_features)
     # Convert matrix to numpy
@@ -273,12 +275,15 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     edges_source = build_edges_source(edges=duplicated_free_edges, edges_features=edges_features,
                                       pressures=pressures)
 
+    np_environment_dim = np.array(environment_dim)
+    number_of_cells = np.divide((np_environment_dim - 1), cell_size).astype(int) + 1
+
     # Build matrix with number of cells in each dimension defined by L_X, L_Y, L_Z
     sources_by_cell = build_source(np.array(duplicated_free_edges), np.array(node_features), edges_source,
-                                   environment_dim, n_cells)
+                                   number_of_cells, cell_size)
 
     # Get k2
-    k2 = build_k2(n_cells[0], n_cells[1])
+    k2 = build_k2(number_of_cells[0], number_of_cells[1])
     # Calculate oxygen in each cell
     oxygen = calc_oxygen(sources_by_cell, k2, 1)
     oxygen = np.real(oxygen)
