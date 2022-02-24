@@ -1,10 +1,13 @@
 import logging
+import time
 from collections import OrderedDict
 
 import numpy
 import numpy as np
 from matplotlib import pyplot as plt
 from numpy.ma import sqrt
+
+from settings import BASE_PATH
 
 
 def remove_duplicated_edges(edges_list):
@@ -169,7 +172,6 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
     """
     # Init source matrix with zeros
     source = np.zeros(n_cells)
-    source_test = np.zeros(n_cells)
 
     n_dims = len(n_cells)
 
@@ -185,24 +187,36 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
         # travelling
         min_coordinates = np.minimum(start_node_features[0:n_dims], end_node_features[0:n_dims], dtype=float)
         max_coordinates = np.maximum(start_node_features[0:n_dims], end_node_features[0:n_dims], dtype=float)
+
         min_cell = np.divide(min_coordinates, cell_size, out=np.zeros_like(min_coordinates), where=cell_size != 0) \
             .astype(int)
         max_cell = np.divide(max_coordinates, cell_size, out=np.zeros_like(max_coordinates), where=cell_size != 0) \
             .astype(int)
 
-        indexes = (slice(min_cell[0], min(max_cell[0] + 1, n_cells[0])),
-                   slice(min_cell[1], min(max_cell[1] + 1, n_cells[1])))
+        max_cell = np.minimum(max_cell + 1, n_cells)
 
-        # FIXME: We need to support 2D and 3D.
-        source[indexes] = np.maximum(edges_source[edge_idx], source[indexes])
+        def find_cells_in_dim(dim):
+            points = []
+            for i in range(min_cell[dim], max_cell[dim]):
+                t = (i - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
+                temp = t * (max_cell - min_cell)
+                points += [tuple(np.add(min_cell, temp).astype(int))]
 
-        """for cell_x in range(min_cell[0], max_cell[0] + 1):
-            for cell_y in range(min_cell[1], max_cell[1] + 1):
-                # This is here for the edge case where the cell is out of boundaries. We fix it to the previous cell
-                coordinates = np.minimum(np.array([cell_x, cell_y]), n_cells - 1)
-                # Set source of the current cell
-                source_test[coordinates[0], coordinates[1]] = np.maximum(edges_source[edge_idx],
-                                                                         source_test[coordinates[0], coordinates[1]])"""
+            return points
+
+        pointsX = set(find_cells_in_dim(0))
+        pointsY = set(find_cells_in_dim(1))
+
+        all_points = pointsX | pointsY
+
+        row, cols = zip(*all_points)
+
+        source[row, cols] = np.maximum(edges_source[edge_idx], source[row, cols])
+
+
+    """fig, ax = plt.subplots()
+    ax.imshow(np.fliplr(source), cmap='hot', interpolation='nearest')
+    fig.savefig(f'{BASE_PATH}/test_images/sources-{time.time()}.png')"""
 
     return source
 
@@ -217,10 +231,16 @@ def build_k2(l_x, l_y):
     kx = np.zeros((l_x, l_y))
     ky = np.zeros((l_x, l_y))
 
-    for ix in range(l_x):
+    lx_fourier = np.fft.fftfreq(l_x) * (2 * np.pi)
+    ly_fourier = np.fft.fftfreq(l_y) * (2 * np.pi)
+
+    kx[:, np.arange(l_x)] = lx_fourier
+    ky[np.arange(l_y), :] = ly_fourier
+
+    """for ix in range(l_x):
         for iy in range(l_y):
             kx[:, iy] = np.fft.fftfreq(l_x) * (2 * np.pi)
-            ky[ix, :] = np.fft.fftfreq(l_y) * (2 * np.pi)
+            ky[ix, :] = np.fft.fftfreq(l_y) * (2 * np.pi) """
 
     k2 = sqrt(kx ** 2 + ky ** 2)
 
@@ -285,7 +305,7 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     # Get k2
     k2 = build_k2(number_of_cells[0], number_of_cells[1])
     # Calculate oxygen in each cell
-    oxygen = calc_oxygen(sources_by_cell, k2, 1)
+    oxygen = calc_oxygen(sources_by_cell, k2, 4)
     oxygen = np.real(oxygen)
 
     return oxygen

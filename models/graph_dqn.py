@@ -89,14 +89,14 @@ class GraphDQN(nn.Module):
         offset = 0
         banned_acts = []
         prefix_sum = prefix_sum_tensor.data.cpu().numpy()
-        no_action_available = torch.zeros(len(prefix_sum), dtype=torch.bool)
+        #no_action_available = torch.zeros(len(prefix_sum), dtype=torch.bool)
         for i in range(len(prefix_sum)):
             # Iterate all examples
             if forbidden_actions is not None and forbidden_actions[i] is not None:
                 # Check for forbidden actions
-                if len(forbidden_actions[i]) == prefix_sum[0]:
+                # if len(forbidden_actions[i]) == prefix_sum[0]:
                     # There are no available actions. This is a "no action" action
-                    no_action_available[i] = True
+                #    no_action_available[i] = True
 
                 # Store all forbidden actions. A very low q value will be assigned to those action in order to avoid
                 # them to be selected.
@@ -121,10 +121,14 @@ class GraphDQN(nn.Module):
 
         jagged = q_values.reshape(len(prefix_sum), prefix_sum[0])
 
+        #print(jagged)
+
         values, indices = torch.topk(jagged, 1, dim=1)
 
+        #print(indices, values)
+
         # Assign a "no action" (-1) to every example with no available actions
-        indices[no_action_available] = -1
+        # indices[no_action_available] = -1
 
         return indices, values
 

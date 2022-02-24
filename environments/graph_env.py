@@ -11,6 +11,7 @@ from graphs.edge_budget.base_edge_budget import BaseEdgeBudget
 from graphs.edge_budget.fixed_edge_percentage_budget import FixedEdgePercentageBudget
 from graphs.edge_budget.infinite_edge_budget import InfiniteEdgeBudget
 from graphs.graph_state import GraphState
+from settings import BASE_PATH
 from util import draw_nx_graph_with_coordinates
 
 REWARD_EPS = 1e-4
@@ -59,6 +60,8 @@ class GraphEnv:
         self.stop_after_void_action = stop_after_void_action
         self.max_edges_percentage = max_edges_percentage
         self.action_type_statistics = []
+
+        self.last_irrigation_map = None
 
     def step(self, actions):
         """
@@ -255,14 +258,23 @@ class GraphEnv:
 
         return rewards
 
-    @staticmethod
-    def calculate_reward(graph):
+    def calculate_reward(self, graph):
         prepared_data = graph.prepare_for_reward_evaluation()
 
+        if not prepared_data:
+            return 0
+
         irrigation = calculate_network_irrigation(*prepared_data, [10, 10], [0.1, 0.1])
+
+        # Update irrigation map
+        self.last_irrigation_map = irrigation
+
+        """fig, ax = plt.subplots()
+        ax.imshow(np.flip(irrigation), cmap='hot', interpolation='nearest')
+        fig.savefig(f'{BASE_PATH}/test_images/heatmap-{self.steps_counter}.png')"""
 
         irrigation_score = np.mean(irrigation)
         nodes_degree = np.array(list(graph.nx_graph.degree))
         edges_score = np.mean(nodes_degree[1])
 
-        return irrigation_score
+        return irrigation_score * 100

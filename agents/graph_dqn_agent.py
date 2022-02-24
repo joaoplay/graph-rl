@@ -1,5 +1,6 @@
 import itertools
 import logging
+import os
 from typing import Dict
 
 import numpy as np
@@ -17,7 +18,7 @@ from environments.graph_env import GraphEnv
 from graphs.graph_state import GraphState
 import neptune_logging
 from models.multi_action_mode_dqn import MultiActionModeDQN
-from settings import USE_CUDA
+from settings import USE_CUDA, BASE_PATH
 from util import draw_nx_graph_with_coordinates
 
 
@@ -160,7 +161,11 @@ class GraphDQNAgent(BaseAgent):
         # Initialize Adam optimizer
         optimizer = optim.Adam(self.q_networks.parameters(), lr=self.learning_rate)
         for self.current_training_step in range(max_steps):
-            log.info(f'Training Step: {self.current_training_step}')
+            # It's time to select a start node.
+            self.eps = self.eps_end + max(0., (self.eps_start - self.eps_end)
+                                          * (self.eps_step - max(0., self.current_training_step)) / self.eps_step)
+
+            log.info(f'Training Step: {self.current_training_step} | Epsilon: {self.eps}')
             with torch.no_grad():
                 # Sample a batch of data
                 data_batch = self.sample_batch(train_data, train_data_batch_sampler)
@@ -196,6 +201,8 @@ class GraphDQNAgent(BaseAgent):
                     # Store the corresponding index
                     not_finished_indexes += [i]
 
+            # print("Before: ", rewards_tensor)
+
             # Check whether at least one graph did not reach a final state
             if len(not_finished_next_states) > 0:
                 # Get forbidden actions for each graph
@@ -212,12 +219,17 @@ class GraphDQNAgent(BaseAgent):
                                                                                   prefix_sum_next, forbidden_actions)
 
                 # Save reward
-                rewards_tensor[not_finished_indexes] = q_rhs
+                rewards_tensor[not_finished_indexes] = q_rhs * 0.99 + rewards_tensor[not_finished_indexes]
 
             # Convert reward to (len(graph_list), 1) shape
             rewards_tensor = Variable(rewards_tensor.view(-1, 1))
+
+            # print("Next: ", rewards_tensor)
+
             # Get q-value for the current state
             _, q_sa, _ = self.q_networks(action_mode, states, actions)
+
+            # print("Current Q-Value: ", q_sa)
 
             # print("Rewards: ", rewards_tensor)
             # print("Max next state reward", q_sa)
@@ -280,8 +292,8 @@ class GraphDQNAgent(BaseAgent):
         # Get the environments state of each graphs
         cur_env_states = self.environment.current_state
         # Get action that maximizes Q-value (for each graph)
-        actions, _, _ = self.q_networks(action_mode=self.current_action_mode, states=cur_env_states, actions=None,
-                                        greedy_acts=True)
+        actions, q_values, _ = self.q_networks(action_mode=self.current_action_mode, states=cur_env_states, actions=None,
+                                               greedy_acts=True)
         actions = list(actions.view(-1).cpu().numpy())
 
         return actions
@@ -304,9 +316,6 @@ class GraphDQNAgent(BaseAgent):
 
         if self.current_action_mode == ACTION_MODE_SELECTING_START_NODE:
             #print("Selecting start node")
-            # It's time to select a start node.
-            self.eps = self.eps_end + max(0., (self.eps_start - self.eps_end)
-                                          * (self.eps_step - max(0., self.current_training_step)) / self.eps_step)
 
             if np.random.random() < self.eps:
                 # Select an exploratory action
@@ -321,7 +330,7 @@ class GraphDQNAgent(BaseAgent):
                 self.current_exploratory_actions = None
 
                 greedy_actions = self.choose_greedy_actions()
-                #print("Choosing greedy action: ", greedy_actions)
+                # print("Choosing greedy action: ", greedy_actions)
 
                 return greedy_actions
         else:
@@ -385,9 +394,16 @@ class GraphDQNAgent(BaseAgent):
             # Get actions of all non-terminal graphs
             non_terminal_graphs_actions = [actions[i] for i in non_terminal_graphs_idx]
             # The reward of all non-terminal graphs is ZERO
-            rewards = np.zeros(len(non_terminal_graphs_actions))
+            rewards = self.environment.calculate_reward_all_graphs() #np.zeros(len(non_terminal_graphs_actions))
             # Get new state for all non-terminal graphs
             non_terminal_graphs_next_state = self.environment.clone_current_state(non_exhausted_graphs_after)
+
+            """fig, ax = plt.subplots()
+            fig.suptitle(f'Step: {time_step}', fontsize=20)
+            draw_nx_graph_with_coordinates(self.environment.graphs_list[0].nx_graph, ax)
+            fig.savefig(f'{BASE_PATH}/test_images/graph-{time_step}.png')"""
+
+            # print(f"Step: {time_step} | Instant rewards: {rewards}")
 
             # Get all graphs that became exhausted after the previous action.
             # Since they are completed, it's time to save the
@@ -421,7 +437,6 @@ class GraphDQNAgent(BaseAgent):
         # Simulation is over! Now we need to store the final states in the experience buffer.
         rewards = self.environment.calculate_reward_all_graphs()
 
-        log.info(f"Mean Reward: {np.mean(rewards)} | Reward Std: {np.std(rewards)}")
         neptune_logging.log_training_simulation_results(np.mean(rewards))
 
         #fig, ax = plt.subplots()

@@ -70,6 +70,10 @@ class FluidNetworkState(GraphState):
         node_features_by_node = list(nx_graph_copy.nodes.data())
         node_features_by_node.sort()
         node_features = [list(node[1].values()) for node in node_features_by_node]
-        edges_features = [[1] for _ in range(len(edges_list[0]))]
+
+        if len(edges_list) > 0:
+            edges_features = [[1] for _ in range(len(edges_list[0]))]
+        else:
+            return None
 
         return node_features, edges_list, edges_features

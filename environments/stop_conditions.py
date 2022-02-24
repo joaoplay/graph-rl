@@ -1,5 +1,7 @@
 from abc import abstractmethod, ABC
 
+import numpy as np
+
 
 class StopCondition(ABC):
 
@@ -22,3 +24,8 @@ class AllGraphsExhausted(StopCondition):
 
     def is_satisfied(self, environment):
         return environment.edges_budget.all_graphs_are_exhausted
+
+"""class IrrigationThresholdAchieved(StopCondition):
+    
+    def is_satisfied(self, environment):
+        return np.all(self.)"""
