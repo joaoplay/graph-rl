@@ -62,6 +62,7 @@ class GraphEnv:
         self.action_type_statistics = []
 
         self.last_irrigation_map = None
+        self.last_sources = None
 
     def step(self, actions):
         """
@@ -264,16 +265,20 @@ class GraphEnv:
         if not prepared_data:
             return 0
 
-        irrigation = calculate_network_irrigation(*prepared_data, [10, 10], [0.1, 0.1])
+        irrigation, sources = calculate_network_irrigation(*prepared_data, [10, 10], [0.1, 0.1])
+
+        sections_x = np.array_split(irrigation, 20, axis=0)
+        sections_y = np.array_split(irrigation, 20, axis=1)
+
+        irrigation_score_x = sum([np.mean(section) for section in sections_x])
+        irrigation_score_y = sum([np.mean(section) for section in sections_y])
+
+        irrigation_score = (irrigation_score_x + irrigation_score_y) / 2.0
 
         # Update irrigation map
         self.last_irrigation_map = irrigation
+        self.last_sources = sources
 
-        """fig, ax = plt.subplots()
-        ax.imshow(np.flip(irrigation), cmap='hot', interpolation='nearest')
-        fig.savefig(f'{BASE_PATH}/test_images/heatmap-{self.steps_counter}.png')"""
-
-        irrigation_score = np.mean(irrigation)
         nodes_degree = np.array(list(graph.nx_graph.degree))
         edges_score = np.mean(nodes_degree[1])
 

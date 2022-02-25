@@ -27,3 +27,11 @@ def upload_graph_plot(plot, iteration):
 def upload_action_frequency(plot, iteration, graph_idx):
     NEPTUNE_INSTANCE[f'validation/visualization/action-frequency/hist-it{iteration}-graph{graph_idx}.jpeg'].upload(
         File.as_image(plot))
+
+
+def upload_irrigation_heatmaps(sources_heatmap, irrigation_heatmap, iteration, stage):
+    NEPTUNE_INSTANCE[f'{stage}/visualization/irrigation_heatmap/sources-heatmap-{iteration}.jpeg'].upload(
+        File.as_image(sources_heatmap))
+    NEPTUNE_INSTANCE[f'{stage}/visualization/irrigation_heatmap/irrigation-heatmap-{iteration}.jpeg'].upload(
+        File.as_image(irrigation_heatmap))
+

@@ -25,7 +25,21 @@ class AllGraphsExhausted(StopCondition):
     def is_satisfied(self, environment):
         return environment.edges_budget.all_graphs_are_exhausted
 
-"""class IrrigationThresholdAchieved(StopCondition):
+
+class IrrigationThresholdAchieved(StopCondition):
     
     def is_satisfied(self, environment):
-        return np.all(self.)"""
+        irrigation_map = environment.last_irrigation_map
+
+        if irrigation_map is None:
+            return False
+
+        sections_x = np.array_split(irrigation_map, 20, axis=0)
+        sections_y = np.array_split(irrigation_map, 20, axis=1)
+
+        satisfied_x = all([np.all(section > 0.5) for section in sections_x])
+        satisfied_y = all( [np.all(section > 0.5) for section in sections_y])
+
+        # print(f"Sections X Satisfied: {satisfied_x} | Sections Y Satisfied: {satisfied_y}")
+
+        return satisfied_x and satisfied_y
