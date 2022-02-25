@@ -106,7 +106,7 @@ class GraphState:
             nx_graph_clone.add_edge(start_node, end_node)
             edge_cost = DEFAULT_EDGE_INSERTION_COST
 
-        graph_state = self.__class__(nx_graph_clone, deepcopy(self.nx_neighbourhood_graph))
+        graph_state = self.__class__(nx_graph_clone, self.nx_neighbourhood_graph)
 
         return graph_state, edge_cost
 
@@ -120,14 +120,14 @@ class GraphState:
         nx_graph_clone = deepcopy(self.nx_graph)
         nx_graph_clone.add_edge(start_node, end_node)
 
-        graph_state = self.__class__(nx_graph_clone, deepcopy(self.nx_neighbourhood_graph))
+        graph_state = self.__class__(nx_graph_clone, self.nx_neighbourhood_graph)
         return graph_state, DEFAULT_EDGE_INSERTION_COST
 
     def remove_edge(self, start_node, end_node):
         nx_graph_clone = deepcopy(self.nx_graph)
         nx_graph_clone.remove_edge(start_node, end_node)
 
-        graph_state = self.__class__(nx_graph_clone, deepcopy(self.nx_neighbourhood_graph))
+        graph_state = self.__class__(nx_graph_clone, self.nx_neighbourhood_graph)
         return graph_state, -DEFAULT_EDGE_INSERTION_COST
 
     def get_node_features(self):

@@ -1,6 +1,8 @@
 import itertools
 import logging
 import os
+import time
+from copy import deepcopy
 from typing import Dict
 
 import numpy as np
@@ -237,8 +239,6 @@ class GraphDQNAgent(BaseAgent):
             # Calculate loss and gradients. Back-Propagate gradients
             loss = nn.MSELoss()(q_sa, rewards_tensor)
 
-            log.info(f'Training Loss: {loss}')
-
             neptune_logging.log_batch_training_result(loss, rewards_tensor)
 
             optimizer.zero_grad()
@@ -368,35 +368,64 @@ class GraphDQNAgent(BaseAgent):
         # Inti current time step to 0
         time_step = 0
         while not self.environment.is_terminal():
+            start = time.time()
             # Set the current action mode
             self.current_action_mode = next(action_mode_selector)
             # Decide the next action. Both greedy and exploratory actions are considered.
             actions = self.choose_actions(execute_exploratory_actions=True)
 
-            # Keep track on the non-exhausted graphs before stepping forward
-            non_exhausted_indices_before = self.environment.non_exhausted_graph_ids
-            # Clone the state of each graph in the current batch
-            non_exhausted_graphs_before = self.environment.clone_current_state(non_exhausted_indices_before)
+            #end = time.time()
 
+            #print(f"Elapsed 1: {end-start}")
+
+            #start = time.time()
+            # Keep track on the non-exhausted graphs before stepping forward
+            #non_exhausted_indices_before = self.environment.non_exhausted_graph_ids
+            # Clone the state of each graph in the current batch
+            #non_exhausted_graphs_before = self.environment.clone_current_state(non_exhausted_indices_before)
+
+            graphs_before = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in deepcopy(self.environment.graphs_list)]
+
+            #end = time.time()
+            #print(f"Elapsed 2: {end - start}")
+
+            #start = time.time()
             # Execute actions and step forward
             self.environment.step(actions)
 
+            #end = time.time()
+            #print(f"Elapsed 3: {end - start}")
+
+            #start = time.time()
             # Get IDs of all non_exhausted graphs.
-            non_exhausted_graphs_after = self.environment.non_exhausted_graph_ids
+            #non_exhausted_graphs_after = self.environment.non_exhausted_graph_ids
             # Get IDs of all exhausted graphs.
-            exhausted_graphs_after = self.environment.exhausted_graph_ids
+            #exhausted_graphs_after = self.environment.exhausted_graph_ids
 
             # From those graphs not exhausted before stepping the environments forward, we are going to get those which still
             # non-exhausted.
-            non_terminal_graphs_idx = np.flatnonzero(np.isin(non_exhausted_indices_before, non_exhausted_graphs_after))
+            #non_terminal_graphs_idx = np.flatnonzero(np.isin(non_exhausted_indices_before, non_exhausted_graphs_after))
             # Get states of all non-terminal graphs
-            non_terminal_graphs_states = [non_exhausted_graphs_before[i] for i in non_terminal_graphs_idx]
+            #non_terminal_graphs_states = [non_exhausted_graphs_before[i] for i in non_terminal_graphs_idx]
             # Get actions of all non-terminal graphs
-            non_terminal_graphs_actions = [actions[i] for i in non_terminal_graphs_idx]
+            #non_terminal_graphs_actions = [actions[i] for i in non_terminal_graphs_idx]
+
+            #end = time.time()
+            #print(f"Elapsed 4: {end - start}")
+
+            #start = time.time()
             # The reward of all non-terminal graphs is ZERO
             rewards = self.environment.calculate_reward_all_graphs() #np.zeros(len(non_terminal_graphs_actions))
+
+            #end = time.time()
+            #print(f"Elapsed 5: {end - start}")
+
+            #start = time.time()
             # Get new state for all non-terminal graphs
-            non_terminal_graphs_next_state = self.environment.clone_current_state(non_exhausted_graphs_after)
+            #non_terminal_graphs_next_state = self.environment.clone_current_state(non_exhausted_graphs_after)
+
+            #end = time.time()
+            #print(f"Elapsed 6: {end - start}")
 
             """fig, ax = plt.subplots()
             fig.suptitle(f'Step: {time_step}', fontsize=20)
@@ -407,29 +436,31 @@ class GraphDQNAgent(BaseAgent):
 
             # Get all graphs that became exhausted after the previous action.
             # Since they are completed, it's time to save the
-            terminal_graphs_idx = np.flatnonzero(np.isin(non_exhausted_indices_before, exhausted_graphs_after))
+            #terminal_graphs_idx = np.flatnonzero(np.isin(non_exhausted_indices_before, exhausted_graphs_after))
 
-            terminal_graphs_states = [non_exhausted_graphs_before[i] for i in terminal_graphs_idx]
-            for i in range(len(terminal_graphs_states)):
+            #terminal_graphs_states = [non_exhausted_graphs_before[i] for i in terminal_graphs_idx]
+            #for i in range(len(terminal_graphs_states)):
                 # Get the corresponding graph ID
-                graph_idx = non_exhausted_indices_before[terminal_graphs_idx[i]]
+            #    graph_idx = non_exhausted_indices_before[terminal_graphs_idx[i]]
 
                 # Store the state before applying the previous action
-                final_states[graph_idx] = terminal_graphs_states[i]
+            #    final_states[graph_idx] = terminal_graphs_states[i]
                 # Store the final action
-                final_actions[graph_idx] = actions[i]
+            #    final_actions[graph_idx] = actions[i]
+
+            graphs_states = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in self.environment.graphs_list]
 
             # For now, we deal with non-terminal graphs, storing the corresponding (state, action, reward, is_terminal, nex_state)
             # Note that reward is ZERO for every graph. Actually, no intermediate rewards are considered. Reward is episodic!
-            if len(non_terminal_graphs_actions) > 0:
-                # Add new entry to the replay buffer
-                experience_buffer = self.experience_buffers.get_experience_buffer(self.current_action_mode)
+            # if len(non_terminal_graphs_actions) > 0:
+            # Add new entry to the replay buffer
+            experience_buffer = self.experience_buffers.get_experience_buffer(self.current_action_mode)
 
-                #print(f"Adding Experience Intermediate: {non_terminal_graphs_states}")
+            #print(f"Adding Experience Intermediate: {non_terminal_graphs_states}")
 
-                experience_buffer.append_many(non_terminal_graphs_states, non_terminal_graphs_actions, rewards,
-                                              [False] * len(non_terminal_graphs_actions),
-                                              non_terminal_graphs_next_state)
+            experience_buffer.append_many(graphs_before, actions, rewards,
+                                          [False] * len(graphs_states),
+                                          graphs_states)
 
             # Increment time step
             time_step += 1
@@ -447,7 +478,8 @@ class GraphDQNAgent(BaseAgent):
         #        conditions.
         for graph_idx in range(len(graphs)):
             if final_states[graph_idx] is None:
-                final_states[graph_idx] = self.environment.clone_current_state(graph_indexes=[graph_idx])[0]
+                graph_state = self.environment.graphs_list[graph_idx]
+                final_states[graph_idx] = (graph_state, graph_state.selected_start_node, graph_state.forbidden_actions)
                 final_actions[graph_idx] = actions[graph_idx]
 
         #print(f"Adding Experience Final: {final_states}")
