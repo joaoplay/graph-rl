@@ -10,3 +10,5 @@ NEPTUNE_INSTANCE = neptune.init(project="jbsimoes/graph-rl",
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 
 USE_CUDA = os.getenv("USE_CUDA", 0)
+
+print(f"USE_CUDA={USE_CUDA}")

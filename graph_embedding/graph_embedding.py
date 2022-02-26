@@ -21,7 +21,7 @@ from pytorch_util import weights_init
 class MySpMM(torch.autograd.Function):
     @staticmethod
     def forward(ctx, sp_mat, dense_mat):
-        if USE_CUDA:
+        if USE_CUDA == 1:
             sp_mat = sp_mat.cuda()
             dense_mat = dense_mat.cuda()
 

@@ -109,13 +109,13 @@ class GraphDQN(nn.Module):
         q_values.resize_(len(q_values))
 
         banned = torch.LongTensor(banned_acts)
-        if USE_CUDA:
+        if USE_CUDA == 1:
             banned = banned.cuda()
 
         if len(banned_acts):
             # Apply a very low q value to forbidden actions
             min_tensor = torch.tensor(float(np.finfo(np.float32).min))
-            if USE_CUDA:
+            if USE_CUDA == 1:
                 min_tensor = min_tensor.cuda()
             q_values.index_fill_(0, banned, min_tensor)
 
@@ -145,7 +145,7 @@ class GraphDQN(nn.Module):
             rep_idx += [i] * n_nodes
 
         rep_idx = Variable(torch.LongTensor(rep_idx))
-        if USE_CUDA:
+        if USE_CUDA == 1:
             rep_idx = rep_idx.cuda()
         graph_embed = torch.index_select(graph_embed, 0, rep_idx)
         return graph_embed
@@ -169,7 +169,7 @@ class GraphDQN(nn.Module):
 
         node_features, prefix_sum = self.prepare_node_features(graphs, selected_nodes)
 
-        if USE_CUDA:
+        if USE_CUDA == 1:
             node_features = node_features.cuda()
             prefix_sum = prefix_sum.cuda()
 
