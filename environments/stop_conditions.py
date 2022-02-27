@@ -1,6 +1,7 @@
 from abc import abstractmethod, ABC
 
 import numpy as np
+import torch
 
 
 class StopCondition(ABC):
@@ -34,11 +35,11 @@ class IrrigationThresholdAchieved(StopCondition):
         if irrigation_map is None:
             return False
 
-        sections_x = np.array_split(irrigation_map, 20, axis=0)
-        sections_y = np.array_split(irrigation_map, 20, axis=1)
+        sections_x = torch.tensor_split(irrigation_map, 20, dim=0)
+        sections_y = torch.tensor_split(irrigation_map, 20, dim=1)
 
-        satisfied_x = all([np.all(section > 0.5) for section in sections_x])
-        satisfied_y = all( [np.all(section > 0.5) for section in sections_y])
+        satisfied_x = all([torch.all(section > 0.5) for section in sections_x])
+        satisfied_y = all([torch.all(section > 0.5) for section in sections_y])
 
         # print(f"Sections X Satisfied: {satisfied_x} | Sections Y Satisfied: {satisfied_y}")
 
