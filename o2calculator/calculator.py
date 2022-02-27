@@ -197,22 +197,22 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
         max_cell = np.minimum(max_cell + 1, n_cells)
 
         def find_cells_in_dim(dim):
-            points = []
-            for i in range(min_cell[dim], max_cell[dim]):
+            t = (np.arange(min_cell[dim], max_cell[dim]) - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
+            repeated = np.tile(max_cell - min_cell, (t.size, 1))
+            temp = t.reshape(-1, 1) * repeated
+            points = np.add(min_cell, temp)
+
+            """for i in range(min_cell[dim], max_cell[dim]):
                 t = (i - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
                 temp = t * (max_cell - min_cell)
-                points += [tuple(np.add(min_cell, temp).astype(int))]
+                points += [tuple(np.add(min_cell, temp).astype(int))]"""
 
             return points
 
-        pointsX = set(find_cells_in_dim(0))
-        pointsY = set(find_cells_in_dim(1))
+        pointsX = find_cells_in_dim(0).astype(int)
+        pointsY = find_cells_in_dim(1).astype(int)
 
-        all_points = pointsX | pointsY
-
-        row, cols = zip(*all_points)
-
-        source[row, cols] = np.maximum(edges_source[edge_idx], source[row, cols])
+        source[pointsX, pointsY] = np.maximum(edges_source[edge_idx], source[pointsX, pointsY])
 
 
     """fig, ax = plt.subplots()

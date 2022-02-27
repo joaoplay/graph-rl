@@ -94,19 +94,17 @@ class GraphState:
         self.selected_start_node = start_node_id
 
     def add_or_remove_edge(self, start_node, end_node):
-        nx_graph_clone = deepcopy(self.nx_graph)
-
-        if nx_graph_clone.has_edge(start_node, end_node):
-            nx_graph_clone.remove_edge(start_node, end_node)
+        if self.nx_graph.has_edge(start_node, end_node):
+            self.nx_graph.remove_edge(start_node, end_node)
             edge_cost = -DEFAULT_EDGE_INSERTION_COST
-        elif nx_graph_clone.has_edge(end_node, start_node):
-            nx_graph_clone.remove_edge(end_node, start_node)
+        elif self.nx_graph.has_edge(end_node, start_node):
+            self.nx_graph.remove_edge(end_node, start_node)
             edge_cost = -DEFAULT_EDGE_INSERTION_COST
         else:
-            nx_graph_clone.add_edge(start_node, end_node)
+            self.nx_graph.add_edge(start_node, end_node)
             edge_cost = DEFAULT_EDGE_INSERTION_COST
 
-        graph_state = self.__class__(nx_graph_clone, self.nx_neighbourhood_graph)
+        graph_state = self.__class__(self.nx_graph, self.nx_neighbourhood_graph)
 
         return graph_state, edge_cost
 
@@ -117,14 +115,14 @@ class GraphState:
         :param end_node:
         :return: A new object (deep copy of the nx_graph) is returned
         """
-        nx_graph_clone = deepcopy(self.nx_graph)
+        nx_graph_clone = self.nx_graph
         nx_graph_clone.add_edge(start_node, end_node)
 
         graph_state = self.__class__(nx_graph_clone, self.nx_neighbourhood_graph)
         return graph_state, DEFAULT_EDGE_INSERTION_COST
 
     def remove_edge(self, start_node, end_node):
-        nx_graph_clone = deepcopy(self.nx_graph)
+        nx_graph_clone = self.nx_graph
         nx_graph_clone.remove_edge(start_node, end_node)
 
         graph_state = self.__class__(nx_graph_clone, self.nx_neighbourhood_graph)
