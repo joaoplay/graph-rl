@@ -380,7 +380,7 @@ class GraphDQNAgent(BaseAgent):
             self.environment.step(actions)
 
             # Calculate reward
-            rewards = self.environment.calculate_reward_all_graphs()
+            rewards = np.zeros(len(self.environment.graphs_list)) #self.environment.calculate_reward_all_graphs()
 
             graphs_states = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in self.environment.graphs_list]
 
