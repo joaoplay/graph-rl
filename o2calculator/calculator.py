@@ -277,12 +277,16 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     # Convert matrix to numpy
     np_matrix = np.array(matrix)
 
+    print("Inverting Matrix!")
+
     # Invert matrix
     try:
         reverse_matrix = np.linalg.inv(np_matrix)
     except numpy.linalg.LinAlgError:
         logging.error("Not invertible. Assigning reward 0")
         return 0
+
+    print("Finished!")
 
     # Calculate static pressures
     static_pressures = np.array([node[3] for node in node_features])
