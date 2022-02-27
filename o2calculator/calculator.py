@@ -174,8 +174,8 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
     # Init source matrix with zeros
     source = torch.zeros(n_cells.tolist())
 
-    if USE_CUDA == 1:
-        source.cuda()
+    #if USE_CUDA == 1:
+    #    source.cuda()
 
     n_dims = len(n_cells)
 
@@ -279,8 +279,8 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     # Convert matrix to numpy
     pressures_tensor = torch.FloatTensor(matrix)
 
-    if USE_CUDA == 1:
-        pressures_tensor.cuda()
+    #if USE_CUDA == 1:
+    #    pressures_tensor.cuda()
 
     # Invert matrix
     try:
@@ -293,9 +293,9 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     static_pressures = torch.FloatTensor([node[3] for node in node_features])
     cell_size_tensor = torch.FloatTensor(cell_size)
 
-    if USE_CUDA == 1:
-        cell_size_tensor = torch.FloatTensor(cell_size)
-        static_pressures.cuda()
+    #if USE_CUDA == 1:
+    #    cell_size_tensor = torch.FloatTensor(cell_size)
+    #    static_pressures.cuda()
 
     # Calculate pressure in each node
     pressures = calculate_pressures(reverse_matrix, static_pressures)
@@ -312,11 +312,11 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     duplicated_free_edges_tensor = torch.IntTensor(duplicated_free_edges)
     node_features_tensor = torch.FloatTensor(node_features)
 
-    if USE_CUDA == 1:
-        np_environment_dim.cuda()
-        number_of_cells.cuda()
-        duplicated_free_edges_tensor.cuda()
-        node_features_tensor.cuda()
+    #if USE_CUDA == 1:
+    #    np_environment_dim.cuda()
+    #    number_of_cells.cuda()
+    #    duplicated_free_edges_tensor.cuda()
+    #    node_features_tensor.cuda()
 
     # Build matrix with number of cells in each dimension defined by L_X, L_Y, L_Z
     sources_by_cell = build_source(duplicated_free_edges_tensor, node_features_tensor, edges_source,
