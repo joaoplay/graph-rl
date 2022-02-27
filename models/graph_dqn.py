@@ -169,6 +169,8 @@ class GraphDQN(nn.Module):
 
         node_features, prefix_sum = self.prepare_node_features(graphs, selected_nodes)
 
+        print("Here")
+
         if USE_CUDA == 1:
             print("Moving node features to CUDA!")
             node_features = node_features.cuda()
