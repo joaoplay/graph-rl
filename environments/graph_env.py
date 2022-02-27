@@ -2,6 +2,7 @@ from copy import deepcopy
 from typing import Optional, List
 
 import numpy as np
+import torch
 from matplotlib import pyplot as plt
 
 from o2calculator.calculator import calculate_network_irrigation
@@ -267,11 +268,11 @@ class GraphEnv:
 
         irrigation, sources = calculate_network_irrigation(*prepared_data, [10, 10], [0.1, 0.1])
 
-        sections_x = np.array_split(irrigation, 20, axis=0)
-        sections_y = np.array_split(irrigation, 20, axis=1)
+        sections_x = torch.tensor_split(irrigation, 20, dim=0)
+        sections_y = torch.tensor_split(irrigation, 20, dim=1)
 
-        irrigation_score_x = sum([np.mean(section) for section in sections_x])
-        irrigation_score_y = sum([np.mean(section) for section in sections_y])
+        irrigation_score_x = sum([torch.mean(section) for section in sections_x])
+        irrigation_score_y = sum([torch.mean(section) for section in sections_y])
 
         irrigation_score = (irrigation_score_x + irrigation_score_y) / 2.0
 

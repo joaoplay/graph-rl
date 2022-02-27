@@ -172,7 +172,10 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
     :return:
     """
     # Init source matrix with zeros
-    source = np.zeros(n_cells)
+    source = torch.zeros(n_cells.tolist())
+
+    if USE_CUDA == 1:
+        source.cuda()
 
     n_dims = len(n_cells)
 
@@ -186,22 +189,20 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
 
         # Calculate the start and ending cell. It will be useful to iterate over all cells wherein the current edge is
         # travelling
-        min_coordinates = np.minimum(start_node_features[0:n_dims], end_node_features[0:n_dims], dtype=float)
-        max_coordinates = np.maximum(start_node_features[0:n_dims], end_node_features[0:n_dims], dtype=float)
+        min_coordinates = torch.minimum(start_node_features[0:n_dims], end_node_features[0:n_dims])
+        max_coordinates = torch.maximum(start_node_features[0:n_dims], end_node_features[0:n_dims])
 
-        min_cell = np.divide(min_coordinates, cell_size, out=np.zeros_like(min_coordinates), where=cell_size != 0) \
-            .astype(int)
-        max_cell = np.divide(max_coordinates, cell_size, out=np.zeros_like(max_coordinates), where=cell_size != 0) \
-            .astype(int)
+        min_cell = torch.divide(min_coordinates, cell_size).type(torch.IntTensor)
+        max_cell = torch.divide(max_coordinates, cell_size).type(torch.IntTensor)
 
-        max_cell = np.minimum(max_cell + 1, n_cells)
+        max_cell = torch.minimum(max_cell + 1, n_cells)
 
         def find_cells_in_dim(dim):
             points = []
             for i in range(min_cell[dim], max_cell[dim]):
                 t = (i - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
                 temp = t * (max_cell - min_cell)
-                points += [tuple(np.add(min_cell, temp).astype(int))]
+                points += [tuple(torch.add(min_cell, temp).type(torch.IntTensor))]
 
             return points
 
@@ -212,7 +213,7 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
 
         row, cols = zip(*all_points)
 
-        source[row, cols] = np.maximum(edges_source[edge_idx], source[row, cols])
+        source[row, cols] = torch.maximum(edges_source[edge_idx], source[row, cols])
 
 
     """fig, ax = plt.subplots()
@@ -229,21 +230,21 @@ def build_k2(l_x, l_y):
     :param l_y:
     :return:
     """
-    kx = np.zeros((l_x, l_y))
-    ky = np.zeros((l_x, l_y))
+    kx = torch.zeros((l_x, l_y))
+    ky = torch.zeros((l_x, l_y))
 
-    lx_fourier = np.fft.fftfreq(l_x) * (2 * np.pi)
-    ly_fourier = np.fft.fftfreq(l_y) * (2 * np.pi)
+    lx_fourier = torch.fft.fftfreq(l_x) * (2 * torch.pi)
+    ly_fourier = torch.fft.fftfreq(l_y) * (2 * torch.pi)
 
-    kx[:, np.arange(l_x)] = lx_fourier
-    ky[np.arange(l_y), :] = ly_fourier
+    kx[:, torch.arange(l_x)] = lx_fourier
+    ky[torch.arange(l_y), :] = ly_fourier
 
     """for ix in range(l_x):
         for iy in range(l_y):
             kx[:, iy] = np.fft.fftfreq(l_x) * (2 * np.pi)
             ky[ix, :] = np.fft.fftfreq(l_y) * (2 * np.pi) """
 
-    k2 = sqrt(kx ** 2 + ky ** 2)
+    k2 = torch.sqrt(kx ** 2 + ky ** 2)
 
     return k2
 
@@ -256,9 +257,9 @@ def calc_oxygen(source, k2, oxygen_diff_length):
     :param k2:
     :return:
     """
-    source_k = np.fft.fftn(source)
+    source_k = torch.fft.fftn(source)
     o2_k = source_k / (k2 + 1 / oxygen_diff_length)
-    o2 = np.fft.ifftn(o2_k)
+    o2 = torch.fft.ifftn(o2_k)
     return o2
 
 
@@ -269,7 +270,7 @@ def calculate_pressures(matrix, static_pressures):
     :param static_pressures:
     :return:
     """
-    return np.dot(matrix, static_pressures)
+    return torch.matmul(matrix, static_pressures)
 
 
 def calculate_network_irrigation(node_features, edges_list, edges_features, environment_dim, cell_size):
@@ -281,8 +282,6 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     if USE_CUDA == 1:
         pressures_tensor.cuda()
 
-    start = time.time()
-
     # Invert matrix
     try:
         reverse_matrix = torch.linalg.inv(pressures_tensor)
@@ -290,14 +289,14 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
         logging.error("Not invertible. Assigning reward 0")
         return 0
 
-    end = time.time()
-
-    print(f"Invert: {end - start}")
-
-    reverse_matrix.cpu().detach().numpy()
-
     # Calculate static pressures
-    static_pressures = np.array([node[3] for node in node_features])
+    static_pressures = torch.FloatTensor([node[3] for node in node_features])
+    cell_size_tensor = torch.FloatTensor(cell_size)
+
+    if USE_CUDA == 1:
+        cell_size_tensor = torch.FloatTensor(cell_size)
+        static_pressures.cuda()
+
     # Calculate pressure in each node
     pressures = calculate_pressures(reverse_matrix, static_pressures)
 
@@ -307,17 +306,26 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     edges_source = build_edges_source(edges=duplicated_free_edges, edges_features=edges_features,
                                       pressures=pressures)
 
-    np_environment_dim = np.array(environment_dim)
-    number_of_cells = np.divide((np_environment_dim - 1), cell_size).astype(int) + 1
+    np_environment_dim = torch.FloatTensor(environment_dim)
+    number_of_cells = torch.divide((np_environment_dim - 1), cell_size_tensor).type(torch.IntTensor) + 1
+
+    duplicated_free_edges_tensor = torch.IntTensor(duplicated_free_edges)
+    node_features_tensor = torch.FloatTensor(node_features)
+
+    if USE_CUDA == 1:
+        np_environment_dim.cuda()
+        number_of_cells.cuda()
+        duplicated_free_edges_tensor.cuda()
+        node_features_tensor.cuda()
 
     # Build matrix with number of cells in each dimension defined by L_X, L_Y, L_Z
-    sources_by_cell = build_source(np.array(duplicated_free_edges), np.array(node_features), edges_source,
-                                   number_of_cells, cell_size)
+    sources_by_cell = build_source(duplicated_free_edges_tensor, node_features_tensor, edges_source,
+                                   number_of_cells, cell_size_tensor)
 
     # Get k2
     k2 = build_k2(number_of_cells[0], number_of_cells[1])
     # Calculate oxygen in each cell
     oxygen = calc_oxygen(sources_by_cell, k2, 10)
-    oxygen = np.real(oxygen)
+    oxygen = torch.real(oxygen)
 
     return oxygen, sources_by_cell
