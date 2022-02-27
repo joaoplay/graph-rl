@@ -277,7 +277,7 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     # Convert matrix to numpy
     np_matrix = np.array(matrix)
 
-    print("Inverting Matrix!")
+    start = time.time()
 
     # Invert matrix
     try:
@@ -286,7 +286,9 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
         logging.error("Not invertible. Assigning reward 0")
         return 0
 
-    print("Finished!")
+    end = time.time()
+
+    print(f"Invert: {end - start}")
 
     # Calculate static pressures
     static_pressures = np.array([node[3] for node in node_features])
