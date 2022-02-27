@@ -273,7 +273,7 @@ def calculate_pressures(matrix, static_pressures):
 
 
 def calculate_network_irrigation(node_features, edges_list, edges_features, environment_dim, cell_size):
-    start = time.time()
+    #start = time.time()
 
     # Build matrix from adjacency matrix and features
     matrix = build_pressures_matrix(node_features, edges_list, edges_features)
@@ -317,8 +317,8 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     oxygen = calc_oxygen(sources_by_cell, k2, 10)
     oxygen = np.real(oxygen)
 
-    end = time.time()
+    #end = time.time()
 
-    print(f"Time to Evaluate Reward: {end - start}")
+    #print(f"Time to Evaluate Reward: {end - start}")
 
     return oxygen, sources_by_cell
