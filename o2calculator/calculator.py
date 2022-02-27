@@ -4,10 +4,11 @@ from collections import OrderedDict
 
 import numpy
 import numpy as np
+import torch
 from matplotlib import pyplot as plt
 from numpy.ma import sqrt
 
-from settings import BASE_PATH
+from settings import BASE_PATH, USE_CUDA
 
 
 def remove_duplicated_edges(edges_list):
@@ -275,20 +276,25 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     # Build matrix from adjacency matrix and features
     matrix = build_pressures_matrix(node_features, edges_list, edges_features)
     # Convert matrix to numpy
-    np_matrix = np.array(matrix)
+    pressures_tensor = torch.FloatTensor(matrix)
+
+    if USE_CUDA == 1:
+        pressures_tensor.cuda()
 
     start = time.time()
 
     # Invert matrix
     try:
-        reverse_matrix = np.linalg.inv(np_matrix)
-    except numpy.linalg.LinAlgError:
+        reverse_matrix = torch.linalg.inv(pressures_tensor)
+    except RuntimeError:
         logging.error("Not invertible. Assigning reward 0")
         return 0
 
     end = time.time()
 
     print(f"Invert: {end - start}")
+
+    reverse_matrix.cpu().detach().numpy()
 
     # Calculate static pressures
     static_pressures = np.array([node[3] for node in node_features])
