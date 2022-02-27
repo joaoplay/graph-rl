@@ -292,9 +292,9 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
 
     end = time.time()
 
-    print(f"Invert: {end - start}")
-
     reverse_matrix.cpu().detach().numpy()
+
+    print(f"Invert: {end - start}")
 
     # Calculate static pressures
     static_pressures = np.array([node[3] for node in node_features])
