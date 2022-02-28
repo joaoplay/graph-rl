@@ -280,7 +280,7 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     # Convert matrix to numpy
 
     if USE_CUDA == 1:
-        pressures_tensor = torch.FloatTensor(matrix, device=torch.device('cuda:0'))
+        pressures_tensor = torch.FloatTensor(matrix, device='cuda')
     else:
         pressures_tensor = torch.FloatTensor(matrix)
 
