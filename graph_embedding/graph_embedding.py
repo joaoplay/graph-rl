@@ -66,7 +66,7 @@ class EmbedMeanField(nn.Module):
 
     def forward(self, graph_list, node_feat, edge_feat, pool_global=True, n2n_grad=False, e2n_grad=False):
         n2n_sp, e2n_sp, subg_sp = S2VLIB.PrepareMeanField(graph_list)
-        if type(node_feat) is torch.cuda.FloatTensor:
+        if node_feat.is_cuda:
             print("Moving to Cuda")
             n2n_sp = n2n_sp.cuda()
             e2n_sp = e2n_sp.cuda()
