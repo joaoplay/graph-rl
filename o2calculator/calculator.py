@@ -290,7 +290,7 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
         logging.error("Not invertible. Assigning reward 0")
         return 0
 
-    reverse_matrix.cpu().detach().numpy()
+    reverse_matrix = reverse_matrix.cpu().detach().numpy()
 
     # Calculate static pressures
     static_pressures = np.array([node[3] for node in node_features])
