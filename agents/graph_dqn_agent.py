@@ -380,7 +380,7 @@ class GraphDQNAgent(BaseAgent):
             self.environment.step(actions)
 
             # Calculate reward
-            rewards = self.environment.calculate_reward_all_graphs() #np.zeros(len(self.environment.graphs_list))
+            rewards = np.zeros(len(self.environment.graphs_list)) #self.environment.calculate_reward_all_graphs()
 
             graphs_states = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in self.environment.graphs_list]
 
@@ -449,11 +449,11 @@ class GraphDQNAgent(BaseAgent):
         neptune_logging.upload_graph_plot(fig, self.current_training_step)
 
         # Save irrigation and sources for the first graphs
-        """fig_irrigation, ax_irrigation = plt.subplots()
+        fig_irrigation, ax_irrigation = plt.subplots()
         ax_irrigation.imshow(np.flip(self.environment.last_irrigation_map), cmap='hot', interpolation='nearest')
         fig_sources, ax_sources = plt.subplots()
         ax_sources.imshow(np.flip(self.environment.last_sources), cmap='hot', interpolation='nearest')
-        neptune_logging.upload_irrigation_heatmaps(fig_sources, fig_irrigation, self.current_training_step, 'validation')"""
+        neptune_logging.upload_irrigation_heatmaps(fig_sources, fig_irrigation, self.current_training_step, 'validation')
 
         # Compute statistics (insertion and removal frequency)
         actions_stats = self.environment.action_type_statistics
