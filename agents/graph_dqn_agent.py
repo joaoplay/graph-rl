@@ -379,10 +379,10 @@ class GraphDQNAgent(BaseAgent):
             self.environment.step(actions)
 
             # Calculate reward
-            if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
+            """if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 rewards = self.environment.calculate_reward_all_graphs()
-            else:
-                rewards = np.zeros(len(self.environment.graphs_list))
+            else:"""
+            rewards = np.zeros(len(self.environment.graphs_list))
 
             graphs_states = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in self.environment.graphs_list]
 
