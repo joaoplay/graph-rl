@@ -1,3 +1,4 @@
+import time
 from copy import deepcopy
 from typing import Optional, List
 
@@ -63,6 +64,8 @@ class GraphEnv:
 
         self.last_irrigation_map = None
         self.last_sources = None
+
+        self.previous_irrigation_score = None
 
     def step(self, actions):
         """
@@ -180,6 +183,10 @@ class GraphEnv:
 
         self.steps_counter = 0
 
+        self.last_irrigation_map = None
+        self.last_sources = None
+        self.previous_irrigation_score = None
+
         for graph_idx in range(len(self.graphs_list)):
             graph = self.graphs_list[graph_idx]
             graph.invalidate_selected_start_node()
@@ -265,7 +272,15 @@ class GraphEnv:
         if not prepared_data:
             return 0
 
-        irrigation, sources = calculate_network_irrigation(*prepared_data, [10, 10], [0.1, 0.1])
+        """fig, ax = plt.subplots()
+        draw_nx_graph_with_coordinates(prepared_data[3], ax)
+        fig.savefig(f'{BASE_PATH}/test_images/graph-sim-{self.steps_counter + 1}.png')
+
+        fig, ax = plt.subplots()
+        draw_nx_graph_with_coordinates(graph.nx_graph, ax)
+        fig.savefig(f'{BASE_PATH}/test_images/graph-{self.steps_counter + 1}.png')"""
+
+        irrigation, sources = calculate_network_irrigation(prepared_data[0], prepared_data[1], prepared_data[2], [10, 10], [0.1, 0.1])
 
         sections_x = np.array_split(irrigation, 20, axis=0)
         sections_y = np.array_split(irrigation, 20, axis=1)
@@ -280,8 +295,8 @@ class GraphEnv:
         self.last_sources = sources
 
         """fig, ax = plt.subplots()
-        ax.imshow(np.flip(irrigation), cmap='hot', interpolation='nearest')
-        fig.savefig(f'{BASE_PATH}/test_images/heatmap-{self.steps_counter}.png')"""
+        ax.imshow(np.flipud(irrigation), cmap='hot', interpolation='nearest')
+        fig.savefig(f'{BASE_PATH}/test_images/heatmap-{self.steps_counter + 1}.png')"""
 
         nodes_degree = np.array(list(graph.nx_graph.degree))
         edges_score = np.mean(nodes_degree[1])

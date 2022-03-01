@@ -40,6 +40,4 @@ class IrrigationThresholdAchieved(StopCondition):
         satisfied_x = all([np.all(section > 0.5) for section in sections_x])
         satisfied_y = all( [np.all(section > 0.5) for section in sections_y])
 
-        # print(f"Sections X Satisfied: {satisfied_x} | Sections Y Satisfied: {satisfied_y}")
-
         return satisfied_x and satisfied_y

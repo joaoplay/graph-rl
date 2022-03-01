@@ -1,6 +1,7 @@
 import logging
 import time
 from collections import OrderedDict
+from functools import cache
 
 import numpy
 import numpy as np
@@ -212,8 +213,9 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
         pointsX = find_cells_in_dim(0).astype(int)
         pointsY = find_cells_in_dim(1).astype(int)
 
-        source[pointsX, pointsY] = np.maximum(edges_source[edge_idx], source[pointsX, pointsY])
+        points = np.concatenate([pointsX, pointsY])
 
+        source[points[:, 0], points[:, 1]] = np.maximum(edges_source[edge_idx], source[points[:, 0], points[:, 1]])
 
     """fig, ax = plt.subplots()
     ax.imshow(np.fliplr(source), cmap='hot', interpolation='nearest')
@@ -222,6 +224,7 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
     return source
 
 
+@cache
 def build_k2(l_x, l_y):
     """
     Build K2
@@ -232,16 +235,10 @@ def build_k2(l_x, l_y):
     kx = np.zeros((l_x, l_y))
     ky = np.zeros((l_x, l_y))
 
-    lx_fourier = np.fft.fftfreq(l_x) * (2 * np.pi)
-    ly_fourier = np.fft.fftfreq(l_y) * (2 * np.pi)
-
-    kx[:, np.arange(l_x)] = lx_fourier
-    ky[np.arange(l_y), :] = ly_fourier
-
-    """for ix in range(l_x):
+    for ix in range(l_x):
         for iy in range(l_y):
             kx[:, iy] = np.fft.fftfreq(l_x) * (2 * np.pi)
-            ky[ix, :] = np.fft.fftfreq(l_y) * (2 * np.pi) """
+            ky[ix, :] = np.fft.fftfreq(l_y) * (2 * np.pi)
 
     k2 = sqrt(kx ** 2 + ky ** 2)
 
@@ -273,8 +270,6 @@ def calculate_pressures(matrix, static_pressures):
 
 
 def calculate_network_irrigation(node_features, edges_list, edges_features, environment_dim, cell_size):
-    #start = time.time()
-
     # Build matrix from adjacency matrix and features
     matrix = build_pressures_matrix(node_features, edges_list, edges_features)
     # Convert matrix to numpy
@@ -315,9 +310,5 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     # Calculate oxygen in each cell
     oxygen = calc_oxygen(sources_by_cell, k2, 10)
     oxygen = np.real(oxygen)
-
-    #end = time.time()
-
-    #print(f"Time to Evaluate Reward: {end - start}")
 
     return oxygen, sources_by_cell

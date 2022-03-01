@@ -1,8 +1,11 @@
+import time
+
 import networkx as nx
 from matplotlib import pyplot as plt
 from networkx import Graph
 
 from graphs.graph_state import GraphState
+from settings import BASE_PATH
 from util import draw_nx_graph_with_coordinates
 
 
@@ -48,7 +51,7 @@ class FluidNetworkState(GraphState):
                     in_node_found = True
                     break
 
-            out_node_found = True
+            out_node_found = False
             for out_node in output_nodes:
                 if out_node in component:
                     out_node_found = True
@@ -61,6 +64,10 @@ class FluidNetworkState(GraphState):
 
         nx_graph_copy = nx.convert_node_labels_to_integers(nx_graph_copy, first_label=0, ordering='default',
                                                            label_attribute=None)
+
+        """fig, ax = plt.subplots()
+        draw_nx_graph_with_coordinates(nx_graph_copy, ax)
+        fig.savefig(f'{BASE_PATH}/test_images/graph-sim-{time}.png')"""
 
         inverse_edges = [(edge[1], edge[0]) for edge in nx_graph_copy.edges]
 
@@ -76,4 +83,4 @@ class FluidNetworkState(GraphState):
         else:
             return None
 
-        return node_features, edges_list, edges_features
+        return node_features, edges_list, edges_features, nx_graph_copy

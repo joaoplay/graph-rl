@@ -368,7 +368,6 @@ class GraphDQNAgent(BaseAgent):
         # Inti current time step to 0
         time_step = 0
         while not self.environment.is_terminal():
-            start = time.time()
             # Set the current action mode
             self.current_action_mode = next(action_mode_selector)
             # Decide the next action. Both greedy and exploratory actions are considered.
@@ -380,7 +379,10 @@ class GraphDQNAgent(BaseAgent):
             self.environment.step(actions)
 
             # Calculate reward
-            rewards = np.zeros(len(self.environment.graphs_list)) #self.environment.calculate_reward_all_graphs()
+            if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
+                rewards = self.environment.calculate_reward_all_graphs()
+            else:
+                rewards = np.zeros(len(self.environment.graphs_list))
 
             graphs_states = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in self.environment.graphs_list]
 
