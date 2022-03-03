@@ -418,8 +418,13 @@ class GraphDQNAgent(BaseAgent):
         while not self.environment.is_terminal():
             # Set the current action mode
             self.current_action_mode = next(action_mode_selector)
+
+            print("Current Action Mode: ", self.current_action_mode)
+
             # Decide the next action. Both greedy and exploratory actions are considered.
             actions = self.choose_actions()
+
+            print("Actions: ", actions)
 
             # Execute actions and step forward
             self.environment.step(actions)
@@ -427,10 +432,11 @@ class GraphDQNAgent(BaseAgent):
             rewards = self.environment.rewards
 
             # Log rewards
-            for graph_idx in range(len(self.environment.graphs_list)):
-                NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/{graph_idx}/reward'].log(rewards[graph_idx])
-            NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/reward_average'].log(np.mean(rewards))
-            NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/reward_std'].log(np.std(rewards))
+            if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
+                for graph_idx in range(len(self.environment.graphs_list)):
+                    NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/{graph_idx}/reward'].log(rewards[graph_idx])
+                NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/reward_average'].log(np.mean(rewards))
+                NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/reward_std'].log(np.std(rewards))
 
             # Increment time step
             time_step += 1

@@ -182,6 +182,7 @@ class GraphDQN(nn.Module):
             embed = embed[shifted, :]
 
         embed_s_a = torch.cat((embed, graph_embed), dim=1)
+
         embed_s_a = relu(self.linear_1_layer(embed_s_a))
         raw_pred = self.linear_output_layer(embed_s_a)
 
