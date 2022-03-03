@@ -5,7 +5,7 @@ from agents.replay_memory.experience_buffer import ExperienceBuffer
 
 class MultiActionModeExperienceBuffer:
 
-    def __init__(self, action_modes: tuple[int], capacity=64) -> None:
+    def __init__(self, action_modes: tuple[int], capacity=10 ** 6) -> None:
         super().__init__()
 
         self.action_modes = action_modes

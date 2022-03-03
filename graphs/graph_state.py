@@ -131,7 +131,7 @@ class GraphState:
     def get_node_features(self):
         raise NotImplementedError()
 
-    def prepare_for_reward_evaluation(self):
+    def prepare_for_reward_evaluation(self, node_added=True, start_node=None, end_node=None):
         raise NotImplementedError()
 
     def get_valid_end_nodes(self, start_node=None):

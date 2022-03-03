@@ -30,18 +30,24 @@ class FluidNetworkState(GraphState):
 
         return coordinates
 
-    def prepare_for_reward_evaluation(self):
+    def prepare_for_reward_evaluation(self, node_added=True, start_node=None, end_node=None):
         """
         Prepare a graph state before sending it to the fluid network
         :return:
         """
-        nx_graph_copy = self.nx_graph.to_undirected()
-        nx_graph_copy.remove_nodes_from(list(nx.isolates(nx_graph_copy)))
-
-        # FIXME: Move it to a separated method
-        nodes_data = nx_graph_copy.nodes(data=True)
+        nodes_data = self.nx_graph.nodes(data=True)
         input_nodes = [x for x, y in nodes_data if y['node_type'] == 1]
         output_nodes = [x for x, y in nodes_data if y['node_type'] == 2]
+
+        if node_added and \
+                start_node is not None and end_node is not None and \
+                (not any([node in input_nodes for node in [start_node, end_node]]) or
+                 not any([node in output_nodes for node in [start_node, end_node]])) \
+                and (self.nx_graph.degree[start_node] == 1 or self.nx_graph.degree[end_node] == 1):
+            return None
+
+        nx_graph_copy = self.nx_graph.to_undirected()
+        nx_graph_copy.remove_nodes_from(list(nx.isolates(nx_graph_copy)))
 
         no_flow_nodes = set()
         for component in nx.connected_components(nx_graph_copy):

@@ -20,7 +20,7 @@ from environments.graph_env import GraphEnv
 from graphs.graph_state import GraphState
 import neptune_logging
 from models.multi_action_mode_dqn import MultiActionModeDQN
-from settings import USE_CUDA, BASE_PATH
+from settings import USE_CUDA, BASE_PATH, NEPTUNE_INSTANCE
 from util import draw_nx_graph_with_coordinates
 
 
@@ -46,7 +46,7 @@ class GraphDQNAgent(BaseAgent):
 
     def __init__(self, environment: GraphEnv, start_node_selection_dqn_params: Dict,
                  end_node_selection_dqn_params: Dict, batch_size: int = 50, warm_up: int = 4,
-                 learning_rate: float = 0.001, eps_start: float = 1, eps_step_denominator: float = 2,
+                 learning_rate: float = 0.0001, eps_start: float = 1, eps_step_denominator: float = 2,
                  eps_end: float = 0.1, validation_interval: int = 1000,
                  target_network_copy_interval: int = 50, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         """
@@ -130,16 +130,16 @@ class GraphDQNAgent(BaseAgent):
         data_batch = self.sample_batch(validation_data, batch_sampler)
 
         # 1. Measuring performance of each graph at the initial step
-        performances_before = [self.environment.calculate_reward(graph) for graph in data_batch]
+        #performances_before = [self.environment.calculate_reward(graph) for graph in data_batch]
         # 2. Run a simulation and getting performances
         performances_after = self.simulate_for_validation(data_batch)
 
         # Calculate mean improvement improvement
-        performance = np.mean(performances_after - performances_before)
+        #performance = np.mean(performances_after - performances_before)
 
-        neptune_logging.log_batch_validation_result(performance)
+        #neptune_logging.log_batch_validation_result(performance)
 
-        return np.mean(performances_after - performances_before)
+        #return np.mean(performances_after - performances_before)
 
     def train(self, train_data, validation_data, max_steps):
         """
@@ -203,7 +203,7 @@ class GraphDQNAgent(BaseAgent):
                     # Store the corresponding index
                     not_finished_indexes += [i]
 
-            # print("Before: ", rewards_tensor)
+            # print(len(not_finished_next_states))
 
             # Check whether at least one graph did not reach a final state
             if len(not_finished_next_states) > 0:
@@ -220,6 +220,8 @@ class GraphDQNAgent(BaseAgent):
                     _, q_rhs = self.target_q_networks.select_action_from_q_values(next_action_mode, q_t_next,
                                                                                   prefix_sum_next, forbidden_actions)
 
+                print(rewards_tensor[not_finished_indexes])
+
                 # Save reward
                 rewards_tensor[not_finished_indexes] = q_rhs * 0.99 + rewards_tensor[not_finished_indexes]
 
@@ -231,6 +233,9 @@ class GraphDQNAgent(BaseAgent):
             # Get q-value for the current state
             _, q_sa, _ = self.q_networks(action_mode, states, actions)
 
+            if USE_CUDA == 1:
+                rewards_tensor.cuda()
+
             # print("Current Q-Value: ", q_sa)
 
             # print("Rewards: ", rewards_tensor)
@@ -238,6 +243,8 @@ class GraphDQNAgent(BaseAgent):
 
             # Calculate loss and gradients. Back-Propagate gradients
             loss = nn.MSELoss()(q_sa, rewards_tensor)
+
+            print("Is Cuda: ", loss.is_cuda)
 
             neptune_logging.log_batch_training_result(loss, rewards_tensor)
 
@@ -362,12 +369,9 @@ class GraphDQNAgent(BaseAgent):
         # This selector allows switching between actions modes by using next() (like a Python iterator)
         action_mode_selector = itertools.cycle(self.action_modes)
 
-        final_states = [None] * len(graphs)
-        final_actions = np.ones([len(graphs)]) * -1
-
         # Inti current time step to 0
         time_step = 0
-        while not self.environment.is_terminal():
+        while True:
             # Set the current action mode
             self.current_action_mode = next(action_mode_selector)
             # Decide the next action. Both greedy and exploratory actions are considered.
@@ -378,41 +382,27 @@ class GraphDQNAgent(BaseAgent):
             # Execute actions and step forward
             self.environment.step(actions)
 
-            # Calculate reward
-            """if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
-                rewards = self.environment.calculate_reward_all_graphs()
-            else:"""
-            rewards = np.zeros(len(self.environment.graphs_list))
-
             graphs_states = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in self.environment.graphs_list]
 
-            experience_buffer = self.experience_buffers.get_experience_buffer(self.current_action_mode)
-            experience_buffer.append_many(graphs_before, actions, rewards,
-                                          [False] * len(graphs_states),
-                                          graphs_states)
+            if self.environment.is_terminal():
+                dummy_final_next_states = [(None, None, None) for _ in range(len(graphs))]
+                experience_buffer = self.experience_buffers.get_experience_buffer(self.current_action_mode)
+                experience_buffer.append_many(graphs_states, actions, self.environment.rewards, [True] * len(actions),
+                                              dummy_final_next_states)
+                break
+            else:
+                experience_buffer = self.experience_buffers.get_experience_buffer(self.current_action_mode)
+                experience_buffer.append_many(graphs_before, actions, self.environment.rewards,
+                                              [False] * len(graphs_states),
+                                              graphs_states)
 
             # Increment time step
             time_step += 1
 
         # Simulation is over! Now we need to store the final states in the experience buffer.
-        rewards = self.environment.calculate_reward_all_graphs()
+        rewards = self.environment.rewards
 
         neptune_logging.log_training_simulation_results(np.mean(rewards))
-
-        # FIXME: This step should be refactored in a near future. It might be replaced by a decent handling of the stop
-        #        conditions.
-        for graph_idx in range(len(graphs)):
-            if final_states[graph_idx] is None:
-                graph_state = self.environment.graphs_list[graph_idx]
-                final_states[graph_idx] = (graph_state, graph_state.selected_start_node, graph_state.forbidden_actions)
-                final_actions[graph_idx] = actions[graph_idx]
-
-        #print(f"Adding Experience Final: {final_states}")
-
-        dummy_final_next_states = [(None, None, None) for _ in range(len(final_states))]
-        experience_buffer = self.experience_buffers.get_experience_buffer(self.current_action_mode)
-        experience_buffer.append_many(final_states, final_actions, rewards, [True] * len(final_actions),
-                                      dummy_final_next_states)
 
         return rewards
 
@@ -425,6 +415,8 @@ class GraphDQNAgent(BaseAgent):
         # This selector allows switching between actions modes by using next() (like a Python iterator)
         action_mode_selector = itertools.cycle(self.action_modes)
 
+        rewards = np.zeros(len(graphs))
+
         # Inti current time step to 0
         time_step = 0
         while not self.environment.is_terminal():
@@ -436,14 +428,19 @@ class GraphDQNAgent(BaseAgent):
             # Execute actions and step forward
             self.environment.step(actions)
 
+            rewards = self.environment.rewards
+
+            # Log rewards
+            for graph_idx in range(len(self.environment.graphs_list)):
+                NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/{graph_idx}/reward'].log(rewards[graph_idx])
+            NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/reward_average'].log(np.mean(rewards))
+            NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/reward_std'].log(np.std(rewards))
+
             # Increment time step
             time_step += 1
 
-        # Simulation is over! Now we need to store the final states in the experience buffer.
-        rewards = self.environment.calculate_reward_all_graphs()
-
-        # Log rewards
-        neptune_logging.log_validation_simulation_results(np.mean(rewards))
+        NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/final_reward_mean'].log(np.mean(rewards))
+        NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/final_reward_std'].log(np.std(rewards))
 
         # Save image of the first graph
         fig, ax = plt.subplots()

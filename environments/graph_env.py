@@ -67,6 +67,8 @@ class GraphEnv:
 
         self.previous_irrigation_score = None
 
+        self.rewards = None
+
     def step(self, actions):
         """
         This is the main method of this simulation environment. This is responsible for moving to the next time step,
@@ -76,14 +78,10 @@ class GraphEnv:
         :return:
         """
 
-        #print(f"Step: {self.steps_counter} | Action Mode: {self.current_action_mode}")
+        rewards = np.zeros(len(self.graphs_list))
 
         for graph_idx in range(len(self.graphs_list)):
-
-            #print(f"Graph {graph_idx} | Action: {actions[graph_idx]}")
-
             if self.edges_budget.is_exhausted(graph_idx):
-                #print("Already exhausted")
                 # The current graph budget is exhausted. Just ignore the current graph and move to the next one.
                 continue
 
@@ -95,6 +93,8 @@ class GraphEnv:
             # Get the current graph state and its remaining edges budget
             current_graph = self.graphs_list[graph_idx]
             remaining_budget = self.edges_budget.get_remaining_budget(graph_idx)
+
+            start_node = self.graphs_list[graph_idx].selected_start_node
 
             # Execute action and get the resulting graph (a deepcopy) and the insertion cost (in terms of edge budget)
             new_graph, edge_insertion_cost = self.execute_action(current_graph, actions[graph_idx], remaining_budget)
@@ -108,16 +108,22 @@ class GraphEnv:
             # Save the new graph
             self.graphs_list[graph_idx] = new_graph
 
+            if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
+                node_added = edge_insertion_cost > 0
+                rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added, start_node=start_node, end_node=actions[graph_idx])
+            else:
+                rewards[graph_idx] = 0
+
             # Update edges budget
             self.edges_budget.increment_used_budget(graph_idx, edge_insertion_cost)
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
                and self.graphs_list[graph_idx].allowed_actions_not_found:
-                # print("No start nodes found. This graph is done!")
                 # A new edge was added and no valid start nodes are available. The current graph reached a dead end, and therefore
                 # it's time to end the generation process.
                 self.edges_budget.force_exhausting(graph_idx)
 
+        self.rewards = rewards
         self.steps_counter += 1
 
     @property
@@ -179,13 +185,15 @@ class GraphEnv:
             self.edges_budget = FixedEdgePercentageBudget(self.graphs_list, fixed_edge_percentage=self.max_edges_percentage)
 
         # Init simulation statistics array
-        self.action_type_statistics = [[] for i in range(len(graphs_list))]
+        self.action_type_statistics = [[] for _ in range(len(graphs_list))]
 
         self.steps_counter = 0
 
         self.last_irrigation_map = None
         self.last_sources = None
-        self.previous_irrigation_score = None
+        self.previous_irrigation_score = [self.calculate_reward(graph_idx=graph_idx) for graph_idx in range(len(graphs_list))]
+
+        self.rewards = None
 
         for graph_idx in range(len(self.graphs_list)):
             graph = self.graphs_list[graph_idx]
@@ -256,8 +264,7 @@ class GraphEnv:
     def calculate_reward_all_graphs(self):
         rewards = np.zeros(len(self.graphs_list), dtype=np.float)
         for graph_idx in range(len(self.graphs_list)):
-            graph = self.graphs_list[graph_idx]
-            reward = self.calculate_reward(graph)
+            reward = self.calculate_reward(graph_idx)
             if abs(reward) < REWARD_EPS:
                 reward = 0
 
@@ -266,8 +273,10 @@ class GraphEnv:
 
         return rewards
 
-    def calculate_reward(self, graph):
-        prepared_data = graph.prepare_for_reward_evaluation()
+    def calculate_reward(self, graph_idx, node_added=True, start_node=None, end_node=None):
+        graph = self.graphs_list[graph_idx]
+
+        prepared_data = graph.prepare_for_reward_evaluation(node_added=node_added, start_node=start_node, end_node=end_node)
 
         if not prepared_data:
             return 0
@@ -290,6 +299,11 @@ class GraphEnv:
 
         irrigation_score = (irrigation_score_x + irrigation_score_y) / 2.0
 
+        if not self.previous_irrigation_score:
+            return irrigation_score
+
+        irrigation_improvement = irrigation_score - self.previous_irrigation_score[graph_idx]
+
         # Update irrigation map
         self.last_irrigation_map = irrigation
         self.last_sources = sources
@@ -298,7 +312,4 @@ class GraphEnv:
         ax.imshow(np.flipud(irrigation), cmap='hot', interpolation='nearest')
         fig.savefig(f'{BASE_PATH}/test_images/heatmap-{self.steps_counter + 1}.png')"""
 
-        nodes_degree = np.array(list(graph.nx_graph.degree))
-        edges_score = np.mean(nodes_degree[1])
-
-        return irrigation_score * 100
+        return irrigation_improvement
