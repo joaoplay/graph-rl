@@ -220,8 +220,6 @@ class GraphDQNAgent(BaseAgent):
                     _, q_rhs = self.target_q_networks.select_action_from_q_values(next_action_mode, q_t_next,
                                                                                   prefix_sum_next, forbidden_actions)
 
-                print(rewards_tensor[not_finished_indexes])
-
                 # Save reward
                 rewards_tensor[not_finished_indexes] = q_rhs * 0.99 + rewards_tensor[not_finished_indexes]
 
@@ -243,8 +241,6 @@ class GraphDQNAgent(BaseAgent):
 
             # Calculate loss and gradients. Back-Propagate gradients
             loss = nn.MSELoss()(q_sa, rewards_tensor)
-
-            print("Is Cuda: ", loss.is_cuda)
 
             neptune_logging.log_batch_training_result(loss, rewards_tensor)
 
