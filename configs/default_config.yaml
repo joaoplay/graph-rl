@@ -9,4 +9,4 @@ number_of_graphs: 1
 random_seed: 50
 stop_after_void_action: True
 max_edges_percentage: null
-max_steps: 30000
+max_steps: 5000

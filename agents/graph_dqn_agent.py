@@ -371,9 +371,13 @@ class GraphDQNAgent(BaseAgent):
             # Set the current action mode
             self.current_action_mode = next(action_mode_selector)
             # Decide the next action. Both greedy and exploratory actions are considered.
-            actions = self.choose_actions(execute_exploratory_actions=True)
+            actions = self.choose_actions(execute_exploratory_actions=False)
 
             graphs_before = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in deepcopy(self.environment.graphs_list)]
+
+            """fig, ax = plt.subplots()
+            draw_nx_graph_with_coordinates(graphs_before[0][0].nx_graph, ax)
+            fig.savefig(f'{BASE_PATH}/test_images/graph-{self.current_training_step}-{time_step}.png')"""
 
             # Execute actions and step forward
             self.environment.step(actions)
@@ -419,12 +423,8 @@ class GraphDQNAgent(BaseAgent):
             # Set the current action mode
             self.current_action_mode = next(action_mode_selector)
 
-            print("Current Action Mode: ", self.current_action_mode)
-
             # Decide the next action. Both greedy and exploratory actions are considered.
-            actions = self.choose_actions()
-
-            print("Actions: ", actions)
+            actions = self.choose_actions(execute_exploratory_actions=False)
 
             # Execute actions and step forward
             self.environment.step(actions)

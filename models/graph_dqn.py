@@ -5,7 +5,6 @@ import numpy as np
 import torch
 from torch import nn
 from torch.autograd import Variable
-from torch.nn.functional import relu
 
 from graph_embedding.graph_embedding import EmbedMeanField
 from settings import USE_CUDA
@@ -15,7 +14,6 @@ if os.getenv('DEV_MODE_ENABLE', None):
 else:
     sys.path.append('/usr/lib/pytorch_structure2vec/s2v_lib')
 
-from s2v_lib import S2VLIB
 from pytorch_util import weights_init
 
 
@@ -43,8 +41,11 @@ class GraphDQN(nn.Module):
         self.embedding_dim = embedding_dim
         self.num_node_features = num_node_features
 
-        self.linear_1_layer = nn.Linear(embedding_dim * 2, hidden_output_dim)
-        self.linear_output_layer = nn.Linear(hidden_output_dim, actions_output_dim)
+        self.fc = nn.Sequential(
+            nn.Linear(embedding_dim * 2, hidden_output_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_output_dim, actions_output_dim)
+        )
 
         self.unique_id = unique_id
 
@@ -80,7 +81,8 @@ class GraphDQN(nn.Module):
             selected_node_encoding.numpy()[picked_ones, 1] = 1.0
             selected_node_encoding.numpy()[picked_ones, 0] = 0.0
 
-        node_features = torch.cat((node_features, selected_node_encoding), dim=1)
+        # node_features = torch.cat((node_features, selected_node_encoding), dim=1)
+        node_features = selected_node_encoding
 
         return node_features, torch.LongTensor(prefix_sum)
 
@@ -183,8 +185,13 @@ class GraphDQN(nn.Module):
 
         embed_s_a = torch.cat((embed, graph_embed), dim=1)
 
-        embed_s_a = relu(self.linear_1_layer(embed_s_a))
-        raw_pred = self.linear_output_layer(embed_s_a)
+        """np_embed = embed_s_a.detach().numpy()
+
+        distance = euclidean_distances(np_embed, np_embed)
+
+        mean_embed = np.mean(embed_s_a.detach().numpy(), axis=1)"""
+
+        raw_pred = self.fc(embed_s_a)
 
         if greedy_acts:
             actions, _ = self.select_action_from_q_values(raw_pred, prefix_sum, forbidden_actions)

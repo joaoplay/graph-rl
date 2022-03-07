@@ -3,6 +3,7 @@ from typing import Optional
 from torch import nn
 
 from models.graph_dqn import GraphDQN
+from models.noisy_graph_dqn import NoisyGraphDQN
 
 
 class MultiActionModeDQN(nn.Module):
@@ -19,11 +20,11 @@ class MultiActionModeDQN(nn.Module):
         super().__init__()
 
         self._dqn_by_action_mode = nn.ModuleDict(
-            {str(action_mode): GraphDQN(unique_id=action_mode,
-                                        embedding_dim=embedding_dim[action_mode],
-                                        hidden_output_dim=hidden_output_dim[action_mode],
-                                        num_node_features=num_node_features[action_mode],
-                                        actions_output_dim=action_output_dim[action_mode])
+            {str(action_mode): NoisyGraphDQN(unique_id=action_mode,
+                                             embedding_dim=embedding_dim[action_mode],
+                                             hidden_output_dim=hidden_output_dim[action_mode],
+                                             num_node_features=num_node_features[action_mode],
+                                             actions_output_dim=action_output_dim[action_mode])
              for action_mode in action_modes})
 
     def select_action_from_q_values(self, action_mode, q_t_next, prefix_sum_next, forbidden_actions):
