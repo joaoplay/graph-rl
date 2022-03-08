@@ -371,9 +371,9 @@ class GraphDQNAgent(BaseAgent):
         # Init simulation environments with the current train_graphs
         self.environment.init(graphs)
 
-        fig, ax = plt.subplots()
+        """fig, ax = plt.subplots()
         draw_nx_graph_with_coordinates(graphs[0].nx_graph, ax)
-        fig.savefig(f'{BASE_PATH}/test_images/graph-{self.current_training_step}.png')
+        fig.savefig(f'{BASE_PATH}/test_images/graph-{self.current_training_step}.png')"""
 
         # This selector allows switching between actions modes by using next() (like a Python iterator)
         action_mode_selector = itertools.cycle(self.action_modes)
