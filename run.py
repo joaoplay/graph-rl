@@ -33,6 +33,15 @@ def run_from_config_file(cfg: DictConfig):
     np.random.seed(cfg.random_seed)
     torch.manual_seed(cfg.random_seed)
 
+    print(f"Checking config")
+
+    print("Numpy")
+    print(np.show_config())
+    print("Torch Config")
+    print(torch.__config__.show())
+    print("Torch Parallel")
+    print(torch.__config__.parallel_info())
+
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
