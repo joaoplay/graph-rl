@@ -1,2 +1,2 @@
 - name: "MaxStepsExceeded"
-  max_steps: 3000
+  max_steps: 500
