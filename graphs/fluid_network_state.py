@@ -73,7 +73,7 @@ class FluidNetworkState(GraphState):
 
         """fig, ax = plt.subplots()
         draw_nx_graph_with_coordinates(nx_graph_copy, ax)
-        fig.savefig(f'{BASE_PATH}/test_images/graph-sim-{time}.png')"""
+        fig.savefig(f'{BASE_PATH}/test_images/graph-sim-{time.time()}.png')"""
 
         inverse_edges = [(edge[1], edge[0]) for edge in nx_graph_copy.edges]
 

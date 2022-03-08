@@ -1,3 +1,4 @@
+import collections
 import itertools
 import logging
 import os
@@ -114,6 +115,8 @@ class GraphDQNAgent(BaseAgent):
         self.current_training_step = 0
         # This variable is defined whenever a pair of exploratory actions were chosen.
         self.current_exploratory_actions = None
+        self.all_training_rewards = []
+        self.chosen_start_end_nodes = {}
 
     def should_validate(self, max_training_steps):
         return self.current_training_step % self.validation_interval == 0 or self.current_training_step == max_training_steps
@@ -160,6 +163,11 @@ class GraphDQNAgent(BaseAgent):
 
         self.eps_step = max_steps / self.eps_step_denominator
 
+        for i in range(1):
+            self.eps = self.eps_end + max(0., (self.eps_start - self.eps_end)
+                                          * (self.eps_step - max(0., self.current_training_step)) / self.eps_step)
+            self.simulate_for_training(graphs=deepcopy(train_data))
+
         # Initialize Adam optimizer
         optimizer = optim.Adam(self.q_networks.parameters(), lr=self.learning_rate)
         for self.current_training_step in range(max_steps):
@@ -172,7 +180,7 @@ class GraphDQNAgent(BaseAgent):
                 # Sample a batch of data
                 data_batch = self.sample_batch(train_data, train_data_batch_sampler)
                 # Run a simulation. Oue agent is getting experience. No policy update at this stage.
-                self.simulate_for_training(data_batch)
+                self.simulate_for_training(data_batch, perform_logging=True)
 
             # Check if it's time to update the target network
             if self.current_training_step % self.target_network_copy_interval == 0:
@@ -242,7 +250,7 @@ class GraphDQNAgent(BaseAgent):
             # Calculate loss and gradients. Back-Propagate gradients
             loss = nn.MSELoss()(q_sa, rewards_tensor)
 
-            neptune_logging.log_batch_training_result(loss, rewards_tensor)
+            neptune_logging.log_batch_training_result(loss)
 
             optimizer.zero_grad()
             loss.backward()
@@ -351,16 +359,21 @@ class GraphDQNAgent(BaseAgent):
 
                 return greedy_actions
 
-    def simulate_for_training(self, graphs):
+    def simulate_for_training(self, graphs, perform_logging=False):
         """
         Start a fresh simulation using the train_graphs. The agent plays N environments simultaneously,
         storing the result of each step in an experience buffer.
 
+        :param perform_logging:
         :param graphs:
         :return:
         """
         # Init simulation environments with the current train_graphs
         self.environment.init(graphs)
+
+        fig, ax = plt.subplots()
+        draw_nx_graph_with_coordinates(graphs[0].nx_graph, ax)
+        fig.savefig(f'{BASE_PATH}/test_images/graph-{self.current_training_step}.png')
 
         # This selector allows switching between actions modes by using next() (like a Python iterator)
         action_mode_selector = itertools.cycle(self.action_modes)
@@ -375,14 +388,18 @@ class GraphDQNAgent(BaseAgent):
 
             graphs_before = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in deepcopy(self.environment.graphs_list)]
 
-            """fig, ax = plt.subplots()
-            draw_nx_graph_with_coordinates(graphs_before[0][0].nx_graph, ax)
-            fig.savefig(f'{BASE_PATH}/test_images/graph-{self.current_training_step}-{time_step}.png')"""
-
             # Execute actions and step forward
             self.environment.step(actions)
 
             graphs_states = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in self.environment.graphs_list]
+
+            #print(f"Training Step: {self.current_training_step} | Simulation Step: {time_step} | Action Mode: {self.current_action_mode} | Action: {actions} | Reward: {np.mean(self.environment.rewards)}")
+
+            if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
+                self.all_training_rewards += [np.mean(self.environment.rewards)]
+                if perform_logging:
+                    neptune_logging.log_training_instant_mean_reward(self.all_training_rewards[-1])
+                    neptune_logging.log_training_mean_reward(np.mean(self.all_training_rewards[-100:]))
 
             if self.environment.is_terminal():
                 dummy_final_next_states = [(None, None, None) for _ in range(len(graphs))]
@@ -401,8 +418,6 @@ class GraphDQNAgent(BaseAgent):
 
         # Simulation is over! Now we need to store the final states in the experience buffer.
         rewards = self.environment.rewards
-
-        neptune_logging.log_training_simulation_results(np.mean(rewards))
 
         return rewards
 
@@ -450,11 +465,12 @@ class GraphDQNAgent(BaseAgent):
         neptune_logging.upload_graph_plot(fig, self.current_training_step)
 
         # Save irrigation and sources for the first graphs
-        fig_irrigation, ax_irrigation = plt.subplots()
-        ax_irrigation.imshow(np.flip(self.environment.last_irrigation_map), cmap='hot', interpolation='nearest')
-        fig_sources, ax_sources = plt.subplots()
-        ax_sources.imshow(np.flip(self.environment.last_sources), cmap='hot', interpolation='nearest')
-        neptune_logging.upload_irrigation_heatmaps(fig_sources, fig_irrigation, self.current_training_step, 'validation')
+        if self.environment.last_irrigation_map is not None and self.environment.last_sources is not None:
+            fig_irrigation, ax_irrigation = plt.subplots()
+            ax_irrigation.imshow(np.flip(self.environment.last_irrigation_map), cmap='hot', interpolation='nearest')
+            fig_sources, ax_sources = plt.subplots()
+            ax_sources.imshow(np.flip(self.environment.last_sources), cmap='hot', interpolation='nearest')
+            neptune_logging.upload_irrigation_heatmaps(fig_sources, fig_irrigation, self.current_training_step, 'validation')
 
         # Compute statistics (insertion and removal frequency)
         actions_stats = self.environment.action_type_statistics
@@ -470,6 +486,6 @@ class GraphDQNAgent(BaseAgent):
         # Generate a batch of graph indexes for training data purposes
         batch_indices = data_sampler.sample()
         # Get training data from previously generated indexes
-        data_batch = [data[idx] for idx in batch_indices]
+        data_batch = [deepcopy(data[idx]) for idx in batch_indices]
 
         return data_batch

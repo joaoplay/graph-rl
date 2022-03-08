@@ -1,4 +1,4 @@
 learning_rate: 0.0001
-target_network_copy_interval: 50
-validation_interval: 10
-batch_size: 50
+target_network_copy_interval: 1000
+validation_interval: 50
+batch_size: 64

@@ -16,7 +16,6 @@ else:
 
 from pytorch_util import weights_init
 
-
 # FIXME: This DQN definition was adpted from.... Add copyright
 
 class GraphDQN(nn.Module):
@@ -81,8 +80,7 @@ class GraphDQN(nn.Module):
             selected_node_encoding.numpy()[picked_ones, 1] = 1.0
             selected_node_encoding.numpy()[picked_ones, 0] = 0.0
 
-        # node_features = torch.cat((node_features, selected_node_encoding), dim=1)
-        node_features = selected_node_encoding
+        node_features = torch.cat((node_features, selected_node_encoding), dim=1)
 
         return node_features, torch.LongTensor(prefix_sum)
 

@@ -3,9 +3,8 @@ from neptune.new.types import File
 from settings import NEPTUNE_INSTANCE
 
 
-def log_batch_training_result(loss, reward):
+def log_batch_training_result(loss):
     NEPTUNE_INSTANCE['training/batch/loss'].log(loss)
-    NEPTUNE_INSTANCE['training/batch/reward'].log(reward)
 
 
 def log_batch_validation_result(performance):
@@ -35,3 +34,10 @@ def upload_irrigation_heatmaps(sources_heatmap, irrigation_heatmap, iteration, s
     NEPTUNE_INSTANCE[f'{stage}/visualization/irrigation_heatmap/irrigation-heatmap-{iteration}.jpeg'].upload(
         File.as_image(irrigation_heatmap))
 
+
+def log_training_instant_mean_reward(mean_reward):
+    NEPTUNE_INSTANCE[f'training/instant_reward'].log(mean_reward)
+
+
+def log_training_mean_reward(mean_reward):
+    NEPTUNE_INSTANCE[f'training/reward'].log(mean_reward)

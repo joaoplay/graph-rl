@@ -1,5 +1,6 @@
 import hydra
 import numpy as np
+import torch
 from omegaconf import DictConfig, OmegaConf
 
 from agents.graph_dqn_agent import GraphDQNAgent
@@ -30,6 +31,7 @@ def parse_stop_conditions(stop_conditions_list):
 @hydra.main(config_path="configs", config_name="default_config")
 def run_from_config_file(cfg: DictConfig):
     np.random.seed(cfg.random_seed)
+    torch.manual_seed(cfg.random_seed)
 
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)

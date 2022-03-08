@@ -294,8 +294,11 @@ class GraphEnv:
         sections_x = np.array_split(irrigation, 20, axis=0)
         sections_y = np.array_split(irrigation, 20, axis=1)
 
-        irrigation_score_x = sum([np.mean(section) for section in sections_x])
-        irrigation_score_y = sum([np.mean(section) for section in sections_y])
+        mean_over_x = [np.mean(section) for section in sections_x]
+        mean_over_y = [np.mean(section) for section in sections_y]
+
+        irrigation_score_x = sum(mean_over_x)
+        irrigation_score_y = sum(mean_over_y)
 
         irrigation_score = (irrigation_score_x + irrigation_score_y) / 2.0
 
@@ -305,6 +308,7 @@ class GraphEnv:
         irrigation_improvement = irrigation_score - self.previous_irrigation_score[graph_idx]
 
         # Update irrigation map
+        self.previous_irrigation_score[graph_idx] = irrigation_score
         self.last_irrigation_map = irrigation
         self.last_sources = sources
 
