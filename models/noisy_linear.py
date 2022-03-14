@@ -37,8 +37,8 @@ class NoisyLinear(nn.Linear):
             bias = bias + self.sigma_bias * self.epsilon_bias.data
         v = self.sigma_weight * self.epsilon_weight.data + self.weight
 
-        print(x.is_cuda())
-        print(v.is_cuda())
-        print(bias.is_cuda())
+        print(x.is_cuda)
+        print(v.is_cuda)
+        print(bias.is_cuda)
 
         return linear(x, v, bias)
