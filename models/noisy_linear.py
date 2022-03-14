@@ -40,4 +40,8 @@ class NoisyLinear(nn.Linear):
         if USE_CUDA == 1:
             x.cuda()
 
+        print(x.is_cuda)
+        print(v.is_cuda)
+        print(bias.is_cuda)
+
         return linear(x, v, bias)
