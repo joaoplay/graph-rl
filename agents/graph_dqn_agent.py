@@ -240,6 +240,9 @@ class GraphDQNAgent(BaseAgent):
             _, q_s_all, _ = self.q_networks(action_mode, states, actions)
 
             actions_tensor = torch.tensor(actions).unsqueeze(-1)
+            if USE_CUDA == 1:
+                actions_tensor = actions_tensor.cuda()
+
             q_sa = q_s_all.gather(1, actions_tensor)
 
             if USE_CUDA == 1:
