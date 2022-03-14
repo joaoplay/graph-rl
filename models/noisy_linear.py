@@ -24,13 +24,6 @@ class NoisyLinear(nn.Linear):
         self.register_buffer("epsilon_bias", z)
         self.reset_parameters()
 
-        if USE_CUDA == 1:
-            self.sigma_bias.cuda()
-            self.sigma_weight.cuda()
-            self.epsilon_weight.cuda()
-            self.bias.cuda()
-            self.weight.cuda()
-
     def reset_parameters(self):
         std = math.sqrt(3 / self.in_features)
         self.weight.data.uniform_(-std, std)
@@ -43,5 +36,9 @@ class NoisyLinear(nn.Linear):
             self.epsilon_bias.normal_()
             bias = bias + self.sigma_bias * self.epsilon_bias.data
         v = self.sigma_weight * self.epsilon_weight.data + self.weight
+
+        print(x.is_cuda())
+        print(v.is_cuda())
+        print(bias.is_cuda())
 
         return linear(x, v, bias)
