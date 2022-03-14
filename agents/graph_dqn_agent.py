@@ -84,8 +84,8 @@ class GraphDQNAgent(BaseAgent):
                                                  ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params['num_node_features'],
                                              },
                                              action_output_dim={
-                                                 ACTION_MODE_SELECTING_START_NODE: 1,
-                                                 ACTION_MODE_SELECTING_END_NODE: 1,
+                                                 ACTION_MODE_SELECTING_START_NODE: 100,
+                                                 ACTION_MODE_SELECTING_END_NODE: 100,
                                              })
         self.target_q_networks = MultiActionModeDQN(action_modes=self.action_modes,
                                                     embedding_dim={
@@ -101,8 +101,8 @@ class GraphDQNAgent(BaseAgent):
                                                         ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params['num_node_features'],
                                                     },
                                                     action_output_dim={
-                                                        ACTION_MODE_SELECTING_START_NODE: 1,
-                                                        ACTION_MODE_SELECTING_END_NODE: 1,
+                                                        ACTION_MODE_SELECTING_START_NODE: 100,
+                                                        ACTION_MODE_SELECTING_END_NODE: 100,
                                                     })
 
         if USE_CUDA == 1:
@@ -186,8 +186,8 @@ class GraphDQNAgent(BaseAgent):
             if self.current_training_step % self.target_network_copy_interval == 0:
                 self.update_target_networks()
 
-            if self.should_validate(max_training_steps=max_steps):
-                self.validate(data_batch, validation_data_batch_sampler)
+            """if self.should_validate(max_training_steps=max_steps):
+                self.validate(data_batch, validation_data_batch_sampler)"""
 
             # Sample a batch of replays
             action_mode, states, actions, rewards, finished, next_states = self.experience_buffers.sample(self.batch_size)
@@ -237,18 +237,20 @@ class GraphDQNAgent(BaseAgent):
             # print("Next: ", rewards_tensor)
 
             # Get q-value for the current state
-            _, q_sa, _ = self.q_networks(action_mode, states, actions)
+            _, q_s_all, _ = self.q_networks(action_mode, states, actions)
+
+            actions_tensor = torch.tensor(actions).unsqueeze(-1)
+            q_sa = q_s_all.gather(1, actions_tensor)
 
             if USE_CUDA == 1:
                 rewards_tensor.cuda()
 
             # print("Current Q-Value: ", q_sa)
 
-            # print("Rewards: ", rewards_tensor)
-            # print("Max next state reward", q_sa)
-
             # Calculate loss and gradients. Back-Propagate gradients
             loss = nn.MSELoss()(q_sa, rewards_tensor)
+
+            print("Loss: ", loss)
 
             neptune_logging.log_batch_training_result(loss)
 

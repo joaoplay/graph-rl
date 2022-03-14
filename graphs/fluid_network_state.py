@@ -16,9 +16,6 @@ class FluidNetworkState(GraphState):
     FIXME: Add details on the structure of graph features
     """
 
-    def __init__(self, nx_graph: Graph, nx_neighbourhood_graph: Graph, allow_void_actions=True) -> None:
-        super().__init__(nx_graph, nx_neighbourhood_graph, allow_void_actions)
-
     def get_node_features(self):
         """
         Get node features from a fluid network.
