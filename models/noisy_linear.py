@@ -4,6 +4,8 @@ import torch
 from torch import nn
 from torch.nn.functional import linear
 
+from settings import USE_CUDA
+
 
 class NoisyLinear(nn.Linear):
 

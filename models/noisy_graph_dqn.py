@@ -2,6 +2,7 @@ from torch import nn
 
 from models.graph_dqn import GraphDQN
 from models.noisy_linear import NoisyLinear
+from settings import USE_CUDA
 
 
 class NoisyGraphDQN(GraphDQN):
@@ -20,3 +21,7 @@ class NoisyGraphDQN(GraphDQN):
             nn.ReLU(),
             self.noisy_layers[1]
         )
+
+        if USE_CUDA == 1:
+            self.fc.cuda()
+
