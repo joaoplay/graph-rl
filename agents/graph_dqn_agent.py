@@ -186,8 +186,8 @@ class GraphDQNAgent(BaseAgent):
             if self.current_training_step % self.target_network_copy_interval == 0:
                 self.update_target_networks()
 
-            """if self.should_validate(max_training_steps=max_steps):
-                self.validate(data_batch, validation_data_batch_sampler)"""
+            if self.should_validate(max_training_steps=max_steps):
+                self.validate(data_batch, validation_data_batch_sampler)
 
             # Sample a batch of replays
             action_mode, states, actions, rewards, finished, next_states = self.experience_buffers.sample(self.batch_size)
