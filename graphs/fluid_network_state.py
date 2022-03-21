@@ -84,6 +84,6 @@ class FluidNetworkState(GraphState):
         if len(edges_list) > 0:
             edges_features = [[1] for _ in range(len(edges_list[0]))]
         else:
-            return None
+            return -1
 
         return node_features, edges_list, edges_features, nx_graph_copy

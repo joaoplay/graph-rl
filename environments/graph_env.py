@@ -47,7 +47,8 @@ class GraphEnv:
 
     """
 
-    def __init__(self, stop_conditions: List[StopCondition], max_edges_percentage=None, stop_after_void_action: bool = False) -> None:
+    def __init__(self, stop_conditions: List[StopCondition], max_edges_percentage=None,
+                 stop_after_void_action: bool = False) -> None:
         super().__init__()
 
         # Batch of graphs
@@ -66,6 +67,9 @@ class GraphEnv:
         self.last_sources = None
 
         self.previous_irrigation_score = None
+
+        self.start_node_selection_statistics = None
+        self.end_node_selection_statistics = None
 
         self.rewards = None
 
@@ -110,7 +114,8 @@ class GraphEnv:
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 node_added = edge_insertion_cost > 0
-                rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added, start_node=start_node, end_node=actions[graph_idx])
+                rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
+                                                           start_node=start_node, end_node=actions[graph_idx])
             else:
                 rewards[graph_idx] = 0
 
@@ -118,7 +123,7 @@ class GraphEnv:
             self.edges_budget.increment_used_budget(graph_idx, edge_insertion_cost)
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
-               and self.graphs_list[graph_idx].allowed_actions_not_found:
+                    and self.graphs_list[graph_idx].allowed_actions_not_found:
                 # A new edge was added and no valid start nodes are available. The current graph reached a dead end, and therefore
                 # it's time to end the generation process.
                 self.edges_budget.force_exhausting(graph_idx)
@@ -150,6 +155,8 @@ class GraphEnv:
 
             graph.select_start_node(action)
 
+            self.start_node_selection_statistics[action] += 1
+
             # Update forbidden actions
             graph.populate_forbidden_actions(remaining_budget)
 
@@ -158,10 +165,12 @@ class GraphEnv:
             # A start node is already selected. It's time to select the end node and create a new edge.
             edge_insertion_cost = 0
 
-            #if not graph.allowed_actions_not_found:
+            # if not graph.allowed_actions_not_found:
             # Ensure that the start node selection is feasible.
 
             graph, edge_insertion_cost = graph.add_or_remove_edge(graph.selected_start_node, action)
+
+            self.end_node_selection_statistics[action] += 1
 
             # Invalidate the currently selected start node. A new start node will be selected in the next simulation step.
             graph.invalidate_selected_start_node()
@@ -182,7 +191,8 @@ class GraphEnv:
         if self.max_edges_percentage is None:
             self.edges_budget = InfiniteEdgeBudget(self.graphs_list)
         else:
-            self.edges_budget = FixedEdgePercentageBudget(self.graphs_list, fixed_edge_percentage=self.max_edges_percentage)
+            self.edges_budget = FixedEdgePercentageBudget(self.graphs_list,
+                                                          fixed_edge_percentage=self.max_edges_percentage)
 
         # Init simulation statistics array
         self.action_type_statistics = [[] for _ in range(len(graphs_list))]
@@ -191,7 +201,11 @@ class GraphEnv:
 
         self.last_irrigation_map = None
         self.last_sources = None
-        self.previous_irrigation_score = [self.calculate_reward(graph_idx=graph_idx) for graph_idx in range(len(graphs_list))]
+        self.previous_irrigation_score = [self.calculate_reward(graph_idx=graph_idx) for graph_idx in
+                                          range(len(graphs_list))]
+
+        self.start_node_selection_statistics = {node: 0 for node in self.graphs_list[0].nx_graph.nodes}
+        self.end_node_selection_statistics = {node: 0 for node in self.graphs_list[0].nx_graph.nodes}
 
         self.rewards = None
 
@@ -273,37 +287,40 @@ class GraphEnv:
 
         return rewards
 
-    def calculate_reward(self, graph_idx, node_added=True, start_node=None, end_node=None):
+    def calculate_reward(self, graph_idx, node_added=True, start_node=None, end_node=None, reward_multi=10):
         graph = self.graphs_list[graph_idx]
 
-        prepared_data = graph.prepare_for_reward_evaluation(node_added=node_added, start_node=start_node, end_node=end_node)
-
-        if not prepared_data:
-            return 0
+        prepared_data = graph.prepare_for_reward_evaluation(node_added=node_added, start_node=start_node,
+                                                            end_node=end_node)
 
         """fig, ax = plt.subplots()
-        draw_nx_graph_with_coordinates(prepared_data[3], ax)
-        fig.savefig(f'{BASE_PATH}/test_images/graph-sim-{self.steps_counter + 1}.png')
-
-        fig, ax = plt.subplots()
         draw_nx_graph_with_coordinates(graph.nx_graph, ax)
-        fig.savefig(f'{BASE_PATH}/test_images/graph-{self.steps_counter + 1}.png')"""
+        fig.savefig(f'{BASE_PATH}/test_images/graph-{self.steps_counter + 1}-before.png')"""
 
-        irrigation, sources = calculate_network_irrigation(prepared_data[0], prepared_data[1], prepared_data[2], [10, 10], [0.1, 0.1])
+        irrigation_score = 0
+        irrigation = None
+        sources = None
+        if not prepared_data:
+            return 0
+        elif prepared_data != -1:
+            irrigation, sources = calculate_network_irrigation(prepared_data[0], prepared_data[1], prepared_data[2],
+                                                               [10, 10], [0.1, 0.1])
 
-        sections_x = np.array_split(irrigation, 20, axis=0)
-        sections_y = np.array_split(irrigation, 20, axis=1)
+            sections_x = np.array_split(irrigation, 20, axis=0)
+            sections_y = np.array_split(irrigation, 20, axis=1)
 
-        mean_over_x = [np.mean(section) for section in sections_x]
-        mean_over_y = [np.mean(section) for section in sections_y]
+            mean_over_x = [np.mean(section) for section in sections_x]
+            mean_over_y = [np.mean(section) for section in sections_y]
 
-        irrigation_score_x = sum(mean_over_x)
-        irrigation_score_y = sum(mean_over_y)
+            irrigation_score_x = sum(mean_over_x)
+            irrigation_score_y = sum(mean_over_y)
 
-        irrigation_score = (irrigation_score_x + irrigation_score_y) / 2.0
+            irrigation_score = (irrigation_score_x + irrigation_score_y) / 2.0
 
         if not self.previous_irrigation_score:
-            return irrigation_score
+            return irrigation_score * reward_multi
+
+        # print(f"Previous Irrigation Score: {self.previous_irrigation_score[graph_idx] * reward_multi}")
 
         irrigation_improvement = irrigation_score - self.previous_irrigation_score[graph_idx]
 
@@ -316,4 +333,6 @@ class GraphEnv:
         ax.imshow(np.flipud(irrigation), cmap='hot', interpolation='nearest')
         fig.savefig(f'{BASE_PATH}/test_images/heatmap-{self.steps_counter + 1}.png')"""
 
-        return irrigation_improvement
+        # print(f"Step: {self.steps_counter + 1} | Reward: {irrigation_improvement * reward_multi}")
+
+        return irrigation_improvement * reward_multi

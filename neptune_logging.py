@@ -41,3 +41,8 @@ def log_training_instant_mean_reward(mean_reward):
 
 def log_training_mean_reward(mean_reward):
     NEPTUNE_INSTANCE[f'training/reward'].log(mean_reward)
+
+
+def upload_action_selection(node_selection_plot, iteration):
+    NEPTUNE_INSTANCE[f'validation/visualization/node-selection/bar-it{iteration}.jpeg'].upload(
+        File.as_image(node_selection_plot))

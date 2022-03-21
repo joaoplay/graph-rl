@@ -1,10 +1,15 @@
+import time
+
 import numpy as np
 import torch
+from matplotlib import pyplot as plt
 from torch import nn
+from torch.nn import Linear
 
 from graphs.graph_state import GraphState
 from models.noisy_linear import NoisyLinear
-from settings import USE_CUDA
+from settings import USE_CUDA, BASE_PATH
+from util import draw_nx_graph_with_coordinates
 
 
 class NoEmbeddingGraphDQN(nn.Module):
@@ -15,9 +20,10 @@ class NoEmbeddingGraphDQN(nn.Module):
         self.num_node_features = num_node_features
 
         self.fc = nn.Sequential(
-            NoisyLinear(784, hidden_output_dim),
+            #Linear(784, hidden_output_dim),
+            Linear(169, hidden_output_dim),
             nn.ReLU(),
-            NoisyLinear(hidden_output_dim, actions_output_dim)
+            Linear(hidden_output_dim, actions_output_dim)
         )
 
         self.unique_id = unique_id
@@ -59,7 +65,7 @@ class NoEmbeddingGraphDQN(nn.Module):
         return indices, values
 
     def convert_graph_to_one_hot_representation(self, graph: GraphState):
-        nx_graph = graph.nx_graph
+        nx_graph = graph.nx_graph.to_undirected()
         nx_neighbourhood_graph = graph.nx_neighbourhood_graph
 
         graph_one_hot = []

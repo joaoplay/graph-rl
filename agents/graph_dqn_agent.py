@@ -16,14 +16,14 @@ from tqdm import tqdm
 from agents.base_agent import BaseAgent
 from agents.replay_memory.multi_action_experience_buffer import MultiActionModeExperienceBuffer
 from agents.util.sample_tracker import BatchSampler
-from environments.graph_env import DEFAULT_ACTION_MODES, ACTION_MODE_SELECTING_START_NODE, ACTION_MODE_SELECTING_END_NODE
+from environments.graph_env import DEFAULT_ACTION_MODES, ACTION_MODE_SELECTING_START_NODE, \
+    ACTION_MODE_SELECTING_END_NODE
 from environments.graph_env import GraphEnv
 from graphs.graph_state import GraphState
 import neptune_logging
 from models.multi_action_mode_dqn import MultiActionModeDQN
 from settings import USE_CUDA, BASE_PATH, NEPTUNE_INSTANCE
 from util import draw_nx_graph_with_coordinates
-
 
 log = logging.getLogger(__name__)
 
@@ -72,37 +72,49 @@ class GraphDQNAgent(BaseAgent):
         self.eps_step = None
         self.q_networks = MultiActionModeDQN(action_modes=self.action_modes,
                                              embedding_dim={
-                                                 ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params['embedding_dim'],
-                                                 ACTION_MODE_SELECTING_END_NODE: end_node_selection_dqn_params['embedding_dim'],
+                                                 ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params[
+                                                     'embedding_dim'],
+                                                 ACTION_MODE_SELECTING_END_NODE: end_node_selection_dqn_params[
+                                                     'embedding_dim'],
                                              },
                                              hidden_output_dim={
-                                                 ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params['hidden_output_dim'],
-                                                 ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params['hidden_output_dim'],
+                                                 ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params[
+                                                     'hidden_output_dim'],
+                                                 ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params[
+                                                     'hidden_output_dim'],
                                              },
                                              num_node_features={
-                                                 ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params['num_node_features'],
-                                                 ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params['num_node_features'],
+                                                 ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params[
+                                                     'num_node_features'],
+                                                 ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params[
+                                                     'num_node_features'],
                                              },
                                              action_output_dim={
-                                                 ACTION_MODE_SELECTING_START_NODE: 100,
-                                                 ACTION_MODE_SELECTING_END_NODE: 100,
+                                                 ACTION_MODE_SELECTING_START_NODE: 25,
+                                                 ACTION_MODE_SELECTING_END_NODE: 25,
                                              })
         self.target_q_networks = MultiActionModeDQN(action_modes=self.action_modes,
                                                     embedding_dim={
-                                                        ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params['embedding_dim'],
-                                                        ACTION_MODE_SELECTING_END_NODE: end_node_selection_dqn_params['embedding_dim'],
+                                                        ACTION_MODE_SELECTING_START_NODE:
+                                                            start_node_selection_dqn_params['embedding_dim'],
+                                                        ACTION_MODE_SELECTING_END_NODE: end_node_selection_dqn_params[
+                                                            'embedding_dim'],
                                                     },
                                                     hidden_output_dim={
-                                                        ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params['hidden_output_dim'],
-                                                        ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params['hidden_output_dim'],
+                                                        ACTION_MODE_SELECTING_START_NODE:
+                                                            start_node_selection_dqn_params['hidden_output_dim'],
+                                                        ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params[
+                                                            'hidden_output_dim'],
                                                     },
                                                     num_node_features={
-                                                        ACTION_MODE_SELECTING_START_NODE: start_node_selection_dqn_params['num_node_features'],
-                                                        ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params['num_node_features'],
+                                                        ACTION_MODE_SELECTING_START_NODE:
+                                                            start_node_selection_dqn_params['num_node_features'],
+                                                        ACTION_MODE_SELECTING_END_NODE: start_node_selection_dqn_params[
+                                                            'num_node_features'],
                                                     },
                                                     action_output_dim={
-                                                        ACTION_MODE_SELECTING_START_NODE: 100,
-                                                        ACTION_MODE_SELECTING_END_NODE: 100,
+                                                        ACTION_MODE_SELECTING_START_NODE: 25,
+                                                        ACTION_MODE_SELECTING_END_NODE: 25,
                                                     })
 
         if USE_CUDA == 1:
@@ -133,16 +145,16 @@ class GraphDQNAgent(BaseAgent):
         data_batch = self.sample_batch(validation_data, batch_sampler)
 
         # 1. Measuring performance of each graph at the initial step
-        #performances_before = [self.environment.calculate_reward(graph) for graph in data_batch]
+        # performances_before = [self.environment.calculate_reward(graph) for graph in data_batch]
         # 2. Run a simulation and getting performances
         performances_after = self.simulate_for_validation(data_batch)
 
         # Calculate mean improvement improvement
-        #performance = np.mean(performances_after - performances_before)
+        # performance = np.mean(performances_after - performances_before)
 
-        #neptune_logging.log_batch_validation_result(performance)
+        # neptune_logging.log_batch_validation_result(performance)
 
-        #return np.mean(performances_after - performances_before)
+        # return np.mean(performances_after - performances_before)
 
     def train(self, train_data, validation_data, max_steps):
         """
@@ -187,10 +199,11 @@ class GraphDQNAgent(BaseAgent):
                 self.update_target_networks()
 
             if self.should_validate(max_training_steps=max_steps):
-                self.validate(data_batch, validation_data_batch_sampler)
+                self.validate(validation_data, validation_data_batch_sampler)
 
             # Sample a batch of replays
-            action_mode, states, actions, rewards, finished, next_states = self.experience_buffers.sample(self.batch_size)
+            action_mode, states, actions, rewards, finished, next_states = self.experience_buffers.sample(
+                self.batch_size)
 
             # Cast all rewards to tensor
             rewards_tensor = torch.Tensor(rewards).view(-1, 1)
@@ -308,7 +321,8 @@ class GraphDQNAgent(BaseAgent):
         # Get the environments state of each graphs
         cur_env_states = self.environment.current_state
         # Get action that maximizes Q-value (for each graph)
-        actions, q_values, _ = self.q_networks(action_mode=self.current_action_mode, states=cur_env_states, actions=None,
+        actions, q_values, _ = self.q_networks(action_mode=self.current_action_mode, states=cur_env_states,
+                                               actions=None,
                                                greedy_acts=True)
         actions = list(actions.view(-1).cpu().numpy())
 
@@ -331,14 +345,14 @@ class GraphDQNAgent(BaseAgent):
             return self.choose_greedy_actions()
 
         if self.current_action_mode == ACTION_MODE_SELECTING_START_NODE:
-            #print("Selecting start node")
+            # print("Selecting start node")
 
             if np.random.random() < self.eps:
                 # Select an exploratory action
                 selected_start_nodes, selected_end_nodes = self.choose_exploratory_actions()
                 self.current_exploratory_actions = (selected_start_nodes, selected_end_nodes)
 
-                #print("Choosing random actions: ", self.current_exploratory_actions)
+                # print("Choosing random actions: ", self.current_exploratory_actions)
 
                 return selected_start_nodes
             else:
@@ -350,17 +364,17 @@ class GraphDQNAgent(BaseAgent):
 
                 return greedy_actions
         else:
-            #print("Selecting end node")
+            # print("Selecting end node")
             # A start node is already selected. It's now time to select the end node
             if self.current_exploratory_actions is not None:
-                #print("A previous end node exists: ", self.current_exploratory_actions[1])
+                # print("A previous end node exists: ", self.current_exploratory_actions[1])
                 # If an exploratory action was chosen in the previous step, we already know the next action. It is stored
                 # in the current_exploratory_actions
                 return self.current_exploratory_actions[1]
             else:
                 # Choose an end node from the DQN
                 greedy_actions = self.choose_greedy_actions()
-                #print("Choosing greedy action: ", greedy_actions)
+                # print("Choosing greedy action: ", greedy_actions)
 
                 return greedy_actions
 
@@ -376,10 +390,6 @@ class GraphDQNAgent(BaseAgent):
         # Init simulation environments with the current train_graphs
         self.environment.init(graphs)
 
-        """fig, ax = plt.subplots()
-        draw_nx_graph_with_coordinates(graphs[0].nx_graph, ax)
-        fig.savefig(f'{BASE_PATH}/test_images/graph-{self.current_training_step}.png')"""
-
         # This selector allows switching between actions modes by using next() (like a Python iterator)
         action_mode_selector = itertools.cycle(self.action_modes)
 
@@ -389,16 +399,18 @@ class GraphDQNAgent(BaseAgent):
             # Set the current action mode
             self.current_action_mode = next(action_mode_selector)
             # Decide the next action. Both greedy and exploratory actions are considered.
-            actions = self.choose_actions(execute_exploratory_actions=False)
+            actions = self.choose_actions(execute_exploratory_actions=True)
 
-            graphs_before = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in deepcopy(self.environment.graphs_list)]
+            graphs_before = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in
+                             deepcopy(self.environment.graphs_list)]
 
             # Execute actions and step forward
             self.environment.step(actions)
 
-            graphs_states = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in self.environment.graphs_list]
+            graphs_states = [(graph, graph.selected_start_node, graph.forbidden_actions) for graph in
+                             self.environment.graphs_list]
 
-            #print(f"Training Step: {self.current_training_step} | Simulation Step: {time_step} | Action Mode: {self.current_action_mode} | Action: {actions} | Reward: {np.mean(self.environment.rewards)}")
+            # print(f"Training Step: {self.current_training_step} | Simulation Step: {time_step} | Action Mode: {self.current_action_mode} | Action: {actions} | Reward: {np.mean(self.environment.rewards)}")
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 self.all_training_rewards += [np.mean(self.environment.rewards)]
@@ -454,8 +466,10 @@ class GraphDQNAgent(BaseAgent):
             # Log rewards
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 for graph_idx in range(len(self.environment.graphs_list)):
-                    NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/{graph_idx}/reward'].log(rewards[graph_idx])
-                NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/reward_average'].log(np.mean(rewards))
+                    NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/{graph_idx}/reward'].log(
+                        rewards[graph_idx])
+                NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/reward_average'].log(
+                    np.mean(rewards))
                 NEPTUNE_INSTANCE[f'validation/simulation/{self.current_training_step}/reward_std'].log(np.std(rewards))
 
             # Increment time step
@@ -475,7 +489,8 @@ class GraphDQNAgent(BaseAgent):
             ax_irrigation.imshow(np.flip(self.environment.last_irrigation_map), cmap='hot', interpolation='nearest')
             fig_sources, ax_sources = plt.subplots()
             ax_sources.imshow(np.flip(self.environment.last_sources), cmap='hot', interpolation='nearest')
-            neptune_logging.upload_irrigation_heatmaps(fig_sources, fig_irrigation, self.current_training_step, 'validation')
+            neptune_logging.upload_irrigation_heatmaps(fig_sources, fig_irrigation, self.current_training_step,
+                                                       'validation')
 
         # Compute statistics (insertion and removal frequency)
         actions_stats = self.environment.action_type_statistics
@@ -483,6 +498,13 @@ class GraphDQNAgent(BaseAgent):
             fig, ax = plt.subplots()
             ax.hist(stat, bins=[0, 0.8, 1, 1.8])
             neptune_logging.upload_action_frequency(fig, self.current_training_step, graph_idx)
+
+        fig, axs = plt.subplots(2)
+        axs[0].bar(self.environment.start_node_selection_statistics.keys(),
+                   self.environment.start_node_selection_statistics.values(), 2, color='g')
+        axs[1].bar(self.environment.end_node_selection_statistics.keys(),
+                   self.environment.end_node_selection_statistics.values(), 2, color='g')
+        neptune_logging.upload_action_selection(fig, self.current_training_step)
 
         return rewards
 
