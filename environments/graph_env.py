@@ -122,6 +122,11 @@ class GraphEnv:
             # Update edges budget
             self.edges_budget.increment_used_budget(graph_idx, edge_insertion_cost)
 
+            # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
+            if self.irrigation_goal_achieved():
+                self.edges_budget.force_exhausting(graph_idx)
+                rewards[graph_idx] = 1
+
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
                     and self.graphs_list[graph_idx].allowed_actions_not_found:
                 # A new edge was added and no valid start nodes are available. The current graph reached a dead end, and therefore
@@ -130,6 +135,12 @@ class GraphEnv:
 
         self.rewards = rewards
         self.steps_counter += 1
+
+    def irrigation_goal_achieved(self):
+        if self.last_irrigation_map is None:
+            return False
+
+        return np.all((self.last_irrigation_map > 0.8))
 
     @property
     def current_action_mode(self):
@@ -268,6 +279,9 @@ class GraphEnv:
                  deepcopy(self.graphs_list[i].forbidden_actions))
                 for i in graph_indexes]
 
+    def all_graphs_exhausted(self):
+        return self.edges_budget.all_graphs_are_exhausted
+
     def is_terminal(self):
         """
         Check all stop conditions
@@ -293,9 +307,37 @@ class GraphEnv:
         prepared_data = graph.prepare_for_reward_evaluation(node_added=node_added, start_node=start_node,
                                                             end_node=end_node)
 
-        """fig, ax = plt.subplots()
-        draw_nx_graph_with_coordinates(graph.nx_graph, ax)
-        fig.savefig(f'{BASE_PATH}/test_images/graph-{self.steps_counter + 1}-before.png')"""
+        if prepared_data is not None:
+            if prepared_data == -1:  # No irrigation
+                self.last_irrigation_map = None
+                self.previous_irrigation_score[graph_idx] = 0
+            elif prepared_data != -1:
+                irrigation, sources = calculate_network_irrigation(prepared_data[0], prepared_data[1], prepared_data[2],
+                                                                   [5, 5], [0.1, 0.1])
+
+                sections_x = np.array_split(irrigation, 20, axis=0)
+                sections_y = np.array_split(irrigation, 20, axis=1)
+
+                mean_over_x = [np.mean(section) for section in sections_x]
+                mean_over_y = [np.mean(section) for section in sections_y]
+
+                irrigation_score_x = sum(mean_over_x)
+                irrigation_score_y = sum(mean_over_y)
+
+                irrigation_score = (irrigation_score_x + irrigation_score_y) / 2.0
+
+                if self.previous_irrigation_score:
+                    self.previous_irrigation_score[graph_idx] = irrigation_score
+                self.last_irrigation_map = irrigation
+                self.last_sources = sources
+
+        return 0
+
+    """def calculate_reward(self, graph_idx, node_added=True, start_node=None, end_node=None, reward_multi=10):
+        graph = self.graphs_list[graph_idx]
+
+        prepared_data = graph.prepare_for_reward_evaluation(node_added=node_added, start_node=start_node,
+                                                            end_node=end_node)
 
         irrigation_score = 0
         irrigation = None
@@ -329,10 +371,6 @@ class GraphEnv:
         self.last_irrigation_map = irrigation
         self.last_sources = sources
 
-        """fig, ax = plt.subplots()
-        ax.imshow(np.flipud(irrigation), cmap='hot', interpolation='nearest')
-        fig.savefig(f'{BASE_PATH}/test_images/heatmap-{self.steps_counter + 1}.png')"""
-
         # print(f"Step: {self.steps_counter + 1} | Reward: {irrigation_improvement * reward_multi}")
 
-        return irrigation_improvement * reward_multi
+        return irrigation_improvement * reward_multi"""

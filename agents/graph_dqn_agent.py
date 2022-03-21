@@ -232,8 +232,9 @@ class GraphDQNAgent(BaseAgent):
                 _, _, forbidden_actions = zip(*not_finished_next_states)
                 # We are processing the next state, and then we need to know to which action it stands for
                 next_action_mode = self.action_modes[(action_mode + 1) % len(self.action_modes)]
-                # Get the q-value for the next state
+
                 with torch.no_grad():
+                    # Get the q-value for the next state
                     _, q_t_next, prefix_sum_next = self.target_q_networks(next_action_mode, not_finished_next_states,
                                                                           None)
                     # The previous network is returning the q-value for all existing actions. Now we need to filter out every
@@ -247,8 +248,6 @@ class GraphDQNAgent(BaseAgent):
             # Convert reward to (len(graph_list), 1) shape
             rewards_tensor = Variable(rewards_tensor.view(-1, 1))
 
-            # print("Next: ", rewards_tensor)
-
             # Get q-value for the current state
             _, q_s_all, _ = self.q_networks(action_mode, states, actions)
 
@@ -260,8 +259,6 @@ class GraphDQNAgent(BaseAgent):
 
             if USE_CUDA == 1:
                 rewards_tensor.cuda()
-
-            # print("Current Q-Value: ", q_sa)
 
             # Calculate loss and gradients. Back-Propagate gradients
             loss = nn.MSELoss()(q_sa, rewards_tensor)

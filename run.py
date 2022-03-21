@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from omegaconf import DictConfig, OmegaConf
 
+from agents.episodic_graph_dqn_agent import EpisodicGraphDQNAgent
 from agents.graph_dqn_agent import GraphDQNAgent
 from environments.generator.single_vessel_graph_generator import SingleVesselGraphGenerator
 from environments.graph_env import GraphEnv
@@ -51,8 +52,9 @@ def run_from_config_file(cfg: DictConfig):
 
     environment = GraphEnv(stop_conditions=parsed_stop_conditions, stop_after_void_action=cfg.stop_after_void_action,
                            max_edges_percentage=cfg.max_edges_percentage)
-    agent = GraphDQNAgent(environment=environment, start_node_selection_dqn_params=cfg.start_node_selection_dqn,
-                          end_node_selection_dqn_params=cfg.end_node_selection_dqn, **cfg.core, **cfg.exploratory_actions)
+    agent = EpisodicGraphDQNAgent(environment=environment, start_node_selection_dqn_params=cfg.start_node_selection_dqn,
+                                  end_node_selection_dqn_params=cfg.end_node_selection_dqn, **cfg.core,
+                                  **cfg.exploratory_actions)
 
     agent.train(train_graphs, validation_graphs, cfg.max_steps)
 

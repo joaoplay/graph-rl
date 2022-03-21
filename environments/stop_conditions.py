@@ -37,7 +37,7 @@ class IrrigationThresholdAchieved(StopCondition):
         sections_x = np.array_split(irrigation_map, 20, axis=0)
         sections_y = np.array_split(irrigation_map, 20, axis=1)
 
-        satisfied_x = all([np.all(section > 0.5) for section in sections_x])
-        satisfied_y = all( [np.all(section > 0.5) for section in sections_y])
+        satisfied_x = all([np.all(section > 0.0) for section in sections_x])
+        satisfied_y = all( [np.all(section > 0.0) for section in sections_y])
 
         return satisfied_x and satisfied_y

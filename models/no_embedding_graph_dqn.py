@@ -60,6 +60,8 @@ class NoEmbeddingGraphDQN(nn.Module):
 
         jagged = q_values.reshape(len(prefix_sum), prefix_sum[0])
 
+        jagged_np = jagged.numpy()
+
         values, indices = torch.topk(jagged, 1, dim=1)
 
         return indices, values
