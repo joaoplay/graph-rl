@@ -26,9 +26,6 @@ class NoEmbeddingGraphDQN(nn.Module):
             Linear(hidden_output_dim, actions_output_dim)
         )
 
-        if USE_CUDA == 1:
-            self.fc = self.fc.cuda()
-
         self.unique_id = unique_id
 
     @staticmethod
@@ -110,6 +107,9 @@ class NoEmbeddingGraphDQN(nn.Module):
         graphs, selected_nodes, forbidden_actions = zip(*states)
 
         encoded_graphs, prefix_sum = self.prepare_data(graphs, selected_nodes, forbidden_actions)
+
+        if USE_CUDA == 1:
+            encoded_graphs = encoded_graphs.cuda()
 
         raw_pred = self.fc(encoded_graphs)
 
