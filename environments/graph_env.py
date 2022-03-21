@@ -304,7 +304,7 @@ class GraphEnv:
             return 0
         elif prepared_data != -1:
             irrigation, sources = calculate_network_irrigation(prepared_data[0], prepared_data[1], prepared_data[2],
-                                                               [10, 10], [0.1, 0.1])
+                                                               [5, 5], [0.1, 0.1])
 
             sections_x = np.array_split(irrigation, 20, axis=0)
             sections_y = np.array_split(irrigation, 20, axis=1)
