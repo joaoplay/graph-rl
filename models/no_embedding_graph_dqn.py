@@ -58,8 +58,6 @@ class NoEmbeddingGraphDQN(nn.Module):
 
         jagged = q_values.reshape(len(prefix_sum), prefix_sum[0])
 
-        jagged_np = jagged.numpy()
-
         values, indices = torch.topk(jagged, 1, dim=1)
 
         return indices, values
@@ -110,6 +108,8 @@ class NoEmbeddingGraphDQN(nn.Module):
 
         if USE_CUDA == 1:
             encoded_graphs = encoded_graphs.cuda()
+
+        print("Is Cuda: ", next(self.fc.parameters()).is_cuda)
 
         raw_pred = self.fc(encoded_graphs)
 
