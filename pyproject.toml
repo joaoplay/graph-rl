@@ -17,6 +17,8 @@ tqdm = "^4.62"
 neptune-client = "^0.14"
 hydra-core = "^1.1"
 scikit-learn = "*"
+pytorch-lightning = "^1.5.10"
+
 
 [tool.poetry.dev-dependencies]
 

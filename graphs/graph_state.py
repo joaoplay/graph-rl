@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import networkx as nx
 import numpy as np
+import torch
 
 BUDGET_EPS = 1e-5
 
@@ -187,12 +188,7 @@ class GraphState:
 
         return invalid_end_nodes
 
-    def populate_forbidden_actions(self, budget=None):
-        if budget is not None:
-            if budget < BUDGET_EPS:
-                self.forbidden_actions = self.all_nodes_set
-                return
-
+    def populate_forbidden_actions(self):
         if self.selected_start_node is None:
             # A start node is not selected
             self.forbidden_actions = self.get_invalid_start_nodes()
@@ -229,6 +225,34 @@ class GraphState:
     @property
     def allowed_actions(self):
         return self.all_nodes_set - self.forbidden_actions
+
+    def to_tensor(self):
+        nx_graph = self.nx_graph.to_undirected()
+        nx_neighbourhood_graph = self.nx_neighbourhood_graph
+
+        selected_node_one_hot = np.zeros(self.nx_graph.number_of_nodes())
+
+        graph_one_hot = []
+        for node in nx_graph.nodes:
+            number_of_neighbours = nx_neighbourhood_graph.degree[node]
+            all_neighbours = nx_neighbourhood_graph.neighbors(node)
+            neighbours = nx_graph.neighbors(node)
+            neighbours = sorted(neighbours)
+            neighbours_one_hot = np.zeros(number_of_neighbours)
+            existing_neighbours = [node in neighbours for node in all_neighbours]
+            neighbours_one_hot[existing_neighbours] = 1
+            graph_one_hot.append(neighbours_one_hot)
+
+        flatten_graph_one_hot = np.concatenate(graph_one_hot).ravel()
+
+        selected_node = self.selected_start_node
+        if selected_node is not None:
+            selected_node_one_hot[selected_node] = 1
+
+        graph_representation = np.concatenate((selected_node_one_hot, flatten_graph_one_hot))
+
+        return graph_representation
+
 
 
 

@@ -1,15 +1,10 @@
-import time
-
 import numpy as np
 import torch
-from matplotlib import pyplot as plt
 from torch import nn
 from torch.nn import Linear
 
 from graphs.graph_state import GraphState
-from models.noisy_linear import NoisyLinear
-from settings import USE_CUDA, BASE_PATH
-from util import draw_nx_graph_with_coordinates
+from settings import USE_CUDA
 
 
 class NoEmbeddingGraphDQN(nn.Module):

@@ -1,10 +1,7 @@
 from typing import Optional
 
 from torch import nn
-
-from models.graph_dqn import GraphDQN
 from models.no_embedding_graph_dqn import NoEmbeddingGraphDQN
-from models.noisy_graph_dqn import NoisyGraphDQN
 
 
 class MultiActionModeDQN(nn.Module):
