@@ -21,9 +21,6 @@ class NoEmbeddingGraphDQN(nn.Module):
             Linear(hidden_output_dim, actions_output_dim)
         )
 
-        if USE_CUDA == 1:
-            self.fc = self.fc.cuda()
-
         self.unique_id = unique_id
 
     @staticmethod

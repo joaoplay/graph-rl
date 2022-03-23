@@ -70,8 +70,8 @@ class DQNLightning(LightningModule):
                                                     })
 
         if USE_CUDA == 1:
-            self.q_networks = self.q_networks.cuda()
-            self.target_q_networks = self.target_q_networks.cuda()
+            self.q_networks = [self.q_networks.cuda()]
+            self.target_q_networks = [self.target_q_networks.cuda()]
 
         self.env = env
         self.graphs = graphs
