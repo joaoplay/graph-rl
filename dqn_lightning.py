@@ -69,10 +69,6 @@ class DQNLightning(LightningModule):
                                                         ACTION_MODE_SELECTING_END_NODE: 25,
                                                     })
 
-        if USE_CUDA == 1:
-            self.q_networks = [self.q_networks.cuda()]
-            self.target_q_networks = [self.target_q_networks.cuda()]
-
         self.env = env
         self.graphs = graphs
         self.buffer = MultiActionReplayBuffer(self.hparams.action_modes)
