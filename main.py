@@ -16,7 +16,6 @@ def run_from_config_file(cfg: DictConfig):
     model = DQNLightning(environment, train_graphs)
 
     trainer = Trainer(
-        gpus=-1,
         max_epochs=1000,
         val_check_interval=100,
     )

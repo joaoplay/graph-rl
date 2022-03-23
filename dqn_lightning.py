@@ -16,7 +16,7 @@ from agents.rl_dataset import RLDataset
 from environments.graph_env import DEFAULT_ACTION_MODES, ACTION_MODE_SELECTING_START_NODE, \
     ACTION_MODE_SELECTING_END_NODE, GraphEnv
 from models.multi_action_mode_dqn import MultiActionModeDQN
-from settings import NEPTUNE_INSTANCE
+from settings import NEPTUNE_INSTANCE, USE_CUDA
 
 
 class DQNLightning(LightningModule):
@@ -69,6 +69,10 @@ class DQNLightning(LightningModule):
                                                         ACTION_MODE_SELECTING_END_NODE: 25,
                                                     })
 
+        if USE_CUDA == 1:
+            self.q_networks = self.q_networks.cuda()
+            self.target_q_networks = self.target_q_networks.cuda()
+
         self.env = env
         self.graphs = graphs
         self.buffer = MultiActionReplayBuffer(self.hparams.action_modes)
@@ -113,6 +117,9 @@ class DQNLightning(LightningModule):
 
         action_mode = action_modes[1]
         actions_tensor = torch.tensor(actions).unsqueeze(-1)
+        if USE_CUDA == 1:
+            actions_tensor = actions_tensor.cuda()
+
         _, state_action_values, _ = self.q_networks(action_mode, states, actions)
 
         q_sa = state_action_values.gather(1, actions_tensor)
@@ -130,6 +137,9 @@ class DQNLightning(LightningModule):
 
         rewards_tensor = torch.tensor(rewards, dtype=torch.float).unsqueeze(-1)
 
+        if USE_CUDA == 1:
+            rewards_tensor.cuda()
+
         expected_state_action_values = next_state_values * self.hparams.gamma + rewards_tensor
 
         return action_mode, nn.MSELoss()(q_sa, expected_state_action_values)
@@ -146,9 +156,6 @@ class DQNLightning(LightningModule):
             Training loss and log metrics
         """
         device = self.get_device(batch)
-
-        print(device)
-
         epsilon = max(
             self.hparams.eps_end,
             self.hparams.eps_start - self.global_step + 1 / self.hparams.eps_last_frame,
