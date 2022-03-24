@@ -22,7 +22,7 @@ from settings import NEPTUNE_INSTANCE, USE_CUDA
 class DQNLightning(LightningModule):
     """Basic DQN Model."""
 
-    def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int = 128,
+    def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int =28,
                  lr: float = 1e-4,
                  gamma: float = 0.99,
                  sync_rate: int = 10,
