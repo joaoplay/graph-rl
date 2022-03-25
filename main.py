@@ -11,12 +11,11 @@ from environments.graph_env import GraphEnv
 def run_from_config_file(cfg: DictConfig):
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
-    environment = GraphEnv(max_steps=300, irrigation_goal=0.8)
+    environment = GraphEnv(max_steps=3000, irrigation_goal=0.8)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
-    model = DQNLightning(environment, train_graphs)
+    model = DQNLightning(environment, train_graphs, replay_size=10**6)
 
     trainer = Trainer(
-        gpus=[0],
         max_epochs=1000,
         val_check_interval=100,
     )

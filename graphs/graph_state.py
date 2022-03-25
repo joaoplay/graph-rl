@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import List
 
 import networkx as nx
 import numpy as np
@@ -226,7 +227,19 @@ class GraphState:
     def allowed_actions(self):
         return self.all_nodes_set - self.forbidden_actions
 
-    def to_tensor(self):
+    @staticmethod
+    def convert_all_to_representation(graph_states):
+        convert_graph_states = []
+        for graph in graph_states:
+            forbidden_actions_list = list(graph.forbidden_actions)
+            forbidden_actions_encoding = np.zeros(graph.num_nodes)
+            if len(forbidden_actions_encoding) > 0:
+                forbidden_actions_encoding[forbidden_actions_list] = 1
+            convert_graph_states += [np.concatenate(([graph.num_nodes], forbidden_actions_encoding, graph.to_representation()))]
+
+        return convert_graph_states
+
+    def to_representation(self):
         nx_graph = self.nx_graph.to_undirected()
         nx_neighbourhood_graph = self.nx_neighbourhood_graph
 

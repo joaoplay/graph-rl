@@ -25,7 +25,7 @@ class MultiActionModeDQN(nn.Module):
                                                    actions_output_dim=action_output_dim[action_mode])
              for action_mode in action_modes})
 
-    def select_action_from_q_values(self, action_mode, q_t_next, prefix_sum_next, forbidden_actions):
+    def select_action_from_q_values(self, action_mode, q_values, forbidden_actions):
         """
         Select an action from a set of Q-Values. Actions are indexed by its position in the Q-Values list. For instance,
         the index 0 in the Q-values list matches the selection the node with ID 0.
@@ -35,9 +35,8 @@ class MultiActionModeDQN(nn.Module):
         :param forbidden_actions:
         :return:
         """
-        return self._dqn_by_action_mode[str(action_mode)].select_action_from_q_values(q_t_next, prefix_sum_next,
-                                                                                      forbidden_actions)
+        return self._dqn_by_action_mode[str(action_mode)].select_action_from_q_values(q_values, forbidden_actions)
 
-    def forward(self, action_mode, states, actions, greedy_acts=False):
+    def forward(self, action_mode, states):
         action_mode = str(action_mode)
-        return self._dqn_by_action_mode[action_mode](states, actions, greedy_acts)
+        return self._dqn_by_action_mode[action_mode](states)

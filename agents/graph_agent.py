@@ -9,6 +9,7 @@ from torch import nn
 from agents.replay_memory.multi_action_replay_buffer import MultiActionReplayBuffer
 from agents.util.sample_tracker import BatchSampler
 from environments.graph_env import GraphEnv, ACTION_MODE_SELECTING_START_NODE
+from graphs.graph_state import GraphState
 from models.multi_action_mode_dqn import MultiActionModeDQN
 
 
@@ -41,9 +42,10 @@ class GraphAgent:
         """
 
         # Get the environments state of each graphs
-        state = self.env.current_state
+        state = torch.tensor(GraphState.convert_all_to_representation(self.state))
         # Get action that maximizes Q-value (for each graph)
-        actions, q_values, _ = q_network(action_mode=action_mode, states=state, actions=None, greedy_acts=True)
+        q_values, forbidden_actions = q_network(action_mode=action_mode, states=state)
+        actions, _ = q_network.select_action_from_q_values(action_mode=action_mode, q_values=q_values, forbidden_actions=forbidden_actions)
         actions = list(actions.view(-1).cpu().numpy())
 
         return actions
@@ -129,6 +131,8 @@ class GraphAgent:
             all_done += [False] * len(rewards)
 
         if len(prev_states) > 0:
+            prev_states = GraphState.convert_all_to_representation(prev_states)
+            next_states = GraphState.convert_all_to_representation(next_states)
             self.replay_buffer.append_many(action_mode=previous_action_mode, states=prev_states,
                                            actions=actions, rewards=rewards, terminals=all_done,
                                            next_states=next_states)

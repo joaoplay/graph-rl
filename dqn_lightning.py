@@ -1,9 +1,9 @@
 from collections import OrderedDict
 from typing import Any, Tuple, List
 
+import numpy as np
 import torch
 from pytorch_lightning import LightningModule
-from pytorch_lightning.utilities import DistributedType
 from torch import Tensor
 from torch.optim import Optimizer, Adam
 from torch.utils.data import DataLoader
@@ -22,7 +22,7 @@ from settings import NEPTUNE_INSTANCE, USE_CUDA
 class DQNLightning(LightningModule):
     """Basic DQN Model."""
 
-    def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int =28,
+    def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int = 28,
                  lr: float = 1e-4,
                  gamma: float = 0.99,
                  sync_rate: int = 10,
@@ -109,36 +109,29 @@ class DQNLightning(LightningModule):
         Returns:
             loss
         """
-        action_modes, states, actions, rewards, dones, next_states = zip(*batch)
+        action_modes, states, actions, rewards, dones, next_states = batch
 
-        action_mode = action_modes[1]
+        action_mode = int(action_modes[1].item())
         actions_tensor = torch.tensor(actions).unsqueeze(-1)
-        if USE_CUDA == 1:
-            actions_tensor = actions_tensor.cuda()
 
-        _, state_action_values, _ = self.q_networks(action_mode, states, actions)
+        state_action_values, _ = self.q_networks(action_mode, states)
 
         q_sa = state_action_values.gather(1, actions_tensor)
 
-        with torch.no_grad():
-            _, _, forbidden_actions = zip(*next_states)
-            next_action_mode = (action_mode + 1) % len(self.hparams.action_modes)
-            # Get the q-value for the next state
-            _, q_t_next, prefix_sum_next = self.target_q_networks(next_action_mode, next_states, None)
-            # The previous network is returning the q-value for all existing actions. Now we need to filter out every
-            # forbidden action and choose the action with the highest q-value
-            _, next_state_values = self.target_q_networks.select_action_from_q_values(next_action_mode, q_t_next,
-                                                                                      prefix_sum_next,
-                                                                                      forbidden_actions)
+        rewards = rewards.unsqueeze(-1)
 
-        rewards_tensor = torch.tensor(rewards, dtype=torch.float).unsqueeze(-1)
+        not_dones = ~dones
+        if torch.any(not_dones):
+            with torch.no_grad():
+                not_done_next_states = next_states[not_dones]
+                next_action_mode = (action_mode + 1) % len(self.hparams.action_modes)
+                # Get the q-value for the next state
+                next_state_values, forbidden_actions = self.target_q_networks(next_action_mode, not_done_next_states)
+                _, not_done_next_station_action_values = self.target_q_networks.select_action_from_q_values(next_action_mode, next_state_values, forbidden_actions)
+                expected_state_action_values = not_done_next_station_action_values * self.hparams.gamma + rewards[not_dones]
+                rewards[not_dones] = expected_state_action_values
 
-        if USE_CUDA == 1:
-            rewards_tensor.cuda()
-
-        expected_state_action_values = next_state_values * self.hparams.gamma + rewards_tensor
-
-        return action_mode, nn.MSELoss()(q_sa, expected_state_action_values)
+        return action_mode, nn.MSELoss()(q_sa, rewards)
 
     def training_step(self, batch, nb_batch):
         """Carries out a single step through the environment to update the replay buffer. Then calculates loss
@@ -207,7 +200,6 @@ class DQNLightning(LightningModule):
         dataloader = DataLoader(
             dataset=dataset,
             batch_size=self.hparams.batch_size,
-            collate_fn=graph_collate_fn
         )
         return dataloader
 

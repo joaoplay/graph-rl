@@ -3,27 +3,25 @@ import torch
 from torch import nn
 from torch.nn import Linear
 
-from graphs.graph_state import GraphState
-from settings import USE_CUDA
-
 
 class NoEmbeddingGraphDQN(nn.Module):
 
-    def __init__(self, unique_id: int, embedding_dim: int, hidden_output_dim: int, num_node_features: int, actions_output_dim: int) -> None:
+    def __init__(self, unique_id: int, embedding_dim: int, hidden_output_dim: int, num_node_features: int,
+                 actions_output_dim: int) -> None:
         super().__init__()
 
         self.num_node_features = num_node_features
 
         self.fc = nn.Sequential(
-            #Linear(784, hidden_output_dim),
+            # Linear(784, hidden_output_dim),
             Linear(169, hidden_output_dim),
             nn.ReLU(),
             Linear(hidden_output_dim, actions_output_dim)
-        )
+        ).double()
 
         self.unique_id = unique_id
 
-    @staticmethod
+    """"@staticmethod
     def select_action_from_q_values(q_values, prefix_sum_tensor, forbidden_actions):
         offset = 0
         banned_acts = []
@@ -57,9 +55,9 @@ class NoEmbeddingGraphDQN(nn.Module):
 
         values, indices = torch.topk(jagged, 1, dim=1)
 
-        return indices, values
+        return indices, values"""
 
-    def convert_graph_to_one_hot_representation(self, graph: GraphState):
+    """def convert_graph_to_one_hot_representation(self, graph: GraphState):
         nx_graph = graph.nx_graph.to_undirected()
         nx_neighbourhood_graph = graph.nx_neighbourhood_graph
 
@@ -96,21 +94,34 @@ class NoEmbeddingGraphDQN(nn.Module):
             prefix_sum += [previous_prefix_sum + graph.nx_graph.number_of_nodes()]
             previous_prefix_sum += graph.nx_graph.number_of_nodes()
 
-        return torch.stack(final_graphs).float(), torch.tensor(prefix_sum)
+        return torch.stack(final_graphs).float(), torch.tensor(prefix_sum)"""
 
-    def forward(self, states, actions, greedy_acts=False):
-        graphs, selected_nodes, forbidden_actions = zip(*states)
+    @staticmethod
+    def select_action_from_q_values(q_values, forbidden_actions):
+        q_values = q_values.data.clone()
 
-        encoded_graphs, prefix_sum = self.prepare_data(graphs, selected_nodes, forbidden_actions)
+        min_tensor = torch.tensor(float(np.finfo(np.float32).min)).type_as(q_values)
+        forbidden_actions_bool = forbidden_actions.bool()
+        q_values[forbidden_actions_bool] = min_tensor
 
-        if USE_CUDA == 1:
-            encoded_graphs = encoded_graphs.cuda()
+        values, indices = torch.topk(q_values, 1, dim=1)
 
-        print("Is Cuda: ", next(self.fc.parameters()).is_cuda)
+        return indices, values
 
-        raw_pred = self.fc(encoded_graphs)
+    @staticmethod
+    def strip_forbidden_actions(states):
+        num_nodes = int(states[0][0].item())
+        forbidden_actions = states[:, 1: num_nodes + 1]
+        new_states = states[:, num_nodes + 1:]
 
-        if greedy_acts:
-            actions, _ = self.select_action_from_q_values(raw_pred, prefix_sum, forbidden_actions)
+        return new_states, forbidden_actions
 
-        return actions, raw_pred, prefix_sum
+    def prepare_data(self, states):
+        return self.strip_forbidden_actions(states)
+
+    def forward(self, states):
+        graph_representation, forbidden_actions = self.prepare_data(states)
+
+        q_values = self.fc(graph_representation)
+
+        return q_values, forbidden_actions
