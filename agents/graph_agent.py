@@ -4,6 +4,8 @@ from typing import Tuple, List
 
 import numpy as np
 import torch
+from matplotlib import pyplot as plt
+from neptune.new.types import File
 from torch import nn
 
 from agents.replay_memory.multi_action_replay_buffer import MultiActionReplayBuffer
@@ -30,12 +32,16 @@ class GraphAgent:
         self.state = None
         self.wins = 0
         self.looses = 0
+        self.selected_start_nodes_stats = {}
+        self.selected_end_nodes_stats = {}
         self.reset()
 
     def reset(self):
         data_batch = self.sample_batch(self.graph_list, self.batch_sampler)
         self.env.init(data_batch)
         self.state = self.env.current_state_copy
+        self.selected_start_nodes_stats = {}
+        self.selected_end_nodes_stats = {}
 
     def choose_greedy_actions(self, action_mode, q_network):
         """
@@ -47,7 +53,8 @@ class GraphAgent:
         state = torch.tensor(GraphState.convert_all_to_representation(self.state))
         # Get action that maximizes Q-value (for each graph)
         q_values, forbidden_actions = q_network(action_mode=action_mode, states=state)
-        actions, _ = q_network.select_action_from_q_values(action_mode=action_mode, q_values=q_values, forbidden_actions=forbidden_actions)
+        actions, _ = q_network.select_action_from_q_values(action_mode=action_mode, q_values=q_values,
+                                                           forbidden_actions=forbidden_actions)
         actions = list(actions.view(-1).cpu().numpy())
 
         return actions
@@ -93,7 +100,7 @@ class GraphAgent:
                 return greedy_actions
 
     @torch.no_grad()
-    def play_step(self, q_networks: MultiActionModeDQN, epsilon: float = 0.0, device: str = "cpu"):
+    def play_step(self, q_networks: MultiActionModeDQN, epsilon: float = 0.0, device: str = "cpu", logger=None):
         """Carries out a single interaction step between the agent and the environment.
 
         Args:
@@ -142,9 +149,31 @@ class GraphAgent:
                                            actions=actions, rewards=rewards, terminals=all_done,
                                            next_states=next_states)
 
+        # Log statistics
+        if previous_action_mode == ACTION_MODE_SELECTING_START_NODE:
+            if not actions[0] in self.selected_start_nodes_stats:
+                self.selected_start_nodes_stats[actions[0]] = 0
+
+            self.selected_start_nodes_stats[actions[0]] += 1
+        else:
+            if not actions[0] in self.selected_end_nodes_stats:
+                self.selected_end_nodes_stats[actions[0]] = 0
+
+            self.selected_end_nodes_stats[actions[0]] += 1
+
         self.state = new_state
         if all(done):
             print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses}")
+
+            if logger:
+                fig, axs = plt.subplots(2)
+                axs[0].bar(self.selected_start_nodes_stats.keys(),
+                           self.selected_start_nodes_stats.values(), 2, color='g')
+                axs[1].bar(self.selected_end_nodes_stats.keys(),
+                           self.selected_end_nodes_stats.values(), 2, color='g')
+                logger.experiment["action_selection"].log(File.as_image(fig))
+                plt.close()
+
             self.reset()
 
         return reward[0], done[0]

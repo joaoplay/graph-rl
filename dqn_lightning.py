@@ -156,7 +156,7 @@ class DQNLightning(LightningModule):
         )
 
         # step through environment with agent
-        reward, done = self.agent.play_step(self.q_networks, epsilon, device)
+        reward, done = self.agent.play_step(self.q_networks, epsilon, device, self.logger)
         self.episode_reward += reward
 
         if self.global_step % 500 == 0 and self.env.last_irrigation_map is not None:
