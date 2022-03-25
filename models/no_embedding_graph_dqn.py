@@ -17,7 +17,7 @@ class NoEmbeddingGraphDQN(nn.Module):
             Linear(169, hidden_output_dim),
             nn.ReLU(),
             Linear(hidden_output_dim, actions_output_dim)
-        ).double()
+        )
 
         self.unique_id = unique_id
 
@@ -123,7 +123,6 @@ class NoEmbeddingGraphDQN(nn.Module):
         graph_representation, forbidden_actions = self.prepare_data(states)
 
         print(f"graph_representation: {graph_representation.is_cuda}")
-        print(f"fc: {self.fc.is_cuda}")
 
         q_values = self.fc(graph_representation)
 

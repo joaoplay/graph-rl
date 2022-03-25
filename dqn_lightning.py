@@ -145,6 +145,10 @@ class DQNLightning(LightningModule):
             Training loss and log metrics
         """
         device = self.get_device(batch)
+
+        self.q_networks.to(device)
+        self.target_q_networks.to(device)
+
         epsilon = max(
             self.hparams.eps_end,
             self.hparams.eps_start - self.global_step + 1 / self.hparams.eps_last_frame,

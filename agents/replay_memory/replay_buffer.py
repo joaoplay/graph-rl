@@ -32,9 +32,9 @@ class ReplayBuffer:
         states, actions, rewards, dones, next_states = zip(*(self.buffer[idx] for idx in indices))
 
         return (
-            np.array(states),
+            np.array(states, dtype=np.float32),
             np.array(actions),
-            np.array(rewards),
+            np.array(rewards, dtype=np.float32),
             np.array(dones, dtype=np.bool),
-            np.array(next_states),
+            np.array(next_states, dtype=np.float32),
         )
