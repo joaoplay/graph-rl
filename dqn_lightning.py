@@ -159,14 +159,13 @@ class DQNLightning(LightningModule):
         reward, done = self.agent.play_step(self.q_networks, epsilon, device)
         self.episode_reward += reward
 
-        """if self.global_step % 500 == 0 and self.env.last_irrigation_map is not None:
+        if self.global_step % 500 == 0 and self.env.last_irrigation_map is not None:
             fig_irrigation, ax_irrigation = plt.subplots()
             ax_irrigation.imshow(np.flip(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
             ax_irrigation.title.set_text(f'Global Step {self.global_step} | Env Step {self.env.steps_counter}')
 
             self.logger.experiment["irrigation_maps"].log(File.as_image(fig_irrigation))
-            plt.close()"""
-
+            plt.close()
         self.log('instant_reward', reward, on_epoch=True, on_step=False)
 
         self.log('epsilon', epsilon, on_epoch=True, on_step=False)
