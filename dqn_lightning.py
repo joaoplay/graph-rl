@@ -3,6 +3,8 @@ from typing import Any, Tuple, List
 
 import numpy as np
 import torch
+from matplotlib import pyplot as plt
+from neptune.new.types import File
 from pytorch_lightning import LightningModule
 from torch import Tensor
 from torch.optim import Optimizer, Adam
@@ -16,7 +18,6 @@ from agents.rl_dataset import RLDataset
 from environments.graph_env import DEFAULT_ACTION_MODES, ACTION_MODE_SELECTING_START_NODE, \
     ACTION_MODE_SELECTING_END_NODE, GraphEnv
 from models.multi_action_mode_dqn import MultiActionModeDQN
-from settings import NEPTUNE_INSTANCE, USE_CUDA
 
 
 class DQNLightning(LightningModule):
@@ -25,10 +26,10 @@ class DQNLightning(LightningModule):
     def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int = 28,
                  lr: float = 1e-4,
                  gamma: float = 0.99,
-                 sync_rate: int = 10,
-                 replay_size: int = 1000, warm_start_size: int = 1000, eps_last_frame: int = 1000,
+                 sync_rate: int = 1000,
+                 replay_size: int = 100000, warm_start_size: int = 10000, eps_last_frame: int = 10**5,
                  eps_start: float = 1.0,
-                 eps_end: float = 0.01, episode_length: int = 200, warm_start_steps: int = 1000,
+                 eps_end: float = 0.02, episode_length: int = 200, warm_start_steps: int = 10000,
                  action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         super().__init__()
 
@@ -145,7 +146,7 @@ class DQNLightning(LightningModule):
             Training loss and log metrics
         """
         device = self.get_device(batch)
-
+        # FIXME: Confirm it!
         self.q_networks.to(device)
         self.target_q_networks.to(device)
 
@@ -158,24 +159,29 @@ class DQNLightning(LightningModule):
         reward, done = self.agent.play_step(self.q_networks, epsilon, device)
         self.episode_reward += reward
 
-        NEPTUNE_INSTANCE['validation/training/instant_reward'].log(reward)
+        if self.global_step % 500 == 0 and self.env.last_irrigation_map is not None:
+            fig_irrigation, ax_irrigation = plt.subplots()
+            ax_irrigation.imshow(np.flip(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
+            ax_irrigation.title.set_text(f'Global Step {self.global_step} | Env Step {self.env.steps_counter}')
+
+            self.logger.experiment["irrigation_maps"].log(File.as_image(fig_irrigation))
+            plt.close()
+
+        self.log('instant_reward', reward, on_epoch=True, on_step=False)
+
+        self.log('epsilon', epsilon, on_epoch=True, on_step=False)
 
         # calculates training loss
         action_mode, loss = self.dqn_mse_loss(batch)
 
         if action_mode == ACTION_MODE_SELECTING_START_NODE:
-            NEPTUNE_INSTANCE['training/batch/start-node-selection-loss'].log(loss)
+            self.log('start-node-selection-loss', loss, on_epoch=True, on_step=False)
         else:
-            NEPTUNE_INSTANCE['training/batch/end-node-selection-loss'].log(loss)
-
-        """if self.trainer._distrib_type in {DistributedType.DP, DistributedType.DDP2}:
-            loss = loss.unsqueeze(0)"""
+            self.log('end-node-selection-loss', loss, on_epoch=True, on_step=False)
 
         if done:
             self.total_reward = self.episode_reward
             self.episode_reward = 0
-            NEPTUNE_INSTANCE['validation/training/episode_reward'].log(self.episode_reward)
-            NEPTUNE_INSTANCE['validation/training/total_reward'].log(self.total_reward)
 
         # Soft update of target network
         if self.global_step % self.hparams.sync_rate == 0:
@@ -200,11 +206,8 @@ class DQNLightning(LightningModule):
 
     def __dataloader(self) -> DataLoader:
         """Initialize the Replay Buffer dataset used for retrieving experiences."""
-        dataset = RLDataset(self.buffer, self.hparams.episode_length)
-        dataloader = DataLoader(
-            dataset=dataset,
-            batch_size=self.hparams.batch_size,
-        )
+        dataset = RLDataset(self.buffer, self.hparams.batch_size)
+        dataloader = DataLoader(dataset=dataset, batch_size=self.hparams.batch_size)
         return dataloader
 
     def train_dataloader(self) -> DataLoader:

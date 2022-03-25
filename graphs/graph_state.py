@@ -237,7 +237,7 @@ class GraphState:
                 forbidden_actions_encoding[forbidden_actions_list] = 1
             convert_graph_states += [np.concatenate(([graph.num_nodes], forbidden_actions_encoding, graph.to_representation()), dtype=np.float32)]
 
-        return convert_graph_states
+        return np.array(convert_graph_states)
 
     def to_representation(self):
         nx_graph = self.nx_graph.to_undirected()

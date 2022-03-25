@@ -28,6 +28,8 @@ class GraphAgent:
         self.batch_sampler = BatchSampler(self.graph_list, batch_size=1)
         self.exploratory_actions_cache = None
         self.state = None
+        self.wins = 0
+        self.looses = 0
         self.reset()
 
     def reset(self):
@@ -119,15 +121,18 @@ class GraphAgent:
         rewards = []
         all_done = []
         if any(now_done):
-            prev_states += compress(self.state, now_done)
-            next_states += compress(new_state, now_done)
-            rewards += compress(reward, now_done)
+            prev_states += list(compress(self.state, now_done))
+            next_states += list(compress(new_state, now_done))
+            now_done_rewards = list(compress(reward, now_done))
+            rewards += now_done_rewards
             all_done += [True] * len(rewards)
+            self.wins += sum([reward for reward in now_done_rewards if int(reward) == 1])
+            self.looses += sum([reward for reward in now_done_rewards if int(reward) == -1])
 
         if any(not_done):
-            prev_states += compress(self.state, not_done)
-            next_states += compress(new_state, not_done)
-            rewards += compress(reward, not_done)
+            prev_states += list(compress(self.state, not_done))
+            next_states += list(compress(new_state, not_done))
+            rewards += list(compress(reward, not_done))
             all_done += [False] * len(rewards)
 
         if len(prev_states) > 0:
@@ -139,6 +144,7 @@ class GraphAgent:
 
         self.state = new_state
         if all(done):
+            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses}")
             self.reset()
 
         return reward[0], done[0]
