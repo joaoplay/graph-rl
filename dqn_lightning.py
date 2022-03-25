@@ -26,10 +26,10 @@ class DQNLightning(LightningModule):
     def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int = 28,
                  lr: float = 1e-4,
                  gamma: float = 0.99,
-                 sync_rate: int = 1000,
-                 replay_size: int = 1000, warm_start_size: int = 10000, eps_last_frame: int = 10**5,
+                 sync_rate: int = 10000,
+                 replay_size: int = 10 ** 6, warm_start_size: int = 10000, eps_last_frame: int = 10**5,
                  eps_start: float = 1.0,
-                 eps_end: float = 0.02, episode_length: int = 200, warm_start_steps: int = 10000,
+                 eps_end: float = 0.01, episode_length: int = 200, warm_start_steps: int = 50000,
                  action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         super().__init__()
 
@@ -169,6 +169,9 @@ class DQNLightning(LightningModule):
         self.log('instant_reward', reward, on_epoch=True, on_step=False)
 
         self.log('epsilon', epsilon, on_epoch=True, on_step=False)
+
+        self.log('total_wins', self.agent.wins, on_epoch=True, on_step=False)
+        self.log('total_looses', self.agent.looses, on_epoch=True, on_step=False)
 
         # calculates training loss
         action_mode, loss = self.dqn_mse_loss(batch)
