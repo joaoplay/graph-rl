@@ -100,7 +100,10 @@ class GraphEnv:
                 rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                                                            start_node=start_node, end_node=actions[graph_idx])
             else:
-                rewards[graph_idx] = 0
+                if current_graph.previous_selected_start_node == actions[graph_idx]:
+                    rewards[graph_idx] = -1
+                else:
+                    rewards[graph_idx] = 0
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved():
@@ -198,7 +201,11 @@ class GraphEnv:
             # if not graph.allowed_actions_not_found:
             # Ensure that the start node selection is feasible.
 
+            previous_selected_start_node = graph.selected_start_node
+
             graph, edge_insertion_cost = graph.add_or_remove_edge(graph.selected_start_node, action)
+
+            graph.previous_selected_start_node = previous_selected_start_node
 
             self.end_node_selection_statistics[action] += 1
 

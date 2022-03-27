@@ -34,6 +34,7 @@ class GraphAgent:
         self.looses = 0
         self.selected_start_nodes_stats = {}
         self.selected_end_nodes_stats = {}
+        self.repeated_actions = 0
         self.reset()
 
     def reset(self):
@@ -42,6 +43,7 @@ class GraphAgent:
         self.state = self.env.current_state_copy
         self.selected_start_nodes_stats = {}
         self.selected_end_nodes_stats = {}
+        self.repeated_actions = 0
 
     def choose_greedy_actions(self, action_mode, q_network):
         """
@@ -50,7 +52,7 @@ class GraphAgent:
         """
 
         # Get the environments state of each graphs
-        state = torch.tensor(GraphState.convert_all_to_representation(self.state))
+        state = torch.tensor(GraphState.convert_all_to_representation(action_mode, self.state))
         # Get action that maximizes Q-value (for each graph)
         q_values, forbidden_actions = q_network(action_mode=action_mode, states=state)
         actions, _ = q_network.select_action_from_q_values(action_mode=action_mode, q_values=q_values,
@@ -142,9 +144,12 @@ class GraphAgent:
             rewards += list(compress(reward, not_done))
             all_done += [False] * len(rewards)
 
+            if any(rewards) < 0:
+                self.repeated_actions += 1
+
         if len(prev_states) > 0:
-            prev_states = GraphState.convert_all_to_representation(prev_states)
-            next_states = GraphState.convert_all_to_representation(next_states)
+            prev_states = GraphState.convert_all_to_representation(previous_action_mode, prev_states)
+            next_states = GraphState.convert_all_to_representation(self.env.current_action_mode, next_states)
             self.replay_buffer.append_many(action_mode=previous_action_mode, states=prev_states,
                                            actions=actions, rewards=rewards, terminals=all_done,
                                            next_states=next_states)
@@ -163,7 +168,7 @@ class GraphAgent:
 
         self.state = new_state
         if all(done):
-            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses}")
+            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions}")
 
             if logger:
                 fig, axs = plt.subplots(2)
