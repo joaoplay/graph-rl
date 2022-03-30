@@ -21,9 +21,9 @@ class SingleVesselGraphGenerator:
         self.allow_void_actions = allow_void_actions
 
     def get_node_type(self, x, y):
-        if (x == 0 or x == 3) and y == 0:
+        if (x == 0 or x == 5) and y == 0:
             return 1
-        elif (x == 0 or x == 3) and y == (self.size_y - 1):
+        elif (x == 0 or x == 5) and y == (self.size_y - 1):
             return 2
         else:
             return 0
@@ -66,7 +66,7 @@ class SingleVesselGraphGenerator:
         row_length = int(self.size_x / self.interval_between_nodes)
 
         graph.add_edges_from(self.generate_row(row_length, nodes_list, 0))
-        graph.add_edges_from(self.generate_row(row_length, nodes_list, 15))
+        graph.add_edges_from(self.generate_row(row_length, nodes_list, 50))
 
         all_nodes_features = []
         for node in nodes_list:

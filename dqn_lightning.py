@@ -27,7 +27,7 @@ class DQNLightning(LightningModule):
                  lr: float = 1e-4,
                  gamma: float = 0.99,
                  sync_rate: int = 10000,
-                 replay_size: int = 10 ** 6, warm_start_size: int = 10000, eps_last_frame: int = 5 * 10**5,
+                 replay_size: int = 10 ** 6, warm_start_size: int = 100000, eps_last_frame: int = 5 * 10**5,
                  eps_start: float = 1.0,
                  eps_end: float = 0.0, episode_length: int = 200, warm_start_steps: int = 50000,
                  action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
@@ -49,8 +49,8 @@ class DQNLightning(LightningModule):
                                                  ACTION_MODE_SELECTING_END_NODE: 0,
                                              },
                                              action_output_dim={
-                                                 ACTION_MODE_SELECTING_START_NODE: 25,
-                                                 ACTION_MODE_SELECTING_END_NODE: 25,
+                                                 ACTION_MODE_SELECTING_START_NODE: 100,
+                                                 ACTION_MODE_SELECTING_END_NODE: 100,
                                              })
         self.target_q_networks = MultiActionModeDQN(action_modes=self.hparams.action_modes,
                                                     embedding_dim={
@@ -66,8 +66,8 @@ class DQNLightning(LightningModule):
                                                         ACTION_MODE_SELECTING_END_NODE: 0,
                                                     },
                                                     action_output_dim={
-                                                        ACTION_MODE_SELECTING_START_NODE: 25,
-                                                        ACTION_MODE_SELECTING_END_NODE: 25,
+                                                        ACTION_MODE_SELECTING_START_NODE: 100,
+                                                        ACTION_MODE_SELECTING_END_NODE: 100,
                                                     })
 
         self.env = env

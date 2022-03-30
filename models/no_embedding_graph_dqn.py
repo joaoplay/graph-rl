@@ -13,8 +13,8 @@ class NoEmbeddingGraphDQN(nn.Module):
         self.num_node_features = num_node_features
 
         self.fc = nn.Sequential(
-            # Linear(784, hidden_output_dim),
-            Linear(169, hidden_output_dim),
+            Linear(784, hidden_output_dim),
+            # Linear(169, hidden_output_dim),
             nn.ReLU(),
             Linear(hidden_output_dim, actions_output_dim)
         )

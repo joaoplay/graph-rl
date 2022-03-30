@@ -100,10 +100,10 @@ class GraphEnv:
                 rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                                                            start_node=start_node, end_node=actions[graph_idx])
             else:
-                """if current_graph.previous_selected_start_node == actions[graph_idx]:
+                if current_graph.previous_selected_start_node == actions[graph_idx]:
                     rewards[graph_idx] = -1
                 else:
-                    rewards[graph_idx] = 0"""
+                    rewards[graph_idx] = 0
                 rewards[graph_idx] = 0
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
@@ -302,7 +302,7 @@ class GraphEnv:
                 self.previous_irrigation_score[graph_idx] = 0
             elif prepared_data != -1:
                 irrigation, sources = calculate_network_irrigation(prepared_data[0], prepared_data[1], prepared_data[2],
-                                                                   [5, 5], [0.1, 0.1])
+                                                                   [10, 10], [0.1, 0.1])
 
                 sections_x = np.array_split(irrigation, 20, axis=0)
                 sections_y = np.array_split(irrigation, 20, axis=1)

@@ -19,7 +19,7 @@ def run_from_config_file(cfg: DictConfig):
         project="jbsimoes/graph-rl",
         mode=os.getenv("NEPTUNE_MODE", "async")
     )
-    environment = GraphEnv(max_steps=3000, irrigation_goal=0.7)
+    environment = GraphEnv(max_steps=5000, irrigation_goal=0.7)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
     model = DQNLightning(environment, train_graphs, replay_size=10**6)
 
