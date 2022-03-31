@@ -135,8 +135,10 @@ class GraphAgent:
             now_done_rewards = list(compress(reward, now_done))
             rewards += now_done_rewards
             all_done += [True] * len(rewards)
-            self.wins += sum([reward for reward in now_done_rewards if int(reward) == 1])
-            self.looses += sum([reward for reward in now_done_rewards if int(reward) == -1])
+            # self.wins += sum([reward for reward in now_done_rewards if int(reward) == 1])
+            # self.looses += sum([reward for reward in now_done_rewards if int(reward) == -1])
+            self.wins += sum([1 for _ in now_done_rewards if self.env.steps_counter < self.env.max_steps])
+            self.looses += sum([1 for _ in now_done_rewards if self.env.steps_counter >= self.env.max_steps])
 
         if any(not_done):
             prev_states += list(compress(self.state, not_done))

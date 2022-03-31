@@ -99,21 +99,21 @@ class GraphEnv:
                 node_added = edge_insertion_cost > 0
                 rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                                                            start_node=start_node, end_node=actions[graph_idx])
-            else:
+            """else:
                 if current_graph.previous_selected_start_node == actions[graph_idx]:
                     rewards[graph_idx] = -1
                 else:
                     rewards[graph_idx] = 0
-                rewards[graph_idx] = 0
+                rewards[graph_idx] = 0"""
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved():
                 self.done[graph_idx] = True
-                rewards[graph_idx] = 1
+                # rewards[graph_idx] = 1
 
             if self.max_steps_achieved():
                 self.done[graph_idx] = True
-                rewards[graph_idx] = -1
+                # rewards[graph_idx] = -1
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
                     and self.graphs_list[graph_idx].allowed_actions_not_found:
@@ -307,13 +307,19 @@ class GraphEnv:
                 sections_x = np.array_split(irrigation, 20, axis=0)
                 sections_y = np.array_split(irrigation, 20, axis=1)
 
-                mean_over_x = [np.mean(section) for section in sections_x]
-                mean_over_y = [np.mean(section) for section in sections_y]
+                def count_irrigated(sections):
+                    irrigated = []
+                    for s in sections:
+                        irrigated += [np.count_nonzero(s[s > self.irrigation_goal])]
+                    return np.array(irrigated)
 
-                irrigation_score_x = sum(mean_over_x)
-                irrigation_score_y = sum(mean_over_y)
+                irrigated_x = count_irrigated(sections_x)
+                irrigated_y = count_irrigated(sections_y)
 
-                irrigation_score = (irrigation_score_x + irrigation_score_y) / 2.0
+                mean_irrigated_x = np.mean(irrigated_x)
+                mean_irrigated_y = np.mean(irrigated_y)
+
+                irrigation_score = (mean_irrigated_x + mean_irrigated_y) / 2.0
 
                 if self.previous_irrigation_score:
                     self.previous_irrigation_score[graph_idx] = irrigation_score
