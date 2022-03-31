@@ -309,14 +309,14 @@ class GraphEnv:
                 sections_x = np.array_split(irrigation, 20, axis=0)
                 sections_y = np.array_split(irrigation, 20, axis=1)
 
-                def count_irrigated(sections):
+                def percentage_irrigated(sections):
                     irrigated = []
                     for s in sections:
-                        irrigated += [np.count_nonzero(s[s > self.irrigation_goal])]
+                        irrigated += [np.count_nonzero(s[s > self.irrigation_goal]) / s.size]
                     return np.array(irrigated)
 
-                irrigated_x = count_irrigated(sections_x)
-                irrigated_y = count_irrigated(sections_y)
+                irrigated_x = percentage_irrigated(sections_x)
+                irrigated_y = percentage_irrigated(sections_y)
 
                 mean_irrigated_x = np.mean(irrigated_x)
                 mean_irrigated_y = np.mean(irrigated_y)
