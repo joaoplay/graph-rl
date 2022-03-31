@@ -35,6 +35,7 @@ class GraphAgent:
         self.selected_start_nodes_stats = {}
         self.selected_end_nodes_stats = {}
         self.repeated_actions = 0
+        self.episode_reward = 0
         self.reset()
 
     def reset(self):
@@ -44,6 +45,7 @@ class GraphAgent:
         self.selected_start_nodes_stats = {}
         self.selected_end_nodes_stats = {}
         self.repeated_actions = 0
+        self.episode_reward = 0
 
     def choose_greedy_actions(self, action_mode, q_network):
         """
@@ -122,6 +124,8 @@ class GraphAgent:
         # Do step in the environment
         new_state, reward, done = self.env.step(actions)
 
+        self.episode_reward += reward[0]
+
         now_done = [True for idx, was_done in enumerate(previous_done) if not was_done and done[idx]]
         not_done = [True for idx, was_done in enumerate(previous_done) if not was_done and not done[idx]]
 
@@ -170,7 +174,7 @@ class GraphAgent:
 
         self.state = new_state
         if all(done):
-            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions}")
+            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
 
             if logger:
                 fig, axs = plt.subplots(2)

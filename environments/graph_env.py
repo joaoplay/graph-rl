@@ -99,12 +99,13 @@ class GraphEnv:
                 node_added = edge_insertion_cost > 0
                 rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                                                            start_node=start_node, end_node=actions[graph_idx])
-            """else:
+                # rewards[graph_idx] = 0
+            else:
                 if current_graph.previous_selected_start_node == actions[graph_idx]:
                     rewards[graph_idx] = -1
                 else:
                     rewards[graph_idx] = 0
-                rewards[graph_idx] = 0"""
+                rewards[graph_idx] = 0
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved():
@@ -296,6 +297,7 @@ class GraphEnv:
         prepared_data = graph.prepare_for_reward_evaluation(node_added=node_added, start_node=start_node,
                                                             end_node=end_node)
 
+        irrigation_improvement = 0
         if prepared_data is not None:
             if prepared_data == -1:  # No irrigation
                 self.last_irrigation_map = None
@@ -321,12 +323,15 @@ class GraphEnv:
 
                 irrigation_score = (mean_irrigated_x + mean_irrigated_y) / 2.0
 
+                if self.previous_irrigation_score is not None:
+                    irrigation_improvement = irrigation_score - self.previous_irrigation_score[graph_idx]
+
                 if self.previous_irrigation_score:
                     self.previous_irrigation_score[graph_idx] = irrigation_score
                 self.last_irrigation_map = irrigation
                 self.last_sources = sources
 
-        return 0
+        return irrigation_improvement
 
     """def calculate_reward(self, graph_idx, node_added=True, start_node=None, end_node=None, reward_multi=10):
         graph = self.graphs_list[graph_idx]
