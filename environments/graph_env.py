@@ -107,7 +107,6 @@ class GraphEnv:
                     rewards[graph_idx] = -1.0
                 else:
                     rewards[graph_idx] = 0
-                rewards[graph_idx] = 0
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved():
