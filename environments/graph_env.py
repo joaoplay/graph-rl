@@ -102,7 +102,7 @@ class GraphEnv:
                 # rewards[graph_idx] = 0
             else:
                 if current_graph.previous_selected_start_node == actions[graph_idx]:
-                    rewards[graph_idx] = -1
+                    rewards[graph_idx] = -1.0
                 else:
                     rewards[graph_idx] = 0
                 rewards[graph_idx] = 0
@@ -110,11 +110,11 @@ class GraphEnv:
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved():
                 self.done[graph_idx] = True
-                # rewards[graph_idx] = 1
+                rewards[graph_idx] = 1
 
             if self.max_steps_achieved():
                 self.done[graph_idx] = True
-                # rewards[graph_idx] = -1
+                rewards[graph_idx] = -1
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
                     and self.graphs_list[graph_idx].allowed_actions_not_found:
