@@ -23,7 +23,7 @@ from models.multi_action_mode_dqn import MultiActionModeDQN
 class DQNLightning(LightningModule):
     """Basic DQN Model."""
 
-    def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int = 28,
+    def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int = 512,
                  lr: float = 1e-4,
                  gamma: float = 0.99,
                  sync_rate: int = 10000,
