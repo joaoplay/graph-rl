@@ -97,7 +97,7 @@ class GraphEnv:
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 node_added = edge_insertion_cost > 0
-                #rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
+                # rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                 #                                           start_node=start_node, end_node=actions[graph_idx])
                 self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                                       start_node=start_node, end_node=actions[graph_idx])
