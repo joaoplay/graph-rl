@@ -86,7 +86,7 @@ class DQNLightning(LightningModule):
             steps: number of random steps to populate the buffer with
         """
         for i in range(steps):
-            self.agent.play_step(self.q_networks, epsilon=0.0)
+            self.agent.play_step(self.q_networks, epsilon=1.0)
 
     def forward(self, x: Tensor) -> Tensor:
         """Passes in a state x through the network and gets the q_values of each action as an output.
@@ -158,7 +158,7 @@ class DQNLightning(LightningModule):
         )
 
         # step through environment with agent
-        reward, done = self.agent.play_step(self.q_networks, 0, device, self.logger)
+        reward, done = self.agent.play_step(self.q_networks, epsilon, device, self.logger)
         self.episode_reward += reward
 
         if self.global_step % 500 == 0 and self.env.last_irrigation_map is not None:
