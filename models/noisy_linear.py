@@ -4,9 +4,6 @@ import torch
 from torch import nn
 from torch.nn.functional import linear
 
-from settings import USE_CUDA
-
-
 class NoisyLinear(nn.Linear):
 
     def __init__(self, in_features: int, out_features: int, sigma_init=0.017, bias: bool = True, device=None, dtype=None) -> None:
@@ -36,8 +33,5 @@ class NoisyLinear(nn.Linear):
             self.epsilon_bias.normal_()
             bias = bias + self.sigma_bias * self.epsilon_bias.data
         v = self.sigma_weight * self.epsilon_weight.data + self.weight
-
-        if USE_CUDA == 1:
-            x = x.cuda()
 
         return linear(x, v, bias)

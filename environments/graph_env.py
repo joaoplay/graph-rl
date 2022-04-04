@@ -60,6 +60,7 @@ class GraphEnv:
 
         self.start_node_selection_statistics = None
         self.end_node_selection_statistics = None
+        self.repeated_actions = 0
 
     def step(self, actions):
         """
@@ -102,11 +103,16 @@ class GraphEnv:
                 self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                                       start_node=start_node, end_node=actions[graph_idx])
                 rewards[graph_idx] = 0
-            else:
+            elif current_graph.previous_selected_start_node == actions[graph_idx]:
+                # Selecting the same start node again. We are going to penalize this action
+                rewards[graph_idx] = -1.0
+                self.done[graph_idx] = True
+            """else:
                 if current_graph.previous_selected_start_node == actions[graph_idx]:
                     rewards[graph_idx] = -1.0
+                    self.repeated_actions += 1
                 else:
-                    rewards[graph_idx] = 0
+                    rewards[graph_idx] = 0"""
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved():
@@ -241,6 +247,8 @@ class GraphEnv:
 
         self.start_node_selection_statistics = {node: 0 for node in self.graphs_list[0].nx_graph.nodes}
         self.end_node_selection_statistics = {node: 0 for node in self.graphs_list[0].nx_graph.nodes}
+
+        self.repeated_actions = 0
 
         for graph_idx in range(len(self.graphs_list)):
             graph = self.graphs_list[graph_idx]

@@ -1,6 +1,8 @@
 import os
 
 import hydra
+import numpy as np
+import torch
 from omegaconf import DictConfig
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import NeptuneLogger
@@ -12,6 +14,9 @@ from environments.graph_env import GraphEnv
 
 @hydra.main(config_path="configs", config_name="default_config")
 def run_from_config_file(cfg: DictConfig):
+    np.random.seed(cfg.random_seed)
+    torch.manual_seed(cfg.random_seed)
+
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
     neptune_logger = NeptuneLogger(
@@ -24,10 +29,11 @@ def run_from_config_file(cfg: DictConfig):
     model = DQNLightning(environment, train_graphs, replay_size=10**6)
 
     trainer = Trainer(
-        max_epochs=10**6,
+        max_epochs=10**12,
         # max_time={'hours': 2},
         val_check_interval=100,
         logger=neptune_logger,
+        progress_bar_refresh_rate=0,
     )
 
     trainer.fit(model)

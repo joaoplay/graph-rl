@@ -2,15 +2,19 @@ from copy import deepcopy
 from itertools import compress
 from typing import Tuple, List
 
+import pandas as pd
+
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
 from neptune.new.types import File
 from torch import nn
 
+
+
 from agents.replay_memory.multi_action_replay_buffer import MultiActionReplayBuffer
 from agents.util.sample_tracker import BatchSampler
-from environments.graph_env import GraphEnv, ACTION_MODE_SELECTING_START_NODE
+from environments.graph_env import GraphEnv, ACTION_MODE_SELECTING_START_NODE, ACTION_MODE_SELECTING_END_NODE
 from graphs.graph_state import GraphState
 from models.multi_action_mode_dqn import MultiActionModeDQN
 
@@ -150,7 +154,7 @@ class GraphAgent:
             rewards += list(compress(reward, not_done))
             all_done += [False] * len(rewards)
 
-            if any(rewards) < 0:
+            if any(reward < 0 for reward in rewards):
                 self.repeated_actions += 1
 
         if len(prev_states) > 0:
@@ -174,7 +178,7 @@ class GraphAgent:
 
         self.state = new_state
         if all(done):
-            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
+            #print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
 
             if logger:
                 fig, axs = plt.subplots(2)
@@ -184,6 +188,12 @@ class GraphAgent:
                            self.selected_end_nodes_stats.values(), 2, color='g')
                 logger.experiment["action_selection"].log(File.as_image(fig))
                 plt.close()
+
+            """start_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_START_NODE)].repr_history, axis=0))
+            end_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_END_NODE)].repr_history, axis=0))
+
+            start_node_repr_history.to_csv(f"start_node_repr_history.csv", sep=";", decimal=",", header=False, index=False)
+            end_node_repr_history.to_csv(f"end_node_repr_history.csv", sep=";", decimal=",", header=False, index=False)"""
 
             self.reset()
 

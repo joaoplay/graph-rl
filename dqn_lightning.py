@@ -27,7 +27,7 @@ class DQNLightning(LightningModule):
                  lr: float = 1e-4,
                  gamma: float = 0.99,
                  sync_rate: int = 10000,
-                 replay_size: int = 10 ** 6, warm_start_size: int = 100000, eps_last_frame: int = 5 * 10**5,
+                 replay_size: int = 10 ** 6, warm_start_size: int = 100000, eps_last_frame: int = 5 * 10 ** 10,
                  eps_start: float = 1.0,
                  eps_end: float = 0.0, episode_length: int = 200, warm_start_steps: int = 50000,
                  action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
@@ -86,7 +86,7 @@ class DQNLightning(LightningModule):
             steps: number of random steps to populate the buffer with
         """
         for i in range(steps):
-            self.agent.play_step(self.q_networks, epsilon=1.0)
+            self.agent.play_step(self.q_networks, epsilon=0.0)
 
     def forward(self, x: Tensor) -> Tensor:
         """Passes in a state x through the network and gets the q_values of each action as an output.
@@ -128,8 +128,10 @@ class DQNLightning(LightningModule):
                 next_action_mode = (action_mode + 1) % len(self.hparams.action_modes)
                 # Get the q-value for the next state
                 next_state_values, forbidden_actions = self.target_q_networks(next_action_mode, not_done_next_states)
-                _, not_done_next_station_action_values = self.target_q_networks.select_action_from_q_values(next_action_mode, next_state_values, forbidden_actions)
-                expected_state_action_values = not_done_next_station_action_values * self.hparams.gamma + rewards[not_dones]
+                _, not_done_next_station_action_values = self.target_q_networks.select_action_from_q_values(
+                    next_action_mode, next_state_values, forbidden_actions)
+                expected_state_action_values = not_done_next_station_action_values * self.hparams.gamma + rewards[
+                    not_dones]
                 rewards[not_dones] = expected_state_action_values
 
         return action_mode, nn.MSELoss()(q_sa, rewards)
@@ -156,7 +158,7 @@ class DQNLightning(LightningModule):
         )
 
         # step through environment with agent
-        reward, done = self.agent.play_step(self.q_networks, epsilon, device, self.logger)
+        reward, done = self.agent.play_step(self.q_networks, 0, device, self.logger)
         self.episode_reward += reward
 
         if self.global_step % 500 == 0 and self.env.last_irrigation_map is not None:

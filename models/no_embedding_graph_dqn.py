@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch.nn import Linear
+from torch.nn.functional import softmax
 
 
 class NoEmbeddingGraphDQN(nn.Module):
@@ -11,6 +12,8 @@ class NoEmbeddingGraphDQN(nn.Module):
         super().__init__()
 
         self.num_node_features = num_node_features
+
+        self.repr_history = []
 
         self.fc = nn.Sequential(
             Linear(784, hidden_output_dim),
@@ -104,6 +107,8 @@ class NoEmbeddingGraphDQN(nn.Module):
         forbidden_actions_bool = forbidden_actions.bool()
         q_values[forbidden_actions_bool] = min_tensor
 
+        # q_values_prob = softmax(q_values, dim=1)
+
         values, indices = torch.topk(q_values, 1, dim=1)
 
         return indices, values
@@ -121,6 +126,8 @@ class NoEmbeddingGraphDQN(nn.Module):
 
     def forward(self, states):
         graph_representation, forbidden_actions = self.prepare_data(states)
+
+        self.repr_history += [np.squeeze(graph_representation.numpy())]
 
         q_values = self.fc(graph_representation)
 
