@@ -27,7 +27,7 @@ class DQNLightning(LightningModule):
                  lr: float = 1e-4,
                  gamma: float = 0.99,
                  sync_rate: int = 10000,
-                 replay_size: int = 10 ** 6, warm_start_size: int = 100000, eps_last_frame: int = 5 * 10 ** 10,
+                 replay_size: int = 10 ** 6, warm_start_size: int = 100000, eps_last_frame: int = 10 ** 9,
                  eps_start: float = 1.0,
                  eps_end: float = 0.0, episode_length: int = 200, warm_start_steps: int = 50000,
                  action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
