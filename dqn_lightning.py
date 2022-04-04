@@ -113,7 +113,7 @@ class DQNLightning(LightningModule):
         action_modes, states, actions, rewards, dones, next_states = batch
 
         action_mode = int(action_modes[1].item())
-        actions_tensor = torch.tensor(actions).unsqueeze(-1)
+        actions_tensor = actions.unsqueeze(-1)
 
         state_action_values, _ = self.q_networks(action_mode, states)
 
