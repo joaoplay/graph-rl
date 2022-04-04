@@ -185,7 +185,6 @@ class DQNLightning(LightningModule):
 
         if done:
             self.total_reward = self.episode_reward
-            print("Episode Reward: ", self.episode_reward)
             self.episode_reward = 0
 
         # Soft update of target network
