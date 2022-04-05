@@ -33,7 +33,6 @@ def run_from_config_file(cfg: DictConfig):
         # max_time={'hours': 2},
         val_check_interval=100,
         logger=neptune_logger,
-        progress_bar_refresh_rate=0,
     )
 
     trainer.fit(model)
