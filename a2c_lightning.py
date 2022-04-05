@@ -57,7 +57,7 @@ class A2CLightning(LightningModule):
         return states_v, actions_t, ref_vals_v
 
     def training_step(self, *args, **kwargs):
-
+        pass
 
 
 

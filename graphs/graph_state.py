@@ -238,8 +238,7 @@ class GraphState:
             forbidden_actions_encoding = np.zeros(graph.num_nodes)
             if len(forbidden_actions_encoding) > 0:
                 forbidden_actions_encoding[forbidden_actions_list] = 1
-            final_repr = np.concatenate(([graph.num_nodes], forbidden_actions_encoding, graph.to_representation(action_mode)), dtype=np.float32)
-            convert_graph_states += [final_repr]
+            convert_graph_states += [np.concatenate(([graph.num_nodes], forbidden_actions_encoding, graph.to_representation(action_mode)), dtype=np.float32)]
 
         return np.array(convert_graph_states)
 
