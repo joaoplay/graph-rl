@@ -29,8 +29,7 @@ def run_from_config_file(cfg: DictConfig):
     model = DQNLightning(environment, train_graphs, replay_size=10**6)
 
     trainer = Trainer(
-        max_epochs=10**6,
-        # max_time={'hours': 2},
+        max_time={'hours': 23},
         val_check_interval=100,
         logger=neptune_logger,
         progress_bar_refresh_rate=0,
