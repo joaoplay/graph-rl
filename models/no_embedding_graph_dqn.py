@@ -104,8 +104,6 @@ class NoEmbeddingGraphDQN(nn.Module):
         forbidden_actions_bool = forbidden_actions.bool()
         q_values[forbidden_actions_bool] = min_tensor
 
-        # q_values_prob = softmax(q_values, dim=1)
-
         values, indices = torch.topk(q_values, 1, dim=1)
 
         return indices, values

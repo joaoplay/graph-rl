@@ -38,6 +38,7 @@ class GraphAgent:
         self.selected_end_nodes_stats = {}
         self.repeated_actions = 0
         self.episode_reward = 0
+        self.q_values_history = []
         self.reset()
 
     def reset(self):
@@ -48,6 +49,7 @@ class GraphAgent:
         self.selected_end_nodes_stats = {}
         self.repeated_actions = 0
         self.episode_reward = 0
+        self.q_values_history = []
 
     def choose_greedy_actions(self, action_mode, q_network):
         """
@@ -59,6 +61,9 @@ class GraphAgent:
         state = torch.tensor(GraphState.convert_all_to_representation(action_mode, self.state))
         # Get action that maximizes Q-value (for each graph)
         q_values, forbidden_actions = q_network(action_mode=action_mode, states=state)
+
+        #print(f"Action Mode: {action_mode} | Q-values: {q_values}")
+
         actions, _ = q_network.select_action_from_q_values(action_mode=action_mode, q_values=q_values,
                                                            forbidden_actions=forbidden_actions)
         actions = list(actions.view(-1).cpu().numpy())
@@ -87,7 +92,6 @@ class GraphAgent:
                 self.exploratory_actions_cache = None
 
                 greedy_actions = self.choose_greedy_actions(action_mode=action_mode, q_network=q_network)
-                # print("Choosing greedy action: ", greedy_actions)
 
                 return greedy_actions
         else:
@@ -101,7 +105,6 @@ class GraphAgent:
             else:
                 # Choose an end node from the DQN
                 greedy_actions = self.choose_greedy_actions(action_mode=action_mode, q_network=q_network)
-                # print("Choosing greedy action: ", greedy_actions)
 
                 return greedy_actions
 
@@ -141,8 +144,8 @@ class GraphAgent:
             now_done_rewards = list(compress(reward, now_done))
             rewards += now_done_rewards
             all_done += [True] * len(rewards)
-            self.wins += sum([reward for reward in now_done_rewards if int(reward) == 1])
-            self.looses += sum([reward for reward in now_done_rewards if int(reward) == -1])
+            self.wins += sum([1 if reward > 0 else 0 for reward in now_done_rewards])
+            self.looses += sum([1 if reward < 0 else 0 for reward in now_done_rewards])
             # self.wins += sum([1 for _ in now_done_rewards if self.env.steps_counter < self.env.max_steps])
             # self.looses += sum([1 for _ in now_done_rewards if self.env.steps_counter >= self.env.max_steps])
 
@@ -176,7 +179,7 @@ class GraphAgent:
 
         self.state = new_state
         if all(done):
-            #print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
+            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
 
             if logger:
                 fig, axs = plt.subplots(2)

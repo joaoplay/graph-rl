@@ -24,7 +24,7 @@ def run_from_config_file(cfg: DictConfig):
         project="jbsimoes/graph-rl",
         mode=os.getenv("NEPTUNE_MODE", "async")
     )
-    environment = GraphEnv(max_steps=3000, irrigation_goal=0.06)
+    environment = GraphEnv(max_steps=800, irrigation_goal=0.11)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
     model = DQNLightning(environment, train_graphs, replay_size=10**6)
 
@@ -33,6 +33,7 @@ def run_from_config_file(cfg: DictConfig):
         # max_time={'hours': 2},
         val_check_interval=100,
         logger=neptune_logger,
+        progress_bar_refresh_rate=0,
     )
 
     trainer.fit(model)

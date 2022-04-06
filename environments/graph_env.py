@@ -84,6 +84,8 @@ class GraphEnv:
 
             start_node = self.graphs_list[graph_idx].selected_start_node
 
+            # print(f"Action Mode: {self.current_action_mode} | Action: {actions[graph_idx]}")
+
             # Execute action and get the resulting graph (a deepcopy) and the insertion cost (in terms of edge budget)
             new_graph, edge_insertion_cost = self.execute_action(current_graph, actions[graph_idx])
 
@@ -103,10 +105,10 @@ class GraphEnv:
                 self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                                       start_node=start_node, end_node=actions[graph_idx])
                 rewards[graph_idx] = 0
-            elif current_graph.previous_selected_start_node == actions[graph_idx]:
+            """elif current_graph.previous_selected_start_node == actions[graph_idx]:
                 # Selecting the same start node again. We are going to penalize this action
                 rewards[graph_idx] = -1.0
-                self.done[graph_idx] = True
+                self.done[graph_idx] = True"""
             """else:
                 if current_graph.previous_selected_start_node == actions[graph_idx]:
                     rewards[graph_idx] = -1.0
@@ -117,17 +119,22 @@ class GraphEnv:
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved():
                 self.done[graph_idx] = True
-                rewards[graph_idx] = 1
+                rewards[graph_idx] = 1.0 - (self.steps_counter / self.max_steps)
 
             if self.max_steps_achieved():
                 self.done[graph_idx] = True
                 rewards[graph_idx] = -1
 
-            if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
+            if new_graph.allowed_actions_not_found:
+                print("Allowed actions not found")
+                self.done[graph_idx] = True
+                rewards[graph_idx] = -1
+
+            """if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
                     and self.graphs_list[graph_idx].allowed_actions_not_found:
                 # A new edge was added and no valid start nodes are available. The current graph reached a dead end, and therefore
                 # it's time to end the generation process.
-                raise Exception("Allowed actions not found")
+                raise Exception("Allowed actions not found")"""
 
         self.steps_counter += 1
 
