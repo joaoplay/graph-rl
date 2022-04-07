@@ -122,7 +122,6 @@ class GraphEnv:
                 max_graph_edges = self.graphs_list[graph_idx].nx_neighbourhood_graph.number_of_edges()
                 current_graph_edges = self.graphs_list[graph_idx].nx_graph.number_of_edges()
                 rewards[graph_idx] = 1.0 - (current_graph_edges / max_graph_edges)
-                print(rewards)
 
             if self.max_steps_achieved():
                 self.done[graph_idx] = True
