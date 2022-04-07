@@ -127,6 +127,8 @@ class NoEmbeddingGraphDQN(nn.Module):
     def forward(self, states):
         graph_representation, forbidden_actions = self.prepare_data(states)
 
+        print(f'is cuda: {graph_representation.is_cuda}')
+
         q_values = self.fc(graph_representation)
 
         return q_values, forbidden_actions
