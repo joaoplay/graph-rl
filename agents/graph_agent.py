@@ -15,7 +15,7 @@ from agents.util.sample_tracker import BatchSampler
 from environments.graph_env import GraphEnv, ACTION_MODE_SELECTING_START_NODE, ACTION_MODE_SELECTING_END_NODE
 from graphs.graph_state import GraphState
 from models.multi_action_mode_dqn import MultiActionModeDQN
-from settings import NEPTUNE_INSTANCE
+from settings import NEPTUNE_INSTANCE, USE_CUDA
 
 
 class GraphAgent:
@@ -60,9 +60,12 @@ class GraphAgent:
 
         # Get the environments state of each graphs
         state = torch.tensor(GraphState.convert_all_to_representation(action_mode, self.state))
+
+        if USE_CUDA == 1:
+            state = state.cuda()
+
         # Get action that maximizes Q-value (for each graph)
         q_values, forbidden_actions = q_network(action_mode=action_mode, states=state)
-
         actions, _ = q_network.select_action_from_q_values(action_mode=action_mode, q_values=q_values,
                                                            forbidden_actions=forbidden_actions)
         actions = list(actions.view(-1).cpu().numpy())
@@ -178,7 +181,7 @@ class GraphAgent:
 
         self.state = new_state
         if all(done):
-            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
+            #print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
 
             if logger:
                 fig, axs = plt.subplots(2)
