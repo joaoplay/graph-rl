@@ -26,7 +26,7 @@ class DQNLightning(LightningModule):
     def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int = 28, lr: float = 1e-4,
                  gamma: float = 0.99, sync_rate: int = 10000, replay_size: int = 10 ** 6, warm_start_size: int = 100000,
                  eps_last_frame: int = 10 ** 7, eps_start: float = 1.0, eps_end: float = 0.0, episode_length: int = 200,
-                 warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
+                 warm_start_steps: int = 500, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         super().__init__()
 
         self.save_hyperparameters()
