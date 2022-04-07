@@ -15,6 +15,7 @@ from agents.util.sample_tracker import BatchSampler
 from environments.graph_env import GraphEnv, ACTION_MODE_SELECTING_START_NODE, ACTION_MODE_SELECTING_END_NODE
 from graphs.graph_state import GraphState
 from models.multi_action_mode_dqn import MultiActionModeDQN
+from settings import NEPTUNE_INSTANCE
 
 
 class GraphAgent:
@@ -185,7 +186,7 @@ class GraphAgent:
                            self.selected_start_nodes_stats.values(), 2, color='g')
                 axs[1].bar(self.selected_end_nodes_stats.keys(),
                            self.selected_end_nodes_stats.values(), 2, color='g')
-                logger.experiment["action_selection"].log(File.as_image(fig))
+                NEPTUNE_INSTANCE['training/action_selection'].log(File.as_image(fig))
                 plt.close()
 
             """start_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_START_NODE)].repr_history, axis=0))

@@ -5,7 +5,6 @@ import numpy as np
 import torch
 from omegaconf import DictConfig
 from pytorch_lightning import Trainer
-from pytorch_lightning.loggers import NeptuneLogger
 
 from dqn_lightning import DQNLightning
 from environments.generator.single_vessel_graph_generator import SingleVesselGraphGenerator
@@ -19,19 +18,20 @@ def run_from_config_file(cfg: DictConfig):
 
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
-    neptune_logger = NeptuneLogger(
+    """neptune_logger = NeptuneLogger(
         api_key="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjYmQ4MjE1OC0yNzBhLTQyNzctYjFmZS00YTFhYjYxZTdmMjUifQ==",  # replace with your own
         project="jbsimoes/graph-rl",
         mode=os.getenv("NEPTUNE_MODE", "async")
-    )
-    environment = GraphEnv(max_steps=800, irrigation_goal=0.03)
+    )"""
+
+    environment = GraphEnv(max_steps=800, irrigation_goal=0.06)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
     model = DQNLightning(environment, train_graphs, replay_size=10**6)
 
     trainer = Trainer(
         max_time={'hours': 23},
         val_check_interval=100,
-        logger=neptune_logger,
+        #logger=neptune_logger,
         progress_bar_refresh_rate=0,
     )
 

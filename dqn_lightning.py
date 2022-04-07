@@ -17,6 +17,7 @@ from agents.rl_dataset import RLDataset
 from environments.graph_env import DEFAULT_ACTION_MODES, ACTION_MODE_SELECTING_START_NODE, \
     ACTION_MODE_SELECTING_END_NODE, GraphEnv
 from models.multi_action_mode_dqn import MultiActionModeDQN
+from settings import NEPTUNE_INSTANCE
 
 
 class DQNLightning(LightningModule):
@@ -25,7 +26,7 @@ class DQNLightning(LightningModule):
     def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int = 28, lr: float = 1e-4,
                  gamma: float = 0.99, sync_rate: int = 10000, replay_size: int = 10 ** 6, warm_start_size: int = 100000,
                  eps_last_frame: int = 10 ** 7, eps_start: float = 1.0, eps_end: float = 0.0, episode_length: int = 200,
-                 warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
+                 warm_start_steps: int = 500, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         super().__init__()
 
         self.save_hyperparameters()
@@ -71,7 +72,7 @@ class DQNLightning(LightningModule):
         self.agent = GraphAgent(self.env, self.graphs, self.buffer)
         self.total_reward = 0
         self.episode_reward = 0
-        self.populate(self.hparams.warm_start_steps)
+        #self.populate(self.hparams.warm_start_steps)
 
     def populate(self, steps: int = 1000) -> None:
         """Carries out several random steps through the environment to initially fill up the replay buffer with
@@ -81,7 +82,9 @@ class DQNLightning(LightningModule):
             steps: number of random steps to populate the buffer with
         """
         for i in range(steps):
-            self.agent.play_step(self.q_networks, epsilon=1.0)
+            reward, done = self.agent.play_step(self.q_networks, epsilon=1.0)
+            NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
+
 
     def forward(self, x: Tensor) -> Tensor:
         """Passes in a state x through the network and gets the q_values of each action as an output.
@@ -132,6 +135,9 @@ class DQNLightning(LightningModule):
 
         return action_mode, nn.MSELoss()(q_sa, rewards)
 
+    def on_train_start(self) -> None:
+        self.populate(self.hparams.warm_start_steps)
+
     def training_step(self, batch, nb_batch):
         """Carries out a single step through the environment to update the replay buffer. Then calculates loss
         based on the minibatch recieved.
@@ -157,27 +163,28 @@ class DQNLightning(LightningModule):
         reward, done = self.agent.play_step(self.q_networks, epsilon, device, self.logger)
         self.episode_reward += reward
 
-        if self.global_step % 500 == 0 and self.env.last_irrigation_map is not None:
+        if self.global_step % 50 == 0 and self.env.last_irrigation_map is not None:
             fig_irrigation, ax_irrigation = plt.subplots()
             ax_irrigation.imshow(np.flip(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
             ax_irrigation.title.set_text(f'Global Step {self.global_step} | Env Step {self.env.steps_counter}')
 
-            self.logger.experiment["irrigation_maps"].log(File.as_image(fig_irrigation))
+            NEPTUNE_INSTANCE['training/irrigation'].log(File.as_image(fig_irrigation))
             plt.close()
-        self.log('instant_reward', reward, on_epoch=True, on_step=False)
 
-        self.log('epsilon', epsilon, on_epoch=True, on_step=False)
+        NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
 
-        self.log('total_wins', self.agent.wins, on_epoch=True, on_step=False)
-        self.log('total_looses', self.agent.looses, on_epoch=True, on_step=False)
+        NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
+
+        NEPTUNE_INSTANCE['training/total_wins'].log(self.agent.wins)
+        NEPTUNE_INSTANCE['training/total_looses'].log(self.agent.looses)
 
         # calculates training loss
         action_mode, loss = self.dqn_mse_loss(batch)
 
         if action_mode == ACTION_MODE_SELECTING_START_NODE:
-            self.log('start-node-selection-loss', loss, on_epoch=True, on_step=False)
+            NEPTUNE_INSTANCE['training/start-node-selection-loss'].log(loss)
         else:
-            self.log('end-node-selection-loss', loss, on_epoch=True, on_step=False)
+            NEPTUNE_INSTANCE['training/end-node-selection-loss'].log(loss)
 
         if done:
             self.total_reward = self.episode_reward
@@ -218,7 +225,7 @@ class DQNLightning(LightningModule):
     def __dataloader(self) -> DataLoader:
         """Initialize the Replay Buffer dataset used for retrieving experiences."""
         dataset = RLDataset(self.buffer, self.hparams.batch_size)
-        dataloader = DataLoader(dataset=dataset, batch_size=self.hparams.batch_size, num_workers=16)
+        dataloader = DataLoader(dataset=dataset, batch_size=self.hparams.batch_size)
         return dataloader
 
     def train_dataloader(self) -> DataLoader:
