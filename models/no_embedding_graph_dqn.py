@@ -3,6 +3,8 @@ import torch
 from torch import nn
 from torch.nn import Linear
 
+from settings import USE_CUDA
+
 
 class NoEmbeddingGraphDQN(nn.Module):
 
@@ -18,6 +20,9 @@ class NoEmbeddingGraphDQN(nn.Module):
             nn.ReLU(),
             Linear(hidden_output_dim, actions_output_dim)
         )
+
+        if USE_CUDA == 1:
+            self.fc = self.fc.cuda()
 
         self.unique_id = unique_id
 
