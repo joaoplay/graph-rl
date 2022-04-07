@@ -119,7 +119,10 @@ class GraphEnv:
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved():
                 self.done[graph_idx] = True
-                rewards[graph_idx] = 1.0 - (self.steps_counter / self.max_steps)
+                max_graph_edges = self.graphs_list[graph_idx].nx_neighbourhood_graph.number_of_edges()
+                current_graph_edges = self.graphs_list[graph_idx].nx_graph.number_of_edges()
+                rewards[graph_idx] = 1.0 - (current_graph_edges / max_graph_edges)
+                print(rewards)
 
             if self.max_steps_achieved():
                 self.done[graph_idx] = True

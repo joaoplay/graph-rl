@@ -11,7 +11,6 @@ from torch.optim import Optimizer, Adam
 from torch.utils.data import DataLoader
 from torch import nn
 
-import neptune_logging
 from agents.graph_agent import GraphAgent
 from agents.replay_memory.multi_action_replay_buffer import MultiActionReplayBuffer
 from agents.rl_dataset import RLDataset
@@ -26,7 +25,7 @@ class DQNLightning(LightningModule):
     def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int = 28, lr: float = 1e-4,
                  gamma: float = 0.99, sync_rate: int = 10000, replay_size: int = 10 ** 6, warm_start_size: int = 100000,
                  eps_last_frame: int = 10 ** 7, eps_start: float = 1.0, eps_end: float = 0.0, episode_length: int = 200,
-                 warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
+                 warm_start_steps: int = 500, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         super().__init__()
 
         self.save_hyperparameters()
@@ -128,6 +127,7 @@ class DQNLightning(LightningModule):
                     next_action_mode, next_state_values, forbidden_actions)
                 expected_state_action_values = not_done_next_station_action_values * self.hparams.gamma + rewards[
                     not_dones]
+
                 rewards[not_dones] = expected_state_action_values
 
         return action_mode, nn.MSELoss()(q_sa, rewards)
@@ -185,7 +185,11 @@ class DQNLightning(LightningModule):
 
         # Soft update of target network
         if self.global_step % self.hparams.sync_rate == 0:
+            print("Before")
+            self.print_network_params()
             self.target_q_networks.load_state_dict(self.q_networks.state_dict())
+            print("After")
+            self.print_network_params()
 
         log = {
             "total_reward": torch.tensor(self.total_reward).to(device),
@@ -198,6 +202,17 @@ class DQNLightning(LightningModule):
         }
 
         return {"loss": loss, "log": log, "progress_bar": status}
+
+    def print_network_params(self):
+        print("Q-Networks")
+        for name, param in self.q_networks.named_parameters():
+            if param.requires_grad:
+                print(name, param.data)
+
+        print("Target Q-Networks")
+        for name, param in self.target_q_networks.named_parameters():
+            if param.requires_grad:
+                print(name, param.data)
 
     def configure_optimizers(self) -> List[Optimizer]:
         """Initialize Adam optimizer."""

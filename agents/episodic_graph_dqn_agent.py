@@ -133,8 +133,6 @@ class EpisodicGraphDQNAgent(GraphDQNAgent):
             # Calculate loss and gradients. Back-Propagate gradients
             loss = nn.MSELoss()(q_sa, rewards_tensor)
 
-            print("Loss: ", loss)
-
             neptune_logging.log_batch_training_result(loss)
 
             optimizer.zero_grad()
