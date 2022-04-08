@@ -189,13 +189,13 @@ class GraphAgent:
             axs[1].bar(self.selected_end_nodes_stats.keys(),
                        self.selected_end_nodes_stats.values(), 2, color='g')
             NEPTUNE_INSTANCE['training/action_selection'].log(File.as_image(fig))
-            plt.close()"""
+            plt.close()
 
             """start_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_START_NODE)].repr_history, axis=0))
             end_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_END_NODE)].repr_history, axis=0))
 
             start_node_repr_history.to_csv(f"start_node_repr_history.csv", sep=";", decimal=",", header=False, index=False)
-            end_node_repr_history.to_csv(f"end_node_repr_history.csv", sep=";", decimal=",", header=False, index=False)
+            end_node_repr_history.to_csv(f"end_node_repr_history.csv", sep=";", decimal=",", header=False, index=False)"""
 
             self.reset()
 
