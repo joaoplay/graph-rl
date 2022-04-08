@@ -1,5 +1,3 @@
-import os
-
 import hydra
 import numpy as np
 import torch
@@ -29,13 +27,13 @@ def run_from_config_file(cfg: DictConfig):
     model = DQNLightning(environment, train_graphs, replay_size=10**6)
 
     trainer = Trainer(
+        #val_check_interval=100,
+        max_epochs=10**6,
         #max_time={'hours': 23},
-        max_epochs=10*6,
-        val_check_interval=100,
-        accelerator="gpu",
-        devices=1,
+        gpus=[0],
+        #accelerator="gpu",
+        #devices=1,
         #logger=neptune_logger,
-        progress_bar_refresh_rate=0,
     )
 
     trainer.fit(model)

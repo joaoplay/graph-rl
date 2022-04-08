@@ -111,7 +111,7 @@ class GraphAgent:
                 return greedy_actions
 
     @torch.no_grad()
-    def play_step(self, q_networks: MultiActionModeDQN, epsilon: float = 0.0, device: str = "cpu", logger=None):
+    def play_step(self, q_networks: MultiActionModeDQN, epsilon: float = 0.0, device: str = "cpu"):
         """Carries out a single interaction step between the agent and the environment.
 
         Args:
@@ -181,16 +181,15 @@ class GraphAgent:
 
         self.state = new_state
         if all(done):
-            #print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
+            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
 
-            if logger:
-                fig, axs = plt.subplots(2)
-                axs[0].bar(self.selected_start_nodes_stats.keys(),
-                           self.selected_start_nodes_stats.values(), 2, color='g')
-                axs[1].bar(self.selected_end_nodes_stats.keys(),
-                           self.selected_end_nodes_stats.values(), 2, color='g')
-                NEPTUNE_INSTANCE['training/action_selection'].log(File.as_image(fig))
-                plt.close()
+            fig, axs = plt.subplots(2)
+            axs[0].bar(self.selected_start_nodes_stats.keys(),
+                       self.selected_start_nodes_stats.values(), 2, color='g')
+            axs[1].bar(self.selected_end_nodes_stats.keys(),
+                       self.selected_end_nodes_stats.values(), 2, color='g')
+            NEPTUNE_INSTANCE['training/action_selection'].log(File.as_image(fig))
+            plt.close()
 
             """start_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_START_NODE)].repr_history, axis=0))
             end_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_END_NODE)].repr_history, axis=0))

@@ -72,7 +72,7 @@ class DQNLightning(LightningModule):
         self.agent = GraphAgent(self.env, self.graphs, self.buffer)
         self.total_reward = 0
         self.episode_reward = 0
-        # self.populate(self.hparams.warm_start_steps)
+        self.populate(self.hparams.warm_start_steps)
 
     def populate(self, steps: int = 1000) -> None:
         """Carries out several random steps through the environment to initially fill up the replay buffer with
@@ -134,9 +134,6 @@ class DQNLightning(LightningModule):
 
         return action_mode, nn.MSELoss()(q_sa, rewards)
 
-    def on_train_start(self) -> None:
-        self.populate(self.hparams.warm_start_steps)
-
     def training_step(self, batch, nb_batch):
         """Carries out a single step through the environment to update the replay buffer. Then calculates loss
         based on the minibatch received.
@@ -159,7 +156,7 @@ class DQNLightning(LightningModule):
         )
 
         # Step through environment with agent
-        reward, done = self.agent.play_step(self.q_networks, epsilon, device, self.logger)
+        reward, done = self.agent.play_step(self.q_networks, epsilon, device)
         self.episode_reward += reward
 
         if self.global_step % 50 == 0 and self.env.last_irrigation_map is not None:
