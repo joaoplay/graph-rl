@@ -16,8 +16,7 @@ matplotlib = "^3.5"
 tqdm = "^4.62"
 neptune-client = "^0.14"
 hydra-core = "^1.1"
-pytorch-lightning = "^1.5.10"
-pandas = "*"
+pytorch-lightning = "==1.5.10"
 
 [tool.poetry.dev-dependencies]
 

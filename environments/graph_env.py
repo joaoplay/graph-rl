@@ -121,8 +121,11 @@ class GraphEnv:
                 self.done[graph_idx] = True
                 max_graph_edges = self.graphs_list[graph_idx].nx_neighbourhood_graph.number_of_edges()
                 current_graph_edges = self.graphs_list[graph_idx].nx_graph.number_of_edges()
-                rewards[graph_idx] = 1.0 - (current_graph_edges / max_graph_edges)
-                # rewards[graph_idx] = -np.std(self.last_irrigation_map)
+
+                baseline = max_graph_edges / 2.0
+
+                rewards[graph_idx] = 1.0 - ((current_graph_edges - baseline) / (max_graph_edges - baseline))
+                #rewards[graph_idx] = -np.std(self.last_irrigation_map)
 
             if self.max_steps_achieved():
                 self.done[graph_idx] = True
