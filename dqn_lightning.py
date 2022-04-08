@@ -163,8 +163,8 @@ class DQNLightning(LightningModule):
 
         NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
 
-        NEPTUNE_INSTANCE['training/total_wins'].log(self.agent.wins)
-        NEPTUNE_INSTANCE['training/total_looses'].log(self.agent.looses)
+        #NEPTUNE_INSTANCE['training/total_wins'].log(self.agent.wins)
+        #NEPTUNE_INSTANCE['training/total_looses'].log(self.agent.looses)
 
         # Calculates training loss
         action_mode, loss = self.dqn_mse_loss(batch)
