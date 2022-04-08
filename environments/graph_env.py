@@ -39,7 +39,7 @@ class GraphEnv:
 
     """
 
-    def __init__(self, max_steps, irrigation_goal, reward_assignment_mode) -> None:
+    def __init__(self, max_steps, irrigation_goal) -> None:
         super().__init__()
 
         # Batch of graphs
