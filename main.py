@@ -28,6 +28,7 @@ def run_from_config_file(cfg: DictConfig):
 
     trainer = Trainer(
         val_check_interval=10**6,
+        check_val_every_n_epoch=10*6,
         #max_epochs=10**6,
         max_time={'hours': 23},
         gpus=[0],
