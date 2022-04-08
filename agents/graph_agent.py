@@ -199,7 +199,7 @@ class GraphAgent:
 
                 NEPTUNE_INSTANCE['training/irrigation'].log(File.as_image(fig_irrigation))
 
-            plt.close(fig)
+            plt.close('all')
 
             """start_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_START_NODE)].repr_history, axis=0))
             end_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_END_NODE)].repr_history, axis=0))
