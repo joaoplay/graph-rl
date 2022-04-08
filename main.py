@@ -22,15 +22,15 @@ def run_from_config_file(cfg: DictConfig):
         mode=os.getenv("NEPTUNE_MODE", "async")
     )"""
 
-    environment = GraphEnv(max_steps=800, irrigation_goal=0.06)
+    environment = GraphEnv(max_steps=800, irrigation_goal=0.07)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
     model = DQNLightning(environment, train_graphs, replay_size=10**6)
 
     trainer = Trainer(
         val_check_interval=10**6,
         check_val_every_n_epoch=10*6,
-        #max_epochs=10**6,
-        max_time={'hours': 23},
+        max_epochs=10**6,
+        #max_time={'hours': 23},
         gpus=[0],
         #accelerator="gpu",
         #devices=1,
