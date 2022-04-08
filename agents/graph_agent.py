@@ -190,6 +190,8 @@ class GraphAgent:
                        self.selected_end_nodes_stats.values(), 2, color='g')
             NEPTUNE_INSTANCE['training/action_selection'].log(File.as_image(fig))
 
+            plt.close(fig)
+
             if self.env.last_irrigation_map is not None:
                 fig_irrigation, ax_irrigation = plt.subplots()
                 ax_irrigation.imshow(np.flip(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
@@ -197,7 +199,7 @@ class GraphAgent:
 
                 NEPTUNE_INSTANCE['training/irrigation'].log(File.as_image(fig_irrigation))
 
-            plt.close()
+            plt.close(fig)
 
             """start_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_START_NODE)].repr_history, axis=0))
             end_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_END_NODE)].repr_history, axis=0))
