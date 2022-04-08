@@ -159,14 +159,6 @@ class DQNLightning(LightningModule):
         reward, done = self.agent.play_step(self.q_networks, epsilon, device)
         self.episode_reward += reward
 
-        if done and self.env.last_irrigation_map is not None:
-            fig_irrigation, ax_irrigation = plt.subplots()
-            ax_irrigation.imshow(np.flip(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
-            ax_irrigation.title.set_text(f'Global Step {self.global_step} | Env Step {self.env.steps_counter}')
-
-            NEPTUNE_INSTANCE['training/irrigation'].log(File.as_image(fig_irrigation))
-            plt.close()
-
         NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
 
         NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)

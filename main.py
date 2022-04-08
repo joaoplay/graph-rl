@@ -27,17 +27,14 @@ def run_from_config_file(cfg: DictConfig):
     model = DQNLightning(environment, train_graphs, replay_size=10**6)
 
     trainer = Trainer(
-        val_check_interval=10**6,
-        check_val_every_n_epoch=10*6,
-        max_epochs=10**6,
-        #max_time={'hours': 23},
+        #max_epochs=10**6,
+        max_time={'hours': 23},
         gpus=[0],
         #accelerator="gpu",
         #devices=1,
         #logger=neptune_logger,
+        progress_bar_refresh_rate=0,
     )
-
-    print(trainer.early_stopping_callbacks)
 
     trainer.fit(model)
 

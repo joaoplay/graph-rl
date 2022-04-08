@@ -181,7 +181,7 @@ class GraphAgent:
 
         self.state = new_state
         if all(done):
-            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
+            #print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
 
             fig, axs = plt.subplots(2)
             axs[0].bar(self.selected_start_nodes_stats.keys(),
@@ -189,6 +189,14 @@ class GraphAgent:
             axs[1].bar(self.selected_end_nodes_stats.keys(),
                        self.selected_end_nodes_stats.values(), 2, color='g')
             NEPTUNE_INSTANCE['training/action_selection'].log(File.as_image(fig))
+
+            if self.env.last_irrigation_map is not None:
+                fig_irrigation, ax_irrigation = plt.subplots()
+                ax_irrigation.imshow(np.flip(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
+                ax_irrigation.title.set_text(f'Env Step {self.env.steps_counter}')
+
+                NEPTUNE_INSTANCE['training/irrigation'].log(File.as_image(fig_irrigation))
+
             plt.close()
 
             """start_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_START_NODE)].repr_history, axis=0))
