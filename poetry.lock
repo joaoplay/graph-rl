@@ -83,14 +83,14 @@ tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>
 
 [[package]]
 name = "boto3"
-version = "1.21.36"
+version = "1.21.37"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.6"
 
 [package.dependencies]
-botocore = ">=1.24.36,<1.25.0"
+botocore = ">=1.24.37,<1.25.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.5.0,<0.6.0"
 
@@ -99,7 +99,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.24.36"
+version = "1.24.37"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -211,7 +211,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "fonttools"
-version = "4.31.2"
+version = "4.32.0"
 description = "Tools to manipulate font files"
 category = "main"
 optional = false
@@ -416,7 +416,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "jsonpointer"
-version = "2.2"
+version = "2.3"
 description = "Identify specific nodes in a JSON document (RFC 6901)"
 category = "main"
 optional = false
@@ -559,7 +559,7 @@ xgboost = ["neptune-xgboost"]
 
 [[package]]
 name = "networkx"
-version = "2.7.1"
+version = "2.8"
 description = "Python package for creating and manipulating graphs and networks"
 category = "main"
 optional = false
@@ -567,10 +567,10 @@ python-versions = ">=3.8"
 
 [package.extras]
 default = ["numpy (>=1.19)", "scipy (>=1.8)", "matplotlib (>=3.4)", "pandas (>=1.3)"]
-developer = ["black (==22.1)", "pyupgrade (>=2.31)", "pre-commit (>=2.17)", "mypy (>=0.931)"]
-doc = ["sphinx (>=4.4)", "pydata-sphinx-theme (>=0.8)", "sphinx-gallery (>=0.10)", "numpydoc (>=1.2)", "pillow (>=9.0)", "nb2plots (>=0.6)", "texext (>=0.6.6)"]
-extra = ["lxml (>=4.6)", "pygraphviz (>=1.9)", "pydot (>=1.4.2)"]
-test = ["pytest (>=7.0)", "pytest-cov (>=3.0)", "codecov (>=2.1)"]
+developer = ["pre-commit (>=2.18)", "mypy (>=0.942)"]
+doc = ["sphinx (>=4.5)", "pydata-sphinx-theme (>=0.8.1)", "sphinx-gallery (>=0.10)", "numpydoc (>=1.2)", "pillow (>=9.1)", "nb2plots (>=0.6)", "texext (>=0.6.6)"]
+extra = ["lxml (>=4.6)", "pygraphviz (>=1.9)", "pydot (>=1.4.2)", "sympy (>=1.10)"]
+test = ["pytest (>=7.1)", "pytest-cov (>=3.0)", "codecov (>=2.1)"]
 
 [[package]]
 name = "numpy"
@@ -688,7 +688,7 @@ pyasn1 = ">=0.4.6,<0.5.0"
 
 [[package]]
 name = "pydeprecate"
-version = "0.3.1"
+version = "0.3.2"
 description = "Deprecation tooling"
 category = "main"
 optional = false
@@ -710,14 +710,14 @@ tests = ["pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)"]
 
 [[package]]
 name = "pyparsing"
-version = "3.0.7"
-description = "Python parsing module"
+version = "3.0.8"
+description = "pyparsing module - Classes and methods to define and execute parsing grammars"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.6.8"
 
 [package.extras]
-diagrams = ["jinja2", "railroad-diagrams"]
+diagrams = ["railroad-diagrams", "jinja2"]
 
 [[package]]
 name = "pyrsistent"
@@ -740,34 +740,33 @@ six = ">=1.5"
 
 [[package]]
 name = "pytorch-lightning"
-version = "1.5.10"
+version = "1.6.0"
 description = "PyTorch Lightning is the lightweight PyTorch wrapper for ML researchers. Scale your models. Write less boilerplate."
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.dependencies]
 fsspec = {version = ">=2021.05.0,<2021.06.0 || >2021.06.0", extras = ["http"]}
-future = ">=0.17.1"
 numpy = ">=1.17.2"
 packaging = ">=17.0"
-pyDeprecate = "0.3.1"
-PyYAML = ">=5.1"
+pyDeprecate = ">=0.3.1,<0.4.0"
+PyYAML = ">=5.4"
 tensorboard = ">=2.2.0"
-torch = ">=1.7"
+torch = ">=1.8"
 torchmetrics = ">=0.4.1"
 tqdm = ">=4.41.0"
-typing-extensions = "*"
+typing-extensions = ">=4.0.0"
 
 [package.extras]
-all = ["matplotlib (>3.1)", "horovod (>=0.21.2)", "torchtext (>=0.8)", "omegaconf (>=2.0.5)", "hydra-core (>=1.0.5)", "jsonargparse[signatures] (>=4.0.4,<5.0.0)", "gcsfs (>=2021.5.0)", "rich (>=10.2.2)", "neptune-client (>=0.10.0)", "comet-ml (>=3.1.12)", "mlflow (>=1.0.0)", "test-tube (>=0.7.5)", "wandb (>=0.8.21)", "coverage (>5.2.0,<6.3)", "codecov (>=2.1)", "pytest (>=6.0)", "pytest-rerunfailures (>=10.2)", "twine (==3.2)", "mypy (>=0.920)", "flake8 (>=3.9.2)", "pre-commit (>=1.0)", "cloudpickle (>=1.3)", "scikit-learn (>0.22.1)", "onnxruntime", "pandas", "torchvision (>=0.8)", "gym (>=0.17.0)", "ipython"]
-cpu = ["matplotlib (>3.1)", "torchtext (>=0.8)", "omegaconf (>=2.0.5)", "hydra-core (>=1.0.5)", "jsonargparse[signatures] (>=4.0.4,<5.0.0)", "gcsfs (>=2021.5.0)", "rich (>=10.2.2)", "neptune-client (>=0.10.0)", "comet-ml (>=3.1.12)", "mlflow (>=1.0.0)", "test-tube (>=0.7.5)", "wandb (>=0.8.21)", "coverage (>5.2.0,<6.3)", "codecov (>=2.1)", "pytest (>=6.0)", "pytest-rerunfailures (>=10.2)", "twine (==3.2)", "mypy (>=0.920)", "flake8 (>=3.9.2)", "pre-commit (>=1.0)", "cloudpickle (>=1.3)", "scikit-learn (>0.22.1)", "onnxruntime", "pandas", "torchvision (>=0.8)", "gym (>=0.17.0)", "ipython"]
-cpu-extra = ["matplotlib (>3.1)", "torchtext (>=0.8)", "omegaconf (>=2.0.5)", "hydra-core (>=1.0.5)", "jsonargparse[signatures] (>=4.0.4,<5.0.0)", "gcsfs (>=2021.5.0)", "rich (>=10.2.2)"]
-dev = ["matplotlib (>3.1)", "horovod (>=0.21.2)", "torchtext (>=0.8)", "omegaconf (>=2.0.5)", "hydra-core (>=1.0.5)", "jsonargparse[signatures] (>=4.0.4,<5.0.0)", "gcsfs (>=2021.5.0)", "rich (>=10.2.2)", "neptune-client (>=0.10.0)", "comet-ml (>=3.1.12)", "mlflow (>=1.0.0)", "test-tube (>=0.7.5)", "wandb (>=0.8.21)", "coverage (>5.2.0,<6.3)", "codecov (>=2.1)", "pytest (>=6.0)", "pytest-rerunfailures (>=10.2)", "twine (==3.2)", "mypy (>=0.920)", "flake8 (>=3.9.2)", "pre-commit (>=1.0)", "cloudpickle (>=1.3)", "scikit-learn (>0.22.1)", "onnxruntime", "pandas"]
-examples = ["torchvision (>=0.8)", "gym (>=0.17.0)", "ipython"]
-extra = ["matplotlib (>3.1)", "horovod (>=0.21.2)", "torchtext (>=0.8)", "omegaconf (>=2.0.5)", "hydra-core (>=1.0.5)", "jsonargparse[signatures] (>=4.0.4,<5.0.0)", "gcsfs (>=2021.5.0)", "rich (>=10.2.2)"]
+all = ["matplotlib (>3.1)", "horovod (>=0.21.2,!=0.24.0)", "torchtext (>=0.9)", "omegaconf (>=2.0.5)", "hydra-core (>=1.0.5)", "jsonargparse[signatures] (>=4.3.0)", "gcsfs (>=2021.5.0)", "rich (>=10.2.2,<10.15.0 || >=10.16.0)", "neptune-client (>=0.10.0)", "comet-ml (>=3.1.12)", "mlflow (>=1.0.0)", "test-tube (>=0.7.5)", "wandb (>=0.8.21)", "coverage (>5.2.0,<6.3)", "codecov (>=2.1)", "pytest (>=6.0)", "pytest-rerunfailures (>=10.2)", "twine (==3.2)", "mypy (>=0.920)", "flake8 (>=3.9.2)", "pre-commit (>=1.0)", "pytest-forked", "sklearn", "jsonargparse", "cloudpickle (>=1.3)", "scikit-learn (>0.22.1)", "onnxruntime", "pandas", "torchvision (>=0.9)", "gym[classic_control] (>=0.17.0)", "ipython"]
+cpu = ["matplotlib (>3.1)", "torchtext (>=0.9)", "omegaconf (>=2.0.5)", "hydra-core (>=1.0.5)", "jsonargparse[signatures] (>=4.3.0)", "gcsfs (>=2021.5.0)", "rich (>=10.2.2,<10.15.0 || >=10.16.0)", "neptune-client (>=0.10.0)", "comet-ml (>=3.1.12)", "mlflow (>=1.0.0)", "test-tube (>=0.7.5)", "wandb (>=0.8.21)", "coverage (>5.2.0,<6.3)", "codecov (>=2.1)", "pytest (>=6.0)", "pytest-rerunfailures (>=10.2)", "twine (==3.2)", "mypy (>=0.920)", "flake8 (>=3.9.2)", "pre-commit (>=1.0)", "pytest-forked", "sklearn", "jsonargparse", "cloudpickle (>=1.3)", "scikit-learn (>0.22.1)", "onnxruntime", "pandas", "torchvision (>=0.9)", "gym[classic_control] (>=0.17.0)", "ipython"]
+cpu-extra = ["matplotlib (>3.1)", "torchtext (>=0.9)", "omegaconf (>=2.0.5)", "hydra-core (>=1.0.5)", "jsonargparse[signatures] (>=4.3.0)", "gcsfs (>=2021.5.0)", "rich (>=10.2.2,<10.15.0 || >=10.16.0)"]
+dev = ["matplotlib (>3.1)", "horovod (>=0.21.2,!=0.24.0)", "torchtext (>=0.9)", "omegaconf (>=2.0.5)", "hydra-core (>=1.0.5)", "jsonargparse[signatures] (>=4.3.0)", "gcsfs (>=2021.5.0)", "rich (>=10.2.2,<10.15.0 || >=10.16.0)", "neptune-client (>=0.10.0)", "comet-ml (>=3.1.12)", "mlflow (>=1.0.0)", "test-tube (>=0.7.5)", "wandb (>=0.8.21)", "coverage (>5.2.0,<6.3)", "codecov (>=2.1)", "pytest (>=6.0)", "pytest-rerunfailures (>=10.2)", "twine (==3.2)", "mypy (>=0.920)", "flake8 (>=3.9.2)", "pre-commit (>=1.0)", "pytest-forked", "sklearn", "jsonargparse", "cloudpickle (>=1.3)", "scikit-learn (>0.22.1)", "onnxruntime", "pandas"]
+examples = ["torchvision (>=0.9)", "gym[classic_control] (>=0.17.0)", "ipython"]
+extra = ["matplotlib (>3.1)", "horovod (>=0.21.2,!=0.24.0)", "torchtext (>=0.9)", "omegaconf (>=2.0.5)", "hydra-core (>=1.0.5)", "jsonargparse[signatures] (>=4.3.0)", "gcsfs (>=2021.5.0)", "rich (>=10.2.2,<10.15.0 || >=10.16.0)"]
 loggers = ["neptune-client (>=0.10.0)", "comet-ml (>=3.1.12)", "mlflow (>=1.0.0)", "test-tube (>=0.7.5)", "wandb (>=0.8.21)"]
-test = ["coverage (>5.2.0,<6.3)", "codecov (>=2.1)", "pytest (>=6.0)", "pytest-rerunfailures (>=10.2)", "twine (==3.2)", "mypy (>=0.920)", "flake8 (>=3.9.2)", "pre-commit (>=1.0)", "cloudpickle (>=1.3)", "scikit-learn (>0.22.1)", "onnxruntime", "pandas"]
+test = ["coverage (>5.2.0,<6.3)", "codecov (>=2.1)", "pytest (>=6.0)", "pytest-rerunfailures (>=10.2)", "twine (==3.2)", "mypy (>=0.920)", "flake8 (>=3.9.2)", "pre-commit (>=1.0)", "pytest-forked", "sklearn", "jsonargparse", "cloudpickle (>=1.3)", "scikit-learn (>0.22.1)", "onnxruntime", "pandas"]
 
 [[package]]
 name = "pytz"
@@ -962,20 +961,6 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "torch"
-version = "1.10.1"
-description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
-category = "main"
-optional = false
-python-versions = ">=3.6.2"
-
-[package.dependencies]
-typing-extensions = "*"
-
-[package.source]
-type = "url"
-url = "https://download.pytorch.org/whl/cpu/torch-1.10.1-cp39-none-macosx_10_9_x86_64.whl"
-[[package]]
-name = "torch"
 version = "1.10.1+cu113"
 description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
 category = "main"
@@ -988,6 +973,20 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cu113/torch-1.10.1%2Bcu113-cp39-cp39-linux_x86_64.whl"
+[[package]]
+name = "torch"
+version = "1.11.0"
+description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
+category = "main"
+optional = false
+python-versions = ">=3.7.0"
+
+[package.dependencies]
+typing-extensions = "*"
+
+[package.source]
+type = "url"
+url = "https://download.pytorch.org/whl/cpu/torch-1.11.0-cp39-none-macosx_10_9_x86_64.whl"
 [[package]]
 name = "torchmetrics"
 version = "0.7.3"
@@ -1120,7 +1119,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "406ec8a0f505c44afd9093ef5a46750dfa8b91258464201ed2674451a08066e2"
+content-hash = "8c253c27fc401e01065cbc83cc0eadc74c00ba862c284b50a3e10232ff3bfcb1"
 
 [metadata.files]
 absl-py = [
@@ -1221,12 +1220,12 @@ attrs = [
     {file = "attrs-21.4.0.tar.gz", hash = "sha256:626ba8234211db98e869df76230a137c4c40a12d72445c45d5f5b716f076e2fd"},
 ]
 boto3 = [
-    {file = "boto3-1.21.36-py3-none-any.whl", hash = "sha256:727e5ec31692620d9de2f88d6c0438fb84002b1a1ad474cc4bd21fc07b2135e9"},
-    {file = "boto3-1.21.36.tar.gz", hash = "sha256:990a4639869313c8bed54a5845088a3dd9f4a0c715ec10a60e57de61879bfd1e"},
+    {file = "boto3-1.21.37-py3-none-any.whl", hash = "sha256:1e845aa92b3ad70b954329b98835135c28b3000e322ff8d3fc46a956bdb6e94b"},
+    {file = "boto3-1.21.37.tar.gz", hash = "sha256:013ba57295f05da141e364191dd46f4086e8fe3eb83a3cd09730eeb684ffbab3"},
 ]
 botocore = [
-    {file = "botocore-1.24.36-py3-none-any.whl", hash = "sha256:391d31768acafea59209a975a698f59f620e01f3bafd6a2a356203eba204bba8"},
-    {file = "botocore-1.24.36.tar.gz", hash = "sha256:a02e3487dc77ac662b417fca0786309b01202494f0679025fc7b0ed4129da04a"},
+    {file = "botocore-1.24.37-py3-none-any.whl", hash = "sha256:21e164a213beca36033c46026bffa62f2ee2cd2600777271f9a551fb34dba006"},
+    {file = "botocore-1.24.37.tar.gz", hash = "sha256:70c48c4ae3c2b9ec0ca025385979d01f4c7dae4d9a61c82758d4cf7caa7082cd"},
 ]
 bravado = [
     {file = "bravado-11.0.3-py2.py3-none-any.whl", hash = "sha256:8ac8bbb645e49607917a5c07808116c708521f51e80d9c29bc4a168ff4dd22c6"},
@@ -1261,8 +1260,8 @@ cycler = [
     {file = "cycler-0.11.0.tar.gz", hash = "sha256:9c87405839a19696e837b3b818fed3f5f69f16f1eec1a1ad77e043dcea9c772f"},
 ]
 fonttools = [
-    {file = "fonttools-4.31.2-py3-none-any.whl", hash = "sha256:2df636a3f402ef14593c6811dac0609563b8c374bd7850e76919eb51ea205426"},
-    {file = "fonttools-4.31.2.zip", hash = "sha256:236b29aee6b113e8f7bee28779c1230a86ad2aac9a74a31b0aedf57e7dfb62a4"},
+    {file = "fonttools-4.32.0-py3-none-any.whl", hash = "sha256:b038d1a0dee0079de7ade57071e2e2aced6e35bd697de244ac62938b2b1628c1"},
+    {file = "fonttools-4.32.0.zip", hash = "sha256:59a90de72149893167e3d552ae2402c6874e006b9adc3feaf5f6d706fe20d392"},
 ]
 fqdn = [
     {file = "fqdn-1.5.1-py3-none-any.whl", hash = "sha256:3a179af3761e4df6eb2e026ff9e1a3033d3587bf980a0b1b2e1e5d08d7358014"},
@@ -1429,8 +1428,8 @@ jmespath = [
     {file = "jmespath-1.0.0.tar.gz", hash = "sha256:a490e280edd1f57d6de88636992d05b71e97d69a26a19f058ecf7d304474bf5e"},
 ]
 jsonpointer = [
-    {file = "jsonpointer-2.2-py2.py3-none-any.whl", hash = "sha256:26d9a47a72d4dc3e3ae72c4c6cd432afd73c680164cd2540772eab53cb3823b6"},
-    {file = "jsonpointer-2.2.tar.gz", hash = "sha256:f09f8deecaaa5aea65b5eb4f67ca4e54e1a61f7a11c75085e360fe6feb6a48bf"},
+    {file = "jsonpointer-2.3-py2.py3-none-any.whl", hash = "sha256:51801e558539b4e9cd268638c078c6c5746c9ac96bc38152d443400e4f3793e9"},
+    {file = "jsonpointer-2.3.tar.gz", hash = "sha256:97cba51526c829282218feb99dab1b1e6bdf8efd1c43dc9d57be093c0d69c99a"},
 ]
 jsonref = [
     {file = "jsonref-0.2-py3-none-any.whl", hash = "sha256:b1e82fa0b62e2c2796a13e5401fe51790b248f6d9bf9d7212a3e31a3501b291f"},
@@ -1631,8 +1630,8 @@ neptune-client = [
     {file = "neptune-client-0.14.3.tar.gz", hash = "sha256:60e124a340d8ccb88416e3ea0c840b599aa0fd613347ea903c6d0d807d51fbdb"},
 ]
 networkx = [
-    {file = "networkx-2.7.1-py3-none-any.whl", hash = "sha256:011e85d277c89681e8fa661cf5ff0743443445049b0b68789ad55ef09340c6e0"},
-    {file = "networkx-2.7.1.tar.gz", hash = "sha256:d1194ba753e5eed07cdecd1d23c5cd7a3c772099bd8dbd2fea366788cf4de7ba"},
+    {file = "networkx-2.8-py3-none-any.whl", hash = "sha256:1a1e8fe052cc1b4e0339b998f6795099562a264a13a5af7a32cad45ab9d4e126"},
+    {file = "networkx-2.8.tar.gz", hash = "sha256:4a52cf66aed221955420e11b3e2e05ca44196b4829aab9576d4d439212b0a14f"},
 ]
 numpy = [
     {file = "numpy-1.22.3-cp310-cp310-macosx_10_14_x86_64.whl", hash = "sha256:92bfa69cfbdf7dfc3040978ad09a48091143cffb778ec3b03fa170c494118d75"},
@@ -1822,16 +1821,16 @@ pyasn1-modules = [
     {file = "pyasn1_modules-0.2.8-py3.7.egg", hash = "sha256:c29a5e5cc7a3f05926aff34e097e84f8589cd790ce0ed41b67aed6857b26aafd"},
 ]
 pydeprecate = [
-    {file = "pyDeprecate-0.3.1-py3-none-any.whl", hash = "sha256:b5dd8c4c0535854b6a52936d1256883a940e3b02006fc7118b53027c0acde181"},
-    {file = "pyDeprecate-0.3.1.tar.gz", hash = "sha256:fa26870924d3475621c344045c2c01a16ba034113a902600c78e75b3fac5f72c"},
+    {file = "pyDeprecate-0.3.2-py3-none-any.whl", hash = "sha256:ed86b68ed837e6465245904a3de2f59bf9eef78ac7a2502ee280533d04802457"},
+    {file = "pyDeprecate-0.3.2.tar.gz", hash = "sha256:d481116cc5d7f6c473e7c4be820efdd9b90a16b594b350276e9e66a6cb5bdd29"},
 ]
 pyjwt = [
     {file = "PyJWT-2.3.0-py3-none-any.whl", hash = "sha256:e0c4bb8d9f0af0c7f5b1ec4c5036309617d03d56932877f2f7a0beeb5318322f"},
     {file = "PyJWT-2.3.0.tar.gz", hash = "sha256:b888b4d56f06f6dcd777210c334e69c737be74755d3e5e9ee3fe67dc18a0ee41"},
 ]
 pyparsing = [
-    {file = "pyparsing-3.0.7-py3-none-any.whl", hash = "sha256:a6c06a88f252e6c322f65faf8f418b16213b51bdfaece0524c1c1bc30c63c484"},
-    {file = "pyparsing-3.0.7.tar.gz", hash = "sha256:18ee9022775d270c55187733956460083db60b37d0d0fb357445f3094eed3eea"},
+    {file = "pyparsing-3.0.8-py3-none-any.whl", hash = "sha256:ef7b523f6356f763771559412c0d7134753f037822dad1b16945b7b846f7ad06"},
+    {file = "pyparsing-3.0.8.tar.gz", hash = "sha256:7bf433498c016c4314268d95df76c81b842a4cb2b276fa3312cfb1e1d85f6954"},
 ]
 pyrsistent = [
     {file = "pyrsistent-0.18.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:df46c854f490f81210870e509818b729db4488e1f30f2a1ce1698b2295a878d1"},
@@ -1861,8 +1860,8 @@ python-dateutil = [
     {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
 ]
 pytorch-lightning = [
-    {file = "pytorch-lightning-1.5.10.tar.gz", hash = "sha256:119e5a0ad0678444c0bbf95755da571e5e372ab12df7c6115ddd26e364a8ddfa"},
-    {file = "pytorch_lightning-1.5.10-py3-none-any.whl", hash = "sha256:c86ed633ce8d25667797635db3ea1fe9fe6b51121d43d7031d5bdb4c5b046895"},
+    {file = "pytorch-lightning-1.6.0.tar.gz", hash = "sha256:1ab6f15750862cfbac48ad7be420050c8c353a060da7c2575f9e267158a33d42"},
+    {file = "pytorch_lightning-1.6.0-py3-none-any.whl", hash = "sha256:16b4758b989800719661eccc7c3da7b0c2a742c171618b6668f0f7c368c408c2"},
 ]
 pytz = [
     {file = "pytz-2022.1-py2.py3-none-any.whl", hash = "sha256:e68985985296d9a66a881eb3193b0906246245294a881e7c8afe623866ac6a5c"},

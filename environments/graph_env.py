@@ -53,8 +53,13 @@ class GraphEnv:
 
         self.done = None
 
+        # FIXME: Change this to a class that contains historic information
         self.last_irrigation_map = None
         self.last_sources = None
+        self.last_pressures = None
+        self.last_irrigation_graph = None
+        self.last_edge_sources = None
+        self.last_edges_list = None
 
         self.previous_irrigation_score = None
 
@@ -104,7 +109,8 @@ class GraphEnv:
                 #                                           start_node=start_node, end_node=actions[graph_idx])
                 rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                                                            start_node=start_node, end_node=actions[graph_idx])
-                #rewards[graph_idx] = 0
+
+                # rewards[graph_idx] = 0
             """elif current_graph.previous_selected_start_node == actions[graph_idx]:
                 # Selecting the same start node again. We are going to penalize this action
                 rewards[graph_idx] = -1.0
@@ -119,22 +125,22 @@ class GraphEnv:
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved():
                 self.done[graph_idx] = True
-                #max_graph_edges = self.graphs_list[graph_idx].nx_neighbourhood_graph.number_of_edges()
-                #current_graph_edges = self.graphs_list[graph_idx].nx_graph.number_of_edges()
+                # max_graph_edges = self.graphs_list[graph_idx].nx_neighbourhood_graph.number_of_edges()
+                # current_graph_edges = self.graphs_list[graph_idx].nx_graph.number_of_edges()
 
-                #baseline = max_graph_edges / 2.0
+                # baseline = max_graph_edges / 2.0
 
-                #rewards[graph_idx] = 1.0 - ((current_graph_edges - baseline) / (max_graph_edges - baseline))
-                #rewards[graph_idx] = -np.std(self.last_irrigation_map)
+                # rewards[graph_idx] = 1.0 - ((current_graph_edges - baseline) / (max_graph_edges - baseline))
+                # rewards[graph_idx] = -np.std(self.last_irrigation_map)
 
             if self.max_steps_achieved():
                 self.done[graph_idx] = True
-                #rewards[graph_idx] = -1
+                # rewards[graph_idx] = -1
 
             if new_graph.allowed_actions_not_found:
                 print("Allowed actions not found")
                 self.done[graph_idx] = True
-                #rewards[graph_idx] = -1
+                # rewards[graph_idx] = -1
 
             """if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
                     and self.graphs_list[graph_idx].allowed_actions_not_found:
@@ -255,6 +261,12 @@ class GraphEnv:
 
         self.last_irrigation_map = None
         self.last_sources = None
+        self.last_pressures = None
+        self.last_irrigation_graph = None
+        self.last_edge_sources = None
+        self.last_edges_list = None
+        self.previous_irrigation_score = None
+
         self.previous_irrigation_score = [self.calculate_reward(graph_idx=graph_idx) for graph_idx in
                                           range(len(graphs_list))]
 
@@ -325,8 +337,8 @@ class GraphEnv:
                 self.last_irrigation_map = None
                 self.previous_irrigation_score[graph_idx] = 0
             elif prepared_data != -1:
-                irrigation, sources = calculate_network_irrigation(prepared_data[0], prepared_data[1], prepared_data[2],
-                                                                   [10, 10], [0.1, 0.1])
+                irrigation, sources, pressures, edges_source, edges_list = calculate_network_irrigation(prepared_data[0], prepared_data[1],
+                                                                                                        prepared_data[2], [10, 10], [0.1, 0.1])
 
                 sections_x = np.array_split(irrigation, 20, axis=0)
                 sections_y = np.array_split(irrigation, 20, axis=1)
@@ -350,8 +362,13 @@ class GraphEnv:
 
                 if self.previous_irrigation_score:
                     self.previous_irrigation_score[graph_idx] = irrigation_score
+
                 self.last_irrigation_map = irrigation
+                self.last_irrigation_graph = prepared_data[3]
                 self.last_sources = sources
+                self.last_edge_sources = edges_source
+                self.last_pressures = pressures
+                self.last_edges_list = edges_list
 
         return irrigation_improvement
 
