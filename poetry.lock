@@ -961,20 +961,6 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "torch"
-version = "1.10.1+cu113"
-description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
-category = "main"
-optional = false
-python-versions = ">=3.6.2"
-
-[package.dependencies]
-typing-extensions = "*"
-
-[package.source]
-type = "url"
-url = "https://download.pytorch.org/whl/cu113/torch-1.10.1%2Bcu113-cp39-cp39-linux_x86_64.whl"
-[[package]]
-name = "torch"
 version = "1.11.0"
 description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
 category = "main"
@@ -987,6 +973,20 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cpu/torch-1.11.0-cp39-none-macosx_10_9_x86_64.whl"
+[[package]]
+name = "torch"
+version = "1.11.0+cu113"
+description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
+category = "main"
+optional = false
+python-versions = ">=3.7.0"
+
+[package.dependencies]
+typing-extensions = "*"
+
+[package.source]
+type = "url"
+url = "https://download.pytorch.org/whl/cu113/torch-1.11.0%2Bcu113-cp39-cp39-linux_x86_64.whl"
 [[package]]
 name = "torchmetrics"
 version = "0.7.3"
@@ -1119,7 +1119,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "8c253c27fc401e01065cbc83cc0eadc74c00ba862c284b50a3e10232ff3bfcb1"
+content-hash = "76922c78d8597df56eda9443ae179862fe42fd89607b505fe5f4721c1d61314e"
 
 [metadata.files]
 absl-py = [
