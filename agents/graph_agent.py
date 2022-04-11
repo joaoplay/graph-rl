@@ -185,7 +185,6 @@ class GraphAgent:
             print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
 
             fig, axs = plt.subplots(2)
-            axs.title.set_text(f'Win: {self.wins} | Looses: {self.looses}')
             axs[0].bar(self.selected_start_nodes_stats.keys(),
                        self.selected_start_nodes_stats.values(), 2, color='g')
             axs[1].bar(self.selected_end_nodes_stats.keys(),
@@ -196,7 +195,6 @@ class GraphAgent:
                 fig_irrigation, ax_irrigation = plt.subplots()
                 ax_irrigation.title.set_text(f'Win: {self.wins} | Looses: {self.looses}')
                 ax_irrigation.imshow(np.flipud(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
-                ax_irrigation.title.set_text(f'Env Step {self.env.steps_counter}')
 
                 NEPTUNE_INSTANCE['training/irrigation'].log(File.as_image(fig_irrigation))
 
