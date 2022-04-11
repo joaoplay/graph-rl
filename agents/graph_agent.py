@@ -185,6 +185,7 @@ class GraphAgent:
             print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
 
             fig, axs = plt.subplots(2)
+            axs.title.set_text(f'Win: {self.wins} | Looses: {self.looses}')
             axs[0].bar(self.selected_start_nodes_stats.keys(),
                        self.selected_start_nodes_stats.values(), 2, color='g')
             axs[1].bar(self.selected_end_nodes_stats.keys(),
@@ -193,6 +194,7 @@ class GraphAgent:
 
             if self.env.last_irrigation_map is not None:
                 fig_irrigation, ax_irrigation = plt.subplots()
+                ax_irrigation.title.set_text(f'Win: {self.wins} | Looses: {self.looses}')
                 ax_irrigation.imshow(np.flipud(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
                 ax_irrigation.title.set_text(f'Env Step {self.env.steps_counter}')
 
@@ -201,6 +203,7 @@ class GraphAgent:
             if self.env.last_irrigation_graph is not None and self.env.last_pressures is not None \
                     and self.env.last_edge_sources is not None:
                 fig, ax = plt.subplots(figsize=(10, 10))
+                ax.title.set_text(f'Win: {self.wins} | Looses: {self.looses}')
                 draw_nx_irrigation_network(self.env.last_irrigation_graph, self.env.last_pressures, self.env.last_edge_sources, self.env.last_edges_list, ax)
                 NEPTUNE_INSTANCE['training/network-debug'].log(File.as_image(fig))
 
