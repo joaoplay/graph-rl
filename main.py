@@ -34,7 +34,7 @@ def run_from_config_file(cfg: DictConfig):
     trainer = Trainer(
         #max_epochs=10**6,
         max_time={'hours': 23},
-        #gpus=[0],
+        gpus=[0],
         #accelerator="gpu",
         #devices=1,
         #logger=neptune_logger,
