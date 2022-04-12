@@ -29,6 +29,7 @@ class GraphAgent:
             replay_buffer: replay buffer storing experiences
         """
         self.env = env
+        self.total_steps = 0
         self.replay_buffer = replay_buffer
         self.graph_list = graph_list
         self.batch_sampler = BatchSampler(self.graph_list, batch_size=1)
@@ -193,17 +194,17 @@ class GraphAgent:
 
             if self.env.last_irrigation_map is not None:
                 fig_irrigation, ax_irrigation = plt.subplots()
-                ax_irrigation.title.set_text(f'Win: {self.wins} | Looses: {self.looses}')
+                ax_irrigation.title.set_text(f'Global Step: {self.total_steps}')
                 ax_irrigation.imshow(np.flipud(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
 
                 NEPTUNE_INSTANCE['training/irrigation'].log(File.as_image(fig_irrigation))
 
-            if self.env.last_irrigation_graph is not None and self.env.last_pressures is not None \
+            """"if self.env.last_irrigation_graph is not None and self.env.last_pressures is not None
                     and self.env.last_edge_sources is not None:
                 fig, ax = plt.subplots(figsize=(10, 10))
                 ax.title.set_text(f'Win: {self.wins} | Looses: {self.looses}')
                 draw_nx_irrigation_network(self.env.last_irrigation_graph, self.env.last_pressures, self.env.last_edge_sources, self.env.last_edges_list, ax)
-                NEPTUNE_INSTANCE['training/network-debug'].log(File.as_image(fig))
+                NEPTUNE_INSTANCE['training/network-debug'].log(File.as_image(fig))"""
 
             plt.close('all')
 
@@ -214,6 +215,8 @@ class GraphAgent:
             end_node_repr_history.to_csv(f"end_node_repr_history.csv", sep=";", decimal=",", header=False, index=False)"""
 
             self.reset()
+
+        self.total_steps += 1
 
         return reward[0], done[0]
 

@@ -14,6 +14,11 @@ def run_from_config_file(cfg: DictConfig):
     np.random.seed(cfg.random_seed)
     torch.manual_seed(cfg.random_seed)
 
+    # FIXME: Use it instead to ensure reproducibility
+    """seed_everything(42, workers=True)
+    trainer = Trainer(deterministic=True)
+    """
+
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
     """neptune_logger = NeptuneLogger(
@@ -22,14 +27,14 @@ def run_from_config_file(cfg: DictConfig):
         mode=os.getenv("NEPTUNE_MODE", "async")
     )"""
 
-    environment = GraphEnv(max_steps=800, irrigation_goal=0.07)
+    environment = GraphEnv(max_steps=800, irrigation_goal=2.00)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
     model = DQNLightning(environment, train_graphs, replay_size=10**6)
 
     trainer = Trainer(
         #max_epochs=10**6,
         max_time={'hours': 23},
-        gpus=[0],
+        #gpus=[0],
         #accelerator="gpu",
         #devices=1,
         #logger=neptune_logger,

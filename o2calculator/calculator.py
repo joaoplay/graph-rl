@@ -151,7 +151,7 @@ def build_edges_source(edges, edges_features, pressures):
         # Calculate Q of the current edge
         edge_q = (start_node_p - end_node_p) / edges_features[edge_idx][0]
 
-        edge_source = edge_q * ((start_node_p - end_node_p) / 2)
+        edge_source = abs(edge_q) * ((start_node_p + end_node_p) / 2)
 
         edges_source += [edge_source]
 
@@ -197,11 +197,17 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
 
         max_cell = np.minimum(max_cell + 1, n_cells)
 
+        start_node_coordinates = start_node_features[0:n_dims].astype(float)
+        end_node_coordinates = end_node_features[0:n_dims].astype(float)
+
+        start_node_cell = np.divide(start_node_coordinates, cell_size, out=np.zeros_like(start_node_coordinates), where=cell_size != 0).astype(int)
+        end_node_cell = np.divide(end_node_coordinates, cell_size, out=np.zeros_like(end_node_coordinates), where=cell_size != 0).astype(int)
+
         def find_cells_in_dim(dim):
             t = (np.arange(min_cell[dim], max_cell[dim]) - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
-            repeated = np.tile(max_cell - min_cell, (t.size, 1))
+            repeated = np.tile(end_node_cell - start_node_cell, (t.size, 1))
             temp = t.reshape(-1, 1) * repeated
-            points = np.add(min_cell, temp)
+            points = np.add(start_node_cell, temp)
 
             """for i in range(min_cell[dim], max_cell[dim]):
                 t = (i - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
@@ -213,9 +219,10 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
         pointsX = find_cells_in_dim(0).astype(int)
         pointsY = find_cells_in_dim(1).astype(int)
 
-        points = np.concatenate([pointsX, pointsY])
+        points_final = np.concatenate([pointsX, pointsY])
 
-        source[points[:, 0], points[:, 1]] = np.maximum(edges_source[edge_idx], source[points[:, 0], points[:, 1]])
+        source[points_final[:, 0], points_final[:, 1]] = np.maximum(edges_source[edge_idx], source[points_final[:, 0],
+                                                                                                   points_final[:, 1]])
 
     """fig, ax = plt.subplots()
     ax.imshow(np.fliplr(source), cmap='hot', interpolation='nearest')
@@ -308,7 +315,7 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     # Get k2
     k2 = build_k2(number_of_cells[0], number_of_cells[1])
     # Calculate oxygen in each cell
-    oxygen = calc_oxygen(sources_by_cell, k2, 10)
+    oxygen = calc_oxygen(sources_by_cell, k2, 15)
     oxygen = np.real(oxygen)
 
     return oxygen, sources_by_cell, pressures, edges_source, duplicated_free_edges
