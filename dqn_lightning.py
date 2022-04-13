@@ -28,7 +28,7 @@ class DQNLightning(LightningModule):
     def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 32, hidden_size: int = 28, lr: float = 0.00025,
                  gamma: float = 0.99, sync_rate: int = 20000, replay_size: int = 10 ** 6, warm_start_size: int = 100000,
                  eps_last_frame: int = 5 * 10 ** 5, eps_start: float = 1.0, eps_end: float = 0.2, episode_length: int = 200,
-                 warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
+                 warm_start_steps: int = 500, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         super().__init__()
 
         self.save_hyperparameters()
@@ -219,7 +219,7 @@ class DQNLightning(LightningModule):
 
             NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/instant-reward'].log(reward)
 
-        NEPTUNE_INSTANCE[f'validation/episode-length'].log(self.agent.env.steps_counter)
+        NEPTUNE_INSTANCE[f'validation/episode-length'].log(validation_agent.env.steps_counter)
 
         fig, axs = plt.subplots(2)
         axs[0].bar(validation_agent.env.start_node_selection_statistics.keys(),
