@@ -132,6 +132,7 @@ class DQNLightning(LightningModule):
             with torch.no_grad():
                 not_done_next_states = next_states[not_dones]
                 next_action_mode = (action_mode + 1) % len(self.hparams.action_modes)
+
                 # Get the q-value for the next state
                 next_state_values, forbidden_actions = self.target_q_networks(next_action_mode, not_done_next_states)
                 _, not_done_next_station_action_values = self.target_q_networks.select_action_from_q_values(
@@ -189,7 +190,7 @@ class DQNLightning(LightningModule):
 
         # Soft update of target network
         if self.global_step % self.hparams.sync_rate == 0:
-            print(f"Syncing target networks at step {self.global_step}")
+            # print(f"Syncing target networks at step {self.global_step}")
             self.target_q_networks.load_state_dict(self.q_networks.state_dict())
 
         log = {
@@ -208,8 +209,6 @@ class DQNLightning(LightningModule):
         """Tests the agent in the environment.
 
         """
-        print("Validating")
-
         validation_env = deepcopy(self.env)
         validation_agent = GraphAgent(validation_env, self.graphs, self.buffer)
         validation_agent.reset()

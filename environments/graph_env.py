@@ -107,8 +107,10 @@ class GraphEnv:
                 node_added = edge_insertion_cost > 0
                 # rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                 #                                           start_node=start_node, end_node=actions[graph_idx])
-                rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added, start_node=start_node,
-                                                           end_node=actions[graph_idx])
+                self.calculate_reward(graph_idx=graph_idx, node_added=node_added, start_node=start_node,
+                                      end_node=actions[graph_idx]) * 10.0
+
+                rewards[graph_idx] = -1.0
 
                 # rewards[graph_idx] = 0
             """elif current_graph.previous_selected_start_node == actions[graph_idx]:
