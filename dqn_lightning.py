@@ -217,14 +217,16 @@ class DQNLightning(LightningModule):
         while not done:
             reward, done = validation_agent.play_validation_step(self.q_networks, self.get_device(batch))
 
-            NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/instant_reward'].log(reward)
+            NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/instant-reward'].log(reward)
+
+        NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/episode-length'].log(self.agent.env.steps_counter)
 
         fig, axs = plt.subplots(2)
         axs[0].bar(validation_agent.env.start_node_selection_statistics.keys(),
                    validation_agent.env.start_node_selection_statistics.values(), 2, color='g')
         axs[1].bar(validation_agent.env.end_node_selection_statistics.keys(),
                    validation_agent.env.end_node_selection_statistics.values(), 2, color='g')
-        NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/action_selection'].log(File.as_image(fig))
+        NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/action-selection'].log(File.as_image(fig))
 
         if validation_agent.env.last_irrigation_map is not None:
             fig_irrigation, ax_irrigation = plt.subplots()
