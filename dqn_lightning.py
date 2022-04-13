@@ -219,7 +219,7 @@ class DQNLightning(LightningModule):
 
             NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/instant-reward'].log(reward)
 
-        NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/episode-length'].log(self.agent.env.steps_counter)
+        NEPTUNE_INSTANCE[f'validation/episode-length'].log(self.agent.env.steps_counter)
 
         fig, axs = plt.subplots(2)
         axs[0].bar(validation_agent.env.start_node_selection_statistics.keys(),
