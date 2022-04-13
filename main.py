@@ -39,6 +39,8 @@ def run_from_config_file(cfg: DictConfig):
         #devices=1,
         #logger=neptune_logger,
         progress_bar_refresh_rate=0,
+        # limit_val_batches=1,
+        # check_val_every_n_epoch=500,
     )
 
     trainer.fit(model)

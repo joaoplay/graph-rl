@@ -113,6 +113,15 @@ class GraphAgent:
                 return greedy_actions
 
     @torch.no_grad()
+    def play_validation_step(self, q_networks: MultiActionModeDQN, device: str = "cpu"):
+
+        actions = self.get_action(self.env.current_action_mode, q_networks, 0.0, device)
+        # Do step in the environment
+        new_state, reward, done = self.env.step(actions)
+
+        return reward[0], done[0]
+
+    @torch.no_grad()
     def play_step(self, q_networks: MultiActionModeDQN, epsilon: float = 0.0, device: str = "cpu"):
         """Carries out a single interaction step between the agent and the environment.
 
@@ -185,7 +194,7 @@ class GraphAgent:
         if all(done):
             print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
 
-            fig, axs = plt.subplots(2)
+            """fig, axs = plt.subplots(2)
             axs[0].bar(self.selected_start_nodes_stats.keys(),
                        self.selected_start_nodes_stats.values(), 2, color='g')
             axs[1].bar(self.selected_end_nodes_stats.keys(),
@@ -197,7 +206,7 @@ class GraphAgent:
                 ax_irrigation.title.set_text(f'Global Step: {self.total_steps}')
                 ax_irrigation.imshow(np.flipud(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
 
-                NEPTUNE_INSTANCE['training/irrigation'].log(File.as_image(fig_irrigation))
+                NEPTUNE_INSTANCE['training/irrigation'].log(File.as_image(fig_irrigation))"""
 
             """"if self.env.last_irrigation_graph is not None and self.env.last_pressures is not None
                     and self.env.last_edge_sources is not None:
@@ -206,7 +215,7 @@ class GraphAgent:
                 draw_nx_irrigation_network(self.env.last_irrigation_graph, self.env.last_pressures, self.env.last_edge_sources, self.env.last_edges_list, ax)
                 NEPTUNE_INSTANCE['training/network-debug'].log(File.as_image(fig))"""
 
-            plt.close('all')
+            #plt.close('all')
 
             """start_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_START_NODE)].repr_history, axis=0))
             end_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_END_NODE)].repr_history, axis=0))

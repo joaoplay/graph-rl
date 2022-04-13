@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from copy import deepcopy
 from typing import Any, Tuple, List
 
 import numpy as np
@@ -194,6 +195,36 @@ class DQNLightning(LightningModule):
 
         return {"loss": loss, "log": log, "progress_bar": status}
 
+    def validation_step(self, batch, nb_batch):
+        """Tests the agent in the environment.
+
+        """
+        validation_env = deepcopy(self.env)
+        validation_agent = GraphAgent(validation_env, self.graphs, self.buffer)
+        validation_agent.reset()
+
+        done = False
+        while not done:
+            reward, done = validation_agent.play_validation_step(self.q_networks, self.get_device(batch))
+
+            NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/instant_reward'].log(reward)
+
+        fig, axs = plt.subplots(2)
+        axs[0].bar(validation_agent.selected_start_nodes_stats.keys(),
+                   validation_agent.selected_start_nodes_stats.values(), 2, color='g')
+        axs[1].bar(validation_agent.selected_end_nodes_stats.keys(),
+                   validation_agent.selected_end_nodes_stats.values(), 2, color='g')
+        NEPTUNE_INSTANCE['validation/action_selection'].log(File.as_image(fig))
+
+        if validation_agent.env.last_irrigation_map is not None:
+            fig_irrigation, ax_irrigation = plt.subplots()
+            ax_irrigation.title.set_text(f'Global Step: {validation_agent.total_steps}')
+            ax_irrigation.imshow(np.flipud(validation_agent.env.last_irrigation_map), cmap='hot', interpolation='nearest')
+
+            NEPTUNE_INSTANCE['validation/irrigation'].log(File.as_image(fig_irrigation))
+
+        plt.close('all')
+
     def print_network_params(self):
         print("Q-Networks")
         for name, param in self.q_networks.named_parameters():
@@ -219,6 +250,9 @@ class DQNLightning(LightningModule):
     def train_dataloader(self) -> DataLoader:
         """Get train loader."""
         return self.__dataloader()
+
+    """def val_dataloader(self) -> DataLoader:
+        return self.__dataloader()"""
 
     def get_device(self, batch) -> str:
         """Retrieve device currently being used by minibatch."""
