@@ -25,10 +25,10 @@ from util import draw_nx_irrigation_network
 class DQNLightning(LightningModule):
     """Basic DQN Model."""
 
-    def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int = 28, lr: float = 1e-4,
-                 gamma: float = 0.99, sync_rate: int = 10000, replay_size: int = 10 ** 6, warm_start_size: int = 100000,
+    def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 32, hidden_size: int = 28, lr: float = 0.00025,
+                 gamma: float = 0.99, sync_rate: int = 20000, replay_size: int = 10 ** 6, warm_start_size: int = 100000,
                  eps_last_frame: int = 5 * 10 ** 5, eps_start: float = 1.0, eps_end: float = 0.2, episode_length: int = 200,
-                 warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
+                 warm_start_steps: int = 500, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         super().__init__()
 
         self.save_hyperparameters()
@@ -111,6 +111,13 @@ class DQNLightning(LightningModule):
         """
         action_modes, states, actions, rewards, dones, next_states = batch
 
+        NEPTUNE_INSTANCE['training/batch_mean_reward'].log(torch.mean(rewards))
+        NEPTUNE_INSTANCE['training/batch_std_reward'].log(torch.std(rewards))
+        NEPTUNE_INSTANCE['training/batch_min_reward'].log(torch.min(rewards))
+        NEPTUNE_INSTANCE['training/batch_max_reward'].log(torch.max(rewards))
+
+        NEPTUNE_INSTANCE['training/batch_total_dones'].log(torch.sum(dones))
+
         action_mode = int(action_modes[1].item())
         actions_tensor = actions.unsqueeze(-1)
 
@@ -182,6 +189,7 @@ class DQNLightning(LightningModule):
 
         # Soft update of target network
         if self.global_step % self.hparams.sync_rate == 0:
+            print(f"Syncing target networks at step {self.global_step}")
             self.target_q_networks.load_state_dict(self.q_networks.state_dict())
 
         log = {
