@@ -114,10 +114,11 @@ class GraphAgent:
 
     @torch.no_grad()
     def play_validation_step(self, q_networks: MultiActionModeDQN, device: str = "cpu"):
-
         actions = self.get_action(self.env.current_action_mode, q_networks, 0.0, device)
         # Do step in the environment
         new_state, reward, done = self.env.step(actions)
+
+        self.state = new_state
 
         return reward[0], done[0]
 
@@ -208,7 +209,7 @@ class GraphAgent:
 
                 NEPTUNE_INSTANCE['training/irrigation'].log(File.as_image(fig_irrigation))"""
 
-            """"if self.env.last_irrigation_graph is not None and self.env.last_pressures is not None
+            """if self.env.last_irrigation_graph is not None and self.env.last_pressures is not None \
                     and self.env.last_edge_sources is not None:
                 fig, ax = plt.subplots(figsize=(10, 10))
                 ax.title.set_text(f'Win: {self.wins} | Looses: {self.looses}')

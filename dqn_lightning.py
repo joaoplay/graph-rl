@@ -19,6 +19,7 @@ from environments.graph_env import DEFAULT_ACTION_MODES, ACTION_MODE_SELECTING_S
     ACTION_MODE_SELECTING_END_NODE, GraphEnv
 from models.multi_action_mode_dqn import MultiActionModeDQN
 from settings import NEPTUNE_INSTANCE
+from util import draw_nx_irrigation_network
 
 
 class DQNLightning(LightningModule):
@@ -26,7 +27,7 @@ class DQNLightning(LightningModule):
 
     def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 64, hidden_size: int = 28, lr: float = 1e-4,
                  gamma: float = 0.99, sync_rate: int = 10000, replay_size: int = 10 ** 6, warm_start_size: int = 100000,
-                 eps_last_frame: int = 5 * 10 ** 5, eps_start: float = 1.0, eps_end: float = 0.0, episode_length: int = 200,
+                 eps_last_frame: int = 5 * 10 ** 5, eps_start: float = 1.0, eps_end: float = 0.2, episode_length: int = 200,
                  warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         super().__init__()
 
@@ -164,8 +165,8 @@ class DQNLightning(LightningModule):
 
         NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
 
-        #NEPTUNE_INSTANCE['training/total_wins'].log(self.agent.wins)
-        #NEPTUNE_INSTANCE['training/total_looses'].log(self.agent.looses)
+        # NEPTUNE_INSTANCE['training/total_wins'].log(self.agent.wins)
+        # NEPTUNE_INSTANCE['training/total_looses'].log(self.agent.looses)
 
         # Calculates training loss
         action_mode, loss = self.dqn_mse_loss(batch)
@@ -199,6 +200,8 @@ class DQNLightning(LightningModule):
         """Tests the agent in the environment.
 
         """
+        print("Validating")
+
         validation_env = deepcopy(self.env)
         validation_agent = GraphAgent(validation_env, self.graphs, self.buffer)
         validation_agent.reset()
@@ -210,18 +213,26 @@ class DQNLightning(LightningModule):
             NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/instant_reward'].log(reward)
 
         fig, axs = plt.subplots(2)
-        axs[0].bar(validation_agent.selected_start_nodes_stats.keys(),
-                   validation_agent.selected_start_nodes_stats.values(), 2, color='g')
-        axs[1].bar(validation_agent.selected_end_nodes_stats.keys(),
-                   validation_agent.selected_end_nodes_stats.values(), 2, color='g')
-        NEPTUNE_INSTANCE['validation/action_selection'].log(File.as_image(fig))
+        axs[0].bar(validation_agent.env.start_node_selection_statistics.keys(),
+                   validation_agent.env.start_node_selection_statistics.values(), 2, color='g')
+        axs[1].bar(validation_agent.env.end_node_selection_statistics.keys(),
+                   validation_agent.env.end_node_selection_statistics.values(), 2, color='g')
+        NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/action_selection'].log(File.as_image(fig))
 
         if validation_agent.env.last_irrigation_map is not None:
             fig_irrigation, ax_irrigation = plt.subplots()
             ax_irrigation.title.set_text(f'Global Step: {validation_agent.total_steps}')
             ax_irrigation.imshow(np.flipud(validation_agent.env.last_irrigation_map), cmap='hot', interpolation='nearest')
 
-            NEPTUNE_INSTANCE['validation/irrigation'].log(File.as_image(fig_irrigation))
+            NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/irrigation'].log(File.as_image(fig_irrigation))
+
+        if validation_agent.env.last_irrigation_graph is not None and validation_agent.env.last_pressures is not None \
+                and validation_agent.env.last_edge_sources is not None:
+            fig, ax = plt.subplots(figsize=(10, 10))
+            ax.title.set_text(f'Global Step: {validation_agent.total_steps}')
+            draw_nx_irrigation_network(validation_agent.env.last_irrigation_graph, validation_agent.env.last_pressures,
+                                       validation_agent.env.last_edge_sources, validation_agent.env.last_edges_list, ax)
+            NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/network-debug'].log(File.as_image(fig))
 
         plt.close('all')
 
@@ -251,8 +262,8 @@ class DQNLightning(LightningModule):
         """Get train loader."""
         return self.__dataloader()
 
-    """def val_dataloader(self) -> DataLoader:
-        return self.__dataloader()"""
+    def val_dataloader(self) -> DataLoader:
+        return self.__dataloader()
 
     def get_device(self, batch) -> str:
         """Retrieve device currently being used by minibatch."""
