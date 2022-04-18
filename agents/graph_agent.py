@@ -134,7 +134,6 @@ class GraphAgent:
         Returns:
             reward, done
         """
-
         actions = self.get_action(self.env.current_action_mode, q_networks, epsilon, device)
 
         previous_action_mode = self.env.current_action_mode

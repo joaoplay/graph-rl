@@ -1,3 +1,4 @@
+import time
 from copy import deepcopy
 from typing import Optional
 
@@ -330,8 +331,11 @@ class GraphEnv:
     def calculate_reward(self, graph_idx, node_added=True, start_node=None, end_node=None, reward_multi=10):
         graph = self.graphs_list[graph_idx]
 
+        prepare_init_time = time.time()
         prepared_data = graph.prepare_for_reward_evaluation(node_added=node_added, start_node=start_node,
                                                             end_node=end_node)
+        prepare_end_time = time.time()
+        print("Prepare time: {}".format(prepare_end_time - prepare_init_time))
 
         irrigation_improvement = 0
         if prepared_data is not None:
@@ -339,9 +343,12 @@ class GraphEnv:
                 self.last_irrigation_map = None
                 self.previous_irrigation_score[graph_idx] = 0
             elif prepared_data != -1:
+                reward_init_time = time.time()
                 irrigation, sources, pressures, edges_source, edges_list = calculate_network_irrigation(
                     prepared_data[0], prepared_data[1],
-                    prepared_data[2], [10, 10], [0.1, 0.1])
+                    prepared_data[2], [100, 100], [0.1, 0.1])
+                reward_end_time = time.time()
+                print("Reward time: {}".format(reward_end_time - reward_init_time))
 
                 sections_x = np.array_split(irrigation, 20, axis=0)
                 sections_y = np.array_split(irrigation, 20, axis=1)

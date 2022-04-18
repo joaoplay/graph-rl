@@ -1,3 +1,4 @@
+import time
 from collections import OrderedDict
 from copy import deepcopy
 from typing import Any, Tuple, List
@@ -28,7 +29,7 @@ class DQNLightning(LightningModule):
     def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 32, hidden_size: int = 28, lr: float = 0.00025,
                  gamma: float = 0.99, sync_rate: int = 20000, replay_size: int = 10 ** 6, warm_start_size: int = 100000,
                  eps_last_frame: int = 5 * 10 ** 5, eps_start: float = 1.0, eps_end: float = 0.2, episode_length: int = 200,
-                 warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
+                 warm_start_steps: int = 20, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         super().__init__()
 
         self.save_hyperparameters()
@@ -47,8 +48,8 @@ class DQNLightning(LightningModule):
                                                  ACTION_MODE_SELECTING_END_NODE: 0,
                                              },
                                              action_output_dim={
-                                                 ACTION_MODE_SELECTING_START_NODE: 100,
-                                                 ACTION_MODE_SELECTING_END_NODE: 100,
+                                                 ACTION_MODE_SELECTING_START_NODE: 10000,
+                                                 ACTION_MODE_SELECTING_END_NODE: 10000,
                                              })
         self.target_q_networks = MultiActionModeDQN(action_modes=self.hparams.action_modes,
                                                     embedding_dim={
@@ -64,8 +65,8 @@ class DQNLightning(LightningModule):
                                                         ACTION_MODE_SELECTING_END_NODE: 0,
                                                     },
                                                     action_output_dim={
-                                                        ACTION_MODE_SELECTING_START_NODE: 100,
-                                                        ACTION_MODE_SELECTING_END_NODE: 100,
+                                                        ACTION_MODE_SELECTING_START_NODE: 10000,
+                                                        ACTION_MODE_SELECTING_END_NODE: 10000,
                                                     })
 
         self.env = env
@@ -83,9 +84,15 @@ class DQNLightning(LightningModule):
         Args:
             steps: number of random steps to populate the buffer with
         """
+        init_time = time.time()
+
         for i in range(steps):
             reward, done = self.agent.play_step(self.q_networks, epsilon=1.0)
             NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
+
+        final_time = time.time()
+        print(f"Took {final_time - init_time} seconds")
+        exit(0)
 
     def forward(self, x: Tensor) -> Tensor:
         """Passes in a state x through the network and gets the q_values of each action as an output.

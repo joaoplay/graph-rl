@@ -242,10 +242,17 @@ def build_k2(l_x, l_y):
     kx = np.zeros((l_x, l_y))
     ky = np.zeros((l_x, l_y))
 
-    for ix in range(l_x):
+    lx_fourier = np.fft.fftfreq(l_x) * (2 * np.pi)
+    ly_fourier = np.fft.fftfreq(l_y) * (2 * np.pi)
+
+    kx[:, np.arange(l_x)] = lx_fourier
+    ky[np.arange(l_y), :] = ly_fourier
+
+    """for ix in range(l_x):
         for iy in range(l_y):
             kx[:, iy] = np.fft.fftfreq(l_x) * (2 * np.pi)
             ky[ix, :] = np.fft.fftfreq(l_y) * (2 * np.pi)
+    """
 
     k2 = sqrt(kx ** 2 + ky ** 2)
 
