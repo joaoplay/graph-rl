@@ -47,7 +47,7 @@ class GraphAgent:
     def reset(self):
         data_batch = self.sample_batch(self.graph_list, self.batch_sampler)
         self.env.init(data_batch)
-        self.state = self.env.current_state_copy
+        self.state = self.env.current_graph_representation_copy
         self.selected_start_nodes_stats = {}
         self.selected_end_nodes_stats = {}
         self.repeated_actions = 0
@@ -61,7 +61,7 @@ class GraphAgent:
         """
 
         # Get the environments state of each graphs
-        state = torch.tensor(GraphState.convert_all_to_representation(action_mode, self.state))
+        state = torch.tensor(self.state)
 
         if USE_CUDA == 1:
             state = state.cuda()
@@ -173,8 +173,8 @@ class GraphAgent:
                 self.repeated_actions += 1
 
         if len(prev_states) > 0:
-            prev_states = GraphState.convert_all_to_representation(previous_action_mode, prev_states)
-            next_states = GraphState.convert_all_to_representation(self.env.current_action_mode, next_states)
+            # prev_states = GraphState.convert_all_to_representation(previous_action_mode, prev_states)
+            # next_states = GraphState.convert_all_to_representation(self.env.current_action_mode, next_states)
             self.replay_buffer.append_many(action_mode=previous_action_mode, states=prev_states,
                                            actions=actions, rewards=rewards, terminals=all_done,
                                            next_states=next_states)

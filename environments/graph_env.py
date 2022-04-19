@@ -152,7 +152,7 @@ class GraphEnv:
 
         self.steps_counter += 1
 
-        return self.current_state_copy, deepcopy(rewards), deepcopy(self.done)
+        return self.current_graph_representation_copy, rewards, deepcopy(self.done)
 
     @staticmethod
     def _get_random_action(graph: GraphState):
@@ -299,8 +299,8 @@ class GraphEnv:
         return zip(self.graphs_list, start_nodes, forbidden_actions)
 
     @property
-    def current_state_copy(self):
-        return deepcopy(self.graphs_list)
+    def current_graph_representation_copy(self):
+        return GraphState.convert_all_to_representation(self.current_action_mode, self.graphs_list)
 
     def clone_current_state(self, graph_indexes=None):
         """

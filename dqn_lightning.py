@@ -4,6 +4,7 @@ from typing import Any, Tuple, List
 
 import numpy as np
 import torch
+import wandb
 from matplotlib import pyplot as plt
 from neptune.new.types import File
 from pytorch_lightning import LightningModule
@@ -28,7 +29,7 @@ class DQNLightning(LightningModule):
     def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 32, hidden_size: int = 28, lr: float = 0.00025,
                  gamma: float = 0.99, sync_rate: int = 20000, replay_size: int = 10 ** 6, warm_start_size: int = 100000,
                  eps_last_frame: int = 5 * 10 ** 5, eps_start: float = 1.0, eps_end: float = 0.2, episode_length: int = 200,
-                 warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
+                 warm_start_steps: int = 5000, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
         super().__init__()
 
         self.save_hyperparameters()
@@ -67,6 +68,9 @@ class DQNLightning(LightningModule):
                                                         ACTION_MODE_SELECTING_START_NODE: 100,
                                                         ACTION_MODE_SELECTING_END_NODE: 100,
                                                     })
+
+        wandb.watch(self.q_networks, log="all")
+        wandb.watch(self.target_q_networks, log="all")
 
         self.env = env
         self.graphs = graphs
@@ -171,6 +175,8 @@ class DQNLightning(LightningModule):
 
         NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
 
+        wandb.log({'epsilon': epsilon})
+
         NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
 
         # NEPTUNE_INSTANCE['training/total_wins'].log(self.agent.wins)
@@ -231,7 +237,7 @@ class DQNLightning(LightningModule):
         if validation_agent.env.last_irrigation_map is not None:
             fig_irrigation, ax_irrigation = plt.subplots()
             ax_irrigation.title.set_text(f'Global Step: {validation_agent.total_steps}')
-            ax_irrigation.imshow(np.flipud(validation_agent.env.last_irrigation_map), cmap='hot', interpolation='nearest')
+            ax_irrigation.imshow(np.flipud(validation_agent.env.last_irrigation_map), cmap='hot', vmin=0, interpolation='nearest')
 
             NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/irrigation'].log(File.as_image(fig_irrigation))
 

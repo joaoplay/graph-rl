@@ -1,0 +1,22 @@
+{
+    "os": "macOS-12.1-x86_64-i386-64bit",
+    "python": "3.9.12",
+    "heartbeatAt": "2022-04-19T13:49:48.376897",
+    "startedAt": "2022-04-19T13:49:47.020099",
+    "docker": null,
+    "cpu_count": 8,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/jbsimoes/Documents/Projects/graph-rl/main.py",
+    "codePath": "main.py",
+    "git": {
+        "remote": "git@github.com:joaoplay/graph-rl.git",
+        "commit": "fd826284a013ba8c74a4f515e1855e32ff1c8972"
+    },
+    "email": "joaosbraz@gmail.com",
+    "root": "/Users/jbsimoes/Documents/Projects/graph-rl",
+    "host": "MacBook-Pro-de-Joao-4.local",
+    "username": "jbsimoes",
+    "executable": "/Users/jbsimoes/Library/Caches/pypoetry/virtualenvs/graph-rl-O_mU3pv6-py3.9/bin/python"
+}
