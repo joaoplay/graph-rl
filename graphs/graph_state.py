@@ -1,3 +1,4 @@
+import cProfile
 from copy import deepcopy
 from typing import List
 
@@ -246,21 +247,28 @@ class GraphState:
             forbidden_actions_encoding = np.zeros(graph.num_nodes)
             if len(forbidden_actions_encoding) > 0:
                 forbidden_actions_encoding[forbidden_actions_list] = 1
-            convert_graph_states += [np.concatenate(([graph.num_nodes], forbidden_actions_encoding, graph.to_representation(action_mode)), dtype=np.float32)]
+
+            # graph_representation = graph.to_representation(action_mode=action_mode)
+
+            p = cProfile.Profile()
+            graph_representation = p.runcall(graph.to_representation, action_mode=action_mode)
+            p.print_stats(sort='cumtime')
+
+            convert_graph_states += [np.concatenate(([graph.num_nodes], forbidden_actions_encoding, graph_representation), dtype=np.float32)]
 
         return np.array(convert_graph_states)
 
     def to_representation(self, action_mode):
-        nx_graph = self.nx_graph.to_undirected()
         nx_neighbourhood_graph = self.nx_neighbourhood_graph
-
         selected_node_one_hot = np.zeros(self.nx_graph.number_of_nodes())
 
+        nx_neighbourhood_graph_degree = nx_neighbourhood_graph.degree
+
         graph_one_hot = []
-        for node in nx_graph.nodes:
-            number_of_neighbours = nx_neighbourhood_graph.degree[node]
+        for node in self.nx_graph.nodes:
+            number_of_neighbours = nx_neighbourhood_graph_degree[node]
             all_neighbours = nx_neighbourhood_graph.neighbors(node)
-            neighbours = nx_graph.neighbors(node)
+            neighbours = self.nx_graph.neighbors(node)
             neighbours = sorted(neighbours)
             neighbours_one_hot = np.zeros(number_of_neighbours)
             existing_neighbours = [node in neighbours for node in all_neighbours]

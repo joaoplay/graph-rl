@@ -153,7 +153,7 @@ class GraphEnv:
 
         self.steps_counter += 1
 
-        return self.current_state_copy, deepcopy(rewards), deepcopy(self.done)
+        return self.current_graph_representation_copy, rewards, deepcopy(self.done)
 
     @staticmethod
     def _get_random_action(graph: GraphState):
@@ -300,8 +300,8 @@ class GraphEnv:
         return zip(self.graphs_list, start_nodes, forbidden_actions)
 
     @property
-    def current_state_copy(self):
-        return deepcopy(self.graphs_list)
+    def current_graph_representation_copy(self):
+        return GraphState.convert_all_to_representation(self.current_action_mode, self.graphs_list)
 
     def clone_current_state(self, graph_indexes=None):
         """
@@ -335,7 +335,7 @@ class GraphEnv:
         prepared_data = graph.prepare_for_reward_evaluation(node_added=node_added, start_node=start_node,
                                                             end_node=end_node)
         prepare_end_time = time.time()
-        print("Prepare time: {}".format(prepare_end_time - prepare_init_time))
+        # print("Prepare time: {}".format(prepare_end_time - prepare_init_time))
 
         irrigation_improvement = 0
         if prepared_data is not None:
@@ -348,7 +348,7 @@ class GraphEnv:
                     prepared_data[0], prepared_data[1],
                     prepared_data[2], [100, 100], [0.1, 0.1])
                 reward_end_time = time.time()
-                print("Reward time: {}".format(reward_end_time - reward_init_time))
+                # print("Reward time: {}".format(reward_end_time - reward_init_time))
 
                 sections_x = np.array_split(irrigation, 20, axis=0)
                 sections_y = np.array_split(irrigation, 20, axis=1)

@@ -48,7 +48,7 @@ class SingleVesselGraphGenerator:
         return single_vessel_adjacency_list
 
     def generate_nx_graph(self):
-        graph = nx.DiGraph()
+        graph = nx.Graph()
 
         id_gen = id_generator()
 
