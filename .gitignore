@@ -99,3 +99,5 @@ configs.production.sh
 
 multirun/
 outputs/
+
+wandb/
