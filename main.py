@@ -12,7 +12,7 @@ from settings import USE_CUDA
 
 os.environ["WANDB_API_KEY"] = '237099249b3c0e91437061c393ab089d03339bc3'
 
-wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "enabled"))
+wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"))
 
 
 @hydra.main(config_path="configs", config_name="default_config")
