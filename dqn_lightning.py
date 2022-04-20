@@ -30,7 +30,7 @@ class DQNLightning(LightningModule):
                  gamma: float = 0.99, sync_rate: int = 20000, replay_size: int = 10 ** 6, warm_start_size: int = 100000,
                  eps_last_frame: int = 5 * 10 ** 5, eps_start: float = 1.0, eps_end: float = 0.2,
                  warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES,
-                 multi_action_q_network: dict = None) -> None:
+                 multi_action_q_network: dict = None, num_dataloader_workers: int = 1) -> None:
         super().__init__()
 
         self.save_hyperparameters()
@@ -259,7 +259,8 @@ class DQNLightning(LightningModule):
     def __dataloader(self) -> DataLoader:
         """Initialize the Replay Buffer dataset used for retrieving experiences."""
         dataset = RLDataset(self.buffer, self.hparams.batch_size)
-        dataloader = DataLoader(dataset=dataset, batch_size=self.hparams.batch_size)
+        dataloader = DataLoader(dataset=dataset, batch_size=self.hparams.batch_size,
+                                num_workers=self.hparams.num_dataloader_workers)
         return dataloader
 
     def train_dataloader(self) -> DataLoader:

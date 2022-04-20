@@ -9,3 +9,4 @@ max_steps: 800
 irrigation_goal: 2.0
 training_duration_in_hours: 23
 validation_interval: 500
+num_dataloader_workers: 1

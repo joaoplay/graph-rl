@@ -24,7 +24,8 @@ def run_from_config_file(cfg: DictConfig):
     environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
-    model = DQNLightning(env=environment, graphs=train_graphs, multi_action_q_network=cfg.multi_action_q_network, **cfg.core)
+    model = DQNLightning(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
+                         multi_action_q_network=cfg.multi_action_q_network, **cfg.core)
 
     trainer = Trainer(
         max_time={'hours': cfg.training_duration_in_hours},
