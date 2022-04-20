@@ -32,7 +32,7 @@ def run_from_config_file(cfg: DictConfig):
         progress_bar_refresh_rate=0,
         limit_val_batches=1,
         check_val_every_n_epoch=cfg.validation_interval,
-        deterministic=cfg.deterministic
+        # deterministic=cfg.deterministic
     )
 
     trainer.fit(model)
