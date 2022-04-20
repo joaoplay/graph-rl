@@ -1,3 +1,0 @@
-embedding_dim: 50
-hidden_output_dim: 50
-num_node_features: 4

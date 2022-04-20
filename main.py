@@ -1,53 +1,38 @@
 import os
 
 import hydra
-import numpy as np
-import torch
 import wandb
 from omegaconf import DictConfig
-from pytorch_lightning import Trainer
+from pytorch_lightning import Trainer, seed_everything
 
 from dqn_lightning import DQNLightning
 from environments.generator.single_vessel_graph_generator import SingleVesselGraphGenerator
 from environments.graph_env import GraphEnv
+from settings import USE_CUDA
 
-os.environ["WANDB_MODE"] = 'online'
 os.environ["WANDB_API_KEY"] = '237099249b3c0e91437061c393ab089d03339bc3'
 
-wandb.init(project="graph-rl", entity="jbsimoes")
+wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "enabled"))
+
 
 @hydra.main(config_path="configs", config_name="default_config")
 def run_from_config_file(cfg: DictConfig):
-    np.random.seed(cfg.random_seed)
-    torch.manual_seed(cfg.random_seed)
-
-    # FIXME: Use it instead to ensure reproducibility
-    """seed_everything(42, workers=True)
-    trainer = Trainer(deterministic=True)
-    """
+    seed_everything(cfg.random_seed, workers=True)
 
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
-    """neptune_logger = NeptuneLogger(
-        api_key="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjYmQ4MjE1OC0yNzBhLTQyNzctYjFmZS00YTFhYjYxZTdmMjUifQ==",  # replace with your own
-        project="jbsimoes/graph-rl",
-        mode=os.getenv("NEPTUNE_MODE", "async")
-    )"""
-
-    environment = GraphEnv(max_steps=800, irrigation_goal=2.00)
+    environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
-    model = DQNLightning(environment, train_graphs, replay_size=10 ** 6)
+
+    model = DQNLightning(env=environment, graphs=train_graphs, multi_action_q_network=cfg.multi_action_q_network, **cfg.core)
 
     trainer = Trainer(
-        # max_epochs=10**6,
-        max_time={'hours': 23},
-        gpus=[0],
-        # accelerator="gpu",
-        # devices=1,
-        # logger=neptune_logger,
+        max_time={'hours': cfg.training_duration_in_hours},
+        gpus=[0] if USE_CUDA else None,
         progress_bar_refresh_rate=0,
         limit_val_batches=1,
-        check_val_every_n_epoch=500,
+        check_val_every_n_epoch=cfg.validation_interval,
+        deterministic=cfg.deterministic
     )
 
     trainer.fit(model)

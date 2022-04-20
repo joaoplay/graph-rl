@@ -13,15 +13,14 @@ class MultiActionModeDQN(nn.Module):
     a DQN is responsible for the start node selection policy whereas the second one selects the end node.
     """
 
-    def __init__(self, action_modes: tuple[int], embedding_dim: Optional[dict], hidden_output_dim: Optional[dict],
-                 num_node_features: Optional[dict], action_output_dim: Optional[dict]):
+    def __init__(self, action_modes: tuple[int], input_dim: Optional[dict], hidden_output_dim: Optional[dict],
+                 action_output_dim: Optional[dict]):
         super().__init__()
 
         self._dqn_by_action_mode = nn.ModuleDict(
             {str(action_mode): NoEmbeddingGraphDQN(unique_id=action_mode,
-                                                   embedding_dim=embedding_dim[action_mode],
+                                                   input_dim=input_dim[action_mode],
                                                    hidden_output_dim=hidden_output_dim[action_mode],
-                                                   num_node_features=num_node_features[action_mode],
                                                    actions_output_dim=action_output_dim[action_mode])
              for action_mode in action_modes})
 

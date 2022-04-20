@@ -8,15 +8,11 @@ from settings import USE_CUDA
 
 class NoEmbeddingGraphDQN(nn.Module):
 
-    def __init__(self, unique_id: int, embedding_dim: int, hidden_output_dim: int, num_node_features: int,
-                 actions_output_dim: int) -> None:
+    def __init__(self, unique_id: int, input_dim: int, hidden_output_dim: int, actions_output_dim: int) -> None:
         super().__init__()
 
-        self.num_node_features = num_node_features
-
         self.fc = nn.Sequential(
-            Linear(784, hidden_output_dim),
-            # Linear(169, hidden_output_dim),
+            Linear(input_dim, hidden_output_dim),
             nn.ReLU(),
             Linear(hidden_output_dim, actions_output_dim)
         )

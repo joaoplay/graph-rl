@@ -26,48 +26,36 @@ from util import draw_nx_irrigation_network
 class DQNLightning(LightningModule):
     """Basic DQN Model."""
 
-    def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 32, hidden_size: int = 28, lr: float = 0.00025,
+    def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 32, lr: float = 0.00025,
                  gamma: float = 0.99, sync_rate: int = 20000, replay_size: int = 10 ** 6, warm_start_size: int = 100000,
-                 eps_last_frame: int = 5 * 10 ** 5, eps_start: float = 1.0, eps_end: float = 0.2, episode_length: int = 200,
-                 warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES) -> None:
+                 eps_last_frame: int = 5 * 10 ** 5, eps_start: float = 1.0, eps_end: float = 0.2,
+                 warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES,
+                 multi_action_q_network: dict = None) -> None:
         super().__init__()
 
         self.save_hyperparameters()
 
+        number_of_nodes = graphs[0].num_nodes
+        representation_dim = graphs[0].representation_dim
+
         self.q_networks = MultiActionModeDQN(action_modes=self.hparams.action_modes,
-                                             embedding_dim={
-                                                 ACTION_MODE_SELECTING_START_NODE: 1,
-                                                 ACTION_MODE_SELECTING_END_NODE: 1,
-                                             },
-                                             hidden_output_dim={
-                                                 ACTION_MODE_SELECTING_START_NODE: self.hparams.hidden_size,
-                                                 ACTION_MODE_SELECTING_END_NODE: self.hparams.hidden_size,
-                                             },
-                                             num_node_features={
-                                                 ACTION_MODE_SELECTING_START_NODE: 0,
-                                                 ACTION_MODE_SELECTING_END_NODE: 0,
+                                             input_dim={
+                                                 ACTION_MODE_SELECTING_START_NODE: representation_dim,
+                                                 ACTION_MODE_SELECTING_END_NODE: representation_dim,
                                              },
                                              action_output_dim={
-                                                 ACTION_MODE_SELECTING_START_NODE: 100,
-                                                 ACTION_MODE_SELECTING_END_NODE: 100,
-                                             })
+                                                 ACTION_MODE_SELECTING_START_NODE: number_of_nodes,
+                                                 ACTION_MODE_SELECTING_END_NODE: number_of_nodes,
+                                             }, **self.hparams.multi_action_q_network)
         self.target_q_networks = MultiActionModeDQN(action_modes=self.hparams.action_modes,
-                                                    embedding_dim={
-                                                        ACTION_MODE_SELECTING_START_NODE: 1,
-                                                        ACTION_MODE_SELECTING_END_NODE: 1,
-                                                    },
-                                                    hidden_output_dim={
-                                                        ACTION_MODE_SELECTING_START_NODE: self.hparams.hidden_size,
-                                                        ACTION_MODE_SELECTING_END_NODE: self.hparams.hidden_size,
-                                                    },
-                                                    num_node_features={
-                                                        ACTION_MODE_SELECTING_START_NODE: 0,
-                                                        ACTION_MODE_SELECTING_END_NODE: 0,
+                                                    input_dim={
+                                                        ACTION_MODE_SELECTING_START_NODE: representation_dim,
+                                                        ACTION_MODE_SELECTING_END_NODE: representation_dim,
                                                     },
                                                     action_output_dim={
-                                                        ACTION_MODE_SELECTING_START_NODE: 100,
-                                                        ACTION_MODE_SELECTING_END_NODE: 100,
-                                                    })
+                                                        ACTION_MODE_SELECTING_START_NODE: number_of_nodes,
+                                                        ACTION_MODE_SELECTING_END_NODE: number_of_nodes,
+                                                    }, **self.hparams.multi_action_q_network)
 
         wandb.watch(self.q_networks, log="all")
         wandb.watch(self.target_q_networks, log="all")
@@ -237,7 +225,8 @@ class DQNLightning(LightningModule):
         if validation_agent.env.last_irrigation_map is not None:
             fig_irrigation, ax_irrigation = plt.subplots()
             ax_irrigation.title.set_text(f'Global Step: {validation_agent.total_steps}')
-            ax_irrigation.imshow(np.flipud(validation_agent.env.last_irrigation_map), cmap='hot', vmin=0, interpolation='nearest')
+            ax_irrigation.imshow(np.flipud(validation_agent.env.last_irrigation_map), cmap='hot', vmin=0,
+                                 interpolation='nearest')
 
             NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/irrigation'].log(File.as_image(fig_irrigation))
 

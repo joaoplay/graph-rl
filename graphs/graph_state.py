@@ -1,3 +1,5 @@
+from functools import cached_property
+
 import networkx as nx
 import numpy as np
 
@@ -235,6 +237,10 @@ class GraphState:
     @property
     def allowed_actions(self):
         return self.all_nodes_set - self.forbidden_actions
+
+    @cached_property
+    def representation_dim(self):
+        return self.num_nodes + sum(node[1] for node in self.nx_neighbourhood_graph.degree())
 
     @staticmethod
     def convert_all_to_representation(action_mode, graph_states):

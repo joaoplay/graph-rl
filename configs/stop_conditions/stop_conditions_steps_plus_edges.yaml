@@ -1,4 +1,0 @@
-- name: "MaxStepsExceeded"
-  max_steps: 2000
-
-- name: "AllGraphsExhausted"
