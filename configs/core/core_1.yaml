@@ -1,5 +1,5 @@
 lr: 0.0001
-sync_rate: 500
+sync_rate: 20000
 batch_size: 32
 gamma: 0.99
 replay_size: 1000000
@@ -7,4 +7,4 @@ warm_start_size: 10000
 eps_last_frame: 500000
 eps_start: 1.0
 eps_end: 0.2
-warm_start_steps: 100
+warm_start_steps: 50000
