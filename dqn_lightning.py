@@ -27,7 +27,7 @@ class DQNLightning(LightningModule):
     """Basic DQN Model."""
 
     def __init__(self, env: GraphEnv = None, graphs=None, batch_size: int = 32, lr: float = 0.00025,
-                 gamma: float = 0.99, sync_rate: int = 20000, replay_size: int = 10 ** 6,
+                 gamma: float = 0.99, sync_rate: int = 10000, replay_size: int = 10 ** 6,
                  eps_last_frame: int = 5 * 10 ** 5, eps_start: float = 1.0, eps_end: float = 0.2,
                  warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES,
                  multi_action_q_network: dict = None, num_dataloader_workers: int = 1) -> None:
@@ -134,9 +134,6 @@ class DQNLightning(LightningModule):
 
                 rewards[not_dones] = expected_state_action_values
 
-        print(f"Current State Values: {q_sa}")
-        print(f"Next State Values: {rewards}")
-
         return action_mode, nn.MSELoss()(q_sa, rewards)
 
     def training_step(self, batch, nb_batch):
@@ -176,11 +173,6 @@ class DQNLightning(LightningModule):
         # Calculates training loss
         action_mode, loss = self.dqn_mse_loss(batch)
 
-        print(f"Step: {self.global_step} | Action Mode: {action_mode} ")
-        for name, param in self.q_networks.named_parameters():
-            if param.requires_grad:
-                print(name, param.data)
-
         if action_mode == ACTION_MODE_SELECTING_START_NODE:
             NEPTUNE_INSTANCE['training/start-node-selection-loss'].log(loss)
         else:
@@ -192,7 +184,7 @@ class DQNLightning(LightningModule):
 
         # Soft update of target network
         if self.global_step % self.hparams.sync_rate == 0:
-            # print(f"Syncing target networks at step {self.global_step}")
+            print(f"Syncing target networks at step {self.global_step}")
             self.target_q_networks.load_state_dict(self.q_networks.state_dict())
 
         log = {
@@ -267,8 +259,7 @@ class DQNLightning(LightningModule):
     def __dataloader(self) -> DataLoader:
         """Initialize the Replay Buffer dataset used for retrieving experiences."""
         dataset = RLDataset(self.buffer, self.hparams.batch_size)
-        dataloader = DataLoader(dataset=dataset, batch_size=self.hparams.batch_size,
-                                num_workers=self.hparams.num_dataloader_workers)
+        dataloader = DataLoader(dataset=dataset, batch_size=self.hparams.batch_size)
         return dataloader
 
     def train_dataloader(self) -> DataLoader:

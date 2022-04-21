@@ -103,14 +103,18 @@ class GraphEnv:
             # Save the new graph
             self.graphs_list[graph_idx] = new_graph
 
+            if self.current_action_mode == ACTION_MODE_SELECTING_START_NODE:
+                if current_graph.nx_graph.degree[actions[graph_idx]] > 2:
+                    rewards[graph_idx] = -1
+
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 node_added = edge_insertion_cost > 0
                 # rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                 #                                           start_node=start_node, end_node=actions[graph_idx])
-                self.calculate_reward(graph_idx=graph_idx, node_added=node_added, start_node=start_node,
-                                      end_node=actions[graph_idx]) * 10.0
+                irrigation_improvement = self.calculate_reward(graph_idx=graph_idx, node_added=node_added, start_node=start_node,
+                                                               end_node=actions[graph_idx]) * 10.0
 
-                rewards[graph_idx] = -1.0
+                rewards[graph_idx] = -1.0 + irrigation_improvement
 
                 # rewards[graph_idx] = 0
             """elif current_graph.previous_selected_start_node == actions[graph_idx]:

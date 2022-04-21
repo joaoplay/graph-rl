@@ -143,6 +143,8 @@ class GraphAgent:
         # Do step in the environment
         new_state, reward, done = self.env.step(actions)
 
+        print(reward)
+
         self.episode_reward += reward[0]
 
         now_done = [True for idx, was_done in enumerate(previous_done) if not was_done and done[idx]]
