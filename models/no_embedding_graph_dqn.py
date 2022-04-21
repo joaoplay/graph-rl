@@ -103,6 +103,7 @@ class NoEmbeddingGraphDQN(nn.Module):
 
         min_tensor = torch.tensor(float(np.finfo(np.float32).min)).type_as(q_values)
         forbidden_actions_bool = forbidden_actions.bool()
+
         q_values[forbidden_actions_bool] = min_tensor
 
         values, indices = torch.topk(q_values, 1, dim=1)

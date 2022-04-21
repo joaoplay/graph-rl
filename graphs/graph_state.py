@@ -247,6 +247,7 @@ class GraphState:
         convert_graph_states = []
         for graph in graph_states:
             forbidden_actions_list = list(graph.forbidden_actions)
+
             forbidden_actions_encoding = np.zeros(graph.num_nodes)
             if len(forbidden_actions_encoding) > 0:
                 forbidden_actions_encoding[forbidden_actions_list] = 1
