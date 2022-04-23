@@ -304,7 +304,9 @@ class GraphEnv:
 
     @property
     def current_graph_representation_copy(self):
-        return GraphState.convert_all_to_representation(self.current_action_mode, self.graphs_list)
+        return [(deepcopy(self.graphs_list[i]), deepcopy(self.graphs_list[i].selected_start_node),
+                 deepcopy(self.graphs_list[i].forbidden_actions))
+                for i in range(len(self.graphs_list))]
 
     def clone_current_state(self, graph_indexes=None):
         """

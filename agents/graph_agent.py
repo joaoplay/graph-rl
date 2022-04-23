@@ -8,8 +8,6 @@ from matplotlib import pyplot as plt
 from neptune.new.types import File
 from torch import nn
 
-
-
 from agents.replay_memory.multi_action_replay_buffer import MultiActionReplayBuffer
 from agents.util.sample_tracker import BatchSampler
 from environments.graph_env import GraphEnv, ACTION_MODE_SELECTING_START_NODE, ACTION_MODE_SELECTING_END_NODE
@@ -61,15 +59,14 @@ class GraphAgent:
         """
 
         # Get the environments state of each graphs
-        state = torch.tensor(self.state)
+        # state = torch.tensor(self.state)
 
-        if USE_CUDA == 1:
-            state = state.cuda()
+        # if USE_CUDA == 1:
+        #    state = state.cuda()
 
         # Get action that maximizes Q-value (for each graph)
-        q_values, forbidden_actions = q_network(action_mode=action_mode, states=state)
-        actions, _ = q_network.select_action_from_q_values(action_mode=action_mode, q_values=q_values,
-                                                           forbidden_actions=forbidden_actions)
+        actions, q_values, _ = q_network(action_mode=action_mode, states=self.state,
+                                         actions=None, greedy_acts=True)
         actions = list(actions.view(-1).cpu().numpy())
 
         return actions
@@ -193,7 +190,8 @@ class GraphAgent:
 
         self.state = new_state
         if all(done):
-            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
+            print(
+                f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
 
             """fig, axs = plt.subplots(2)
             axs[0].bar(self.selected_start_nodes_stats.keys(),
@@ -216,7 +214,7 @@ class GraphAgent:
                 draw_nx_irrigation_network(self.env.last_irrigation_graph, self.env.last_pressures, self.env.last_edge_sources, self.env.last_edges_list, ax)
                 NEPTUNE_INSTANCE['training/network-debug'].log(File.as_image(fig))"""
 
-            #plt.close('all')
+            # plt.close('all')
 
             """start_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_START_NODE)].repr_history, axis=0))
             end_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_END_NODE)].repr_history, axis=0))

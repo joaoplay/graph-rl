@@ -1,5 +1,6 @@
 from collections import deque, namedtuple
 import numpy as np
+import torch
 
 Experience = namedtuple("Experience", field_names=["state", "action", "reward", "done", "new_state"], )
 
@@ -31,13 +32,10 @@ class ReplayBuffer:
         indices = np.random.choice(len(self.buffer), batch_size, replace=False)
         states, actions, rewards, dones, next_states = zip(*(self.buffer[idx] for idx in indices))
 
-        #print("Sampling")
-        #print(rewards)
-
         return (
-            np.array(states, dtype=np.float32),
-            np.array(actions),
-            np.array(rewards, dtype=np.float32),
-            np.array(dones, dtype=np.bool),
-            np.array(next_states, dtype=np.float32),
+            states,
+            torch.as_tensor(np.array(actions)),
+            torch.as_tensor(np.array(rewards, dtype=np.float32)),
+            torch.as_tensor(np.array(dones, dtype=np.bool)),
+            next_states,
         )

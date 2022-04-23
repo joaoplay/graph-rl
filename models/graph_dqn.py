@@ -31,7 +31,6 @@ class GraphDQN(nn.Module):
         2 - For each node embedding, concatenate the embedding representation of the whole graph. Each node consists of
             embedding_size
 
-
     """
 
     def __init__(self, unique_id: int, embedding_dim: int, hidden_output_dim: int, num_node_features: int, actions_output_dim: int) -> None:
@@ -182,15 +181,7 @@ class GraphDQN(nn.Module):
             embed = embed[shifted, :]
 
         embed_s_a = torch.cat((embed, graph_embed), dim=1)
-
-        """np_embed = embed_s_a.detach().numpy()
-
-        distance = euclidean_distances(np_embed, np_embed)
-
-        mean_embed = np.mean(embed_s_a.detach().numpy(), axis=1)"""
-
         raw_pred = self.fc(embed_s_a)
-
         if greedy_acts:
             actions, _ = self.select_action_from_q_values(raw_pred, prefix_sum, forbidden_actions)
 

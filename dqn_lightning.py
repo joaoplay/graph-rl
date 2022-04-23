@@ -101,7 +101,14 @@ class DQNLightning(LightningModule):
         Returns:
             loss
         """
-        action_modes, states, actions, rewards, dones, next_states = batch
+        # action_modes, states, actions, rewards, dones, next_states = batch
+
+        action_modes = [sample[0] for sample in batch]
+        states = [sample[1] for sample in batch]
+        actions = [sample[2] for sample in batch]
+        rewards = [sample[3] for sample in batch]
+        dones = [sample[4] for sample in batch]
+        next_states = [sample[5] for sample in batch]
 
         NEPTUNE_INSTANCE['training/batch_mean_reward'].log(torch.mean(rewards))
         NEPTUNE_INSTANCE['training/batch_std_reward'].log(torch.std(rewards))
@@ -125,11 +132,15 @@ class DQNLightning(LightningModule):
                 not_done_next_states = next_states[not_dones]
                 next_action_mode = (action_mode + 1) % len(self.hparams.action_modes)
 
+                _, _, forbidden_actions = zip(*not_done_next_states)
+
                 # Get the q-value for the next state
-                next_state_values, forbidden_actions = self.target_q_networks(next_action_mode, not_done_next_states)
-                _, not_done_next_station_action_values = self.target_q_networks.select_action_from_q_values(
-                    next_action_mode, next_state_values, forbidden_actions)
-                expected_state_action_values = not_done_next_station_action_values * self.hparams.gamma + rewards[
+                _, q_t_next, prefix_sum_next = self.target_q_networks(next_action_mode, not_done_next_states,
+                                                                      None)
+                _, q_rhs = self.target_q_networks.select_action_from_q_values(next_action_mode, q_t_next,
+                                                                              prefix_sum_next, forbidden_actions)
+
+                expected_state_action_values = q_rhs * self.hparams.gamma + rewards[
                     not_dones]
 
                 rewards[not_dones] = expected_state_action_values
@@ -259,7 +270,7 @@ class DQNLightning(LightningModule):
     def __dataloader(self) -> DataLoader:
         """Initialize the Replay Buffer dataset used for retrieving experiences."""
         dataset = RLDataset(self.buffer, self.hparams.batch_size)
-        dataloader = DataLoader(dataset=dataset, batch_size=self.hparams.batch_size)
+        dataloader = DataLoader(dataset=dataset, batch_size=self.hparams.batch_size, collate_fn=graph_collate_fn)
         return dataloader
 
     def train_dataloader(self) -> DataLoader:
