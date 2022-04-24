@@ -76,8 +76,8 @@ class GraphDQN(nn.Module):
         selected_node_encoding[:, 0] = 1.0
 
         if len(picked_ones):
-            selected_node_encoding.numpy()[picked_ones, 1] = 1.0
-            selected_node_encoding.numpy()[picked_ones, 0] = 0.0
+            selected_node_encoding[picked_ones, 1] = 1.0
+            selected_node_encoding[picked_ones, 0] = 0.0
 
         node_features = torch.cat((node_features, selected_node_encoding), dim=1)
 
