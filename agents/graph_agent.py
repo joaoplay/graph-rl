@@ -65,7 +65,7 @@ class GraphAgent:
         #    state = state.cuda()
 
         # Get action that maximizes Q-value (for each graph)
-        actions, q_values, _ = q_network(action_mode=action_mode, states=self.state,
+        actions, q_values, _ = q_network(action_mode=action_mode, states=zip(*self.state),
                                          actions=None, greedy_acts=True)
         actions = list(actions.view(-1).cpu().numpy())
 

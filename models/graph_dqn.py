@@ -164,7 +164,7 @@ class GraphDQN(nn.Module):
         return shifted
 
     def forward(self, states, actions, greedy_acts=False):
-        graphs, selected_nodes, forbidden_actions = zip(*states)
+        graphs, selected_nodes, forbidden_actions = states
 
         node_features, prefix_sum = self.prepare_node_features(graphs, selected_nodes)
 
