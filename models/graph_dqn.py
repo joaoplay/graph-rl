@@ -47,7 +47,7 @@ class GraphDQN(nn.Module):
 
         self.unique_id = unique_id
 
-        weights_init(self)
+        #weights_init(self)
 
         # FIXME: The number of layers is hardcoded
         # self.s2v_model = SAGEConv(in_channels=1, out_channels=embedding_dim)
