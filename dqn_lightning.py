@@ -22,7 +22,6 @@ from agents.replay_memory.multi_action_replay_buffer import MultiActionReplayBuf
 from agents.rl_dataset import RLDataset
 from environments.graph_env import DEFAULT_ACTION_MODES, ACTION_MODE_SELECTING_START_NODE, \
     ACTION_MODE_SELECTING_END_NODE, GraphEnv
-from graphs.graph_state import GraphState
 from models.multi_action_mode_dqn import MultiActionModeDQN
 from settings import NEPTUNE_INSTANCE, USE_CUDA
 from util import draw_nx_irrigation_network
@@ -190,6 +189,8 @@ class DQNLightning(LightningModule):
         # NEPTUNE_INSTANCE['training/total_wins'].log(self.agent.wins)
         # NEPTUNE_INSTANCE['training/total_looses'].log(self.agent.looses)
 
+        #self.print_network_params()
+
         # Calculates training loss
         action_mode, loss = self.dqn_mse_loss(batch)
 
@@ -266,10 +267,10 @@ class DQNLightning(LightningModule):
             if param.requires_grad:
                 print(name, param.data)
 
-        print("Target Q-Networks")
-        for name, param in self.target_q_networks.named_parameters():
-            if param.requires_grad:
-                print(name, param.data)
+        #print("Target Q-Networks")
+        #for name, param in self.target_q_networks.named_parameters():
+        #    if param.requires_grad:
+        #        print(name, param.data)
 
     def configure_optimizers(self) -> List[Optimizer]:
         """Initialize Adam optimizer."""

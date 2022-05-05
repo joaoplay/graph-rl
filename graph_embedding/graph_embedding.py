@@ -66,6 +66,7 @@ class EmbedMeanField(nn.Module):
 
     def forward(self, graph_list, node_feat, edge_feat, pool_global=True, n2n_grad=False, e2n_grad=False):
         n2n_sp, e2n_sp, subg_sp = S2VLIB.PrepareMeanField(graph_list)
+
         if node_feat.is_cuda:
             n2n_sp = n2n_sp.cuda()
             e2n_sp = e2n_sp.cuda()
