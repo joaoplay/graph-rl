@@ -157,10 +157,10 @@ class GraphState:
         # Identify all isolated nodes. Nodes with zero degree
         isolated_nodes = set(nx.isolates(self.nx_graph))
         # Identify nodes with no edges available. FIXME: Is it correct? Probably we should check the neighborhood graph instead.
-        #nodes_with_no_edges_available = set([node_id for node_id in self.nx_neighbourhood_graph.nodes()
-        #                                     if self.nx_graph.degree[node_id] > 2])
         nodes_with_no_edges_available = set([node_id for node_id in self.nx_neighbourhood_graph.nodes()
-                                              if self.nx_neighbourhood_graph.degree[node_id] == self.nx_graph.degree[node_id]])
+                                             if self.nx_graph.degree[node_id] > 2])
+        #nodes_with_no_edges_available = set([node_id for node_id in self.nx_neighbourhood_graph.nodes()
+        #                                      if self.nx_neighbourhood_graph.degree[node_id] == self.nx_graph.degree[node_id]])
 
         """invalid_nodes = set()
         if not self.allow_void_actions:

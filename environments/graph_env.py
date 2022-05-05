@@ -114,7 +114,7 @@ class GraphEnv:
                 irrigation_improvement = self.calculate_reward(graph_idx=graph_idx, node_added=node_added, start_node=start_node,
                                                                end_node=actions[graph_idx])
 
-                rewards[graph_idx] = -1.0 + irrigation_improvement
+                rewards[graph_idx] = -1.0  # + irrigation_improvement
 
                 # rewards[graph_idx] = 0
             """elif current_graph.previous_selected_start_node == actions[graph_idx]:
