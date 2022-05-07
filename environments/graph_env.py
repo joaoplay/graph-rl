@@ -104,8 +104,9 @@ class GraphEnv:
             self.graphs_list[graph_idx] = new_graph
 
             if self.current_action_mode == ACTION_MODE_SELECTING_START_NODE:
-                if current_graph.nx_graph.degree[actions[graph_idx]] > 2:
-                    rewards[graph_idx] = -1
+                pass
+                # if current_graph.nx_graph.degree[actions[graph_idx]] > 2:
+                #    rewards[graph_idx] = -1
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 node_added = edge_insertion_cost > 0
