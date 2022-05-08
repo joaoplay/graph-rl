@@ -12,7 +12,10 @@ from settings import USE_CUDA
 
 os.environ["WANDB_API_KEY"] = '237099249b3c0e91437061c393ab089d03339bc3'
 
-wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"))
+# FIXME: Move it to ENV variable. I can't do it now because I don't want to deal with the DOCKER rebuild process.
+WANDB_PATH = '/media/storage/jbsimoes' if USE_CUDA else '.'
+
+wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"), dir=WANDB_PATH)
 
 
 @hydra.main(config_path="configs", config_name="default_config")
