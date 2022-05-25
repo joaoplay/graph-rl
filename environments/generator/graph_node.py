@@ -1,3 +1,5 @@
+import torch
+
 
 class GraphNode:
 
@@ -10,5 +12,5 @@ class GraphNode:
     def get_features_dict(self):
         return {
             'x': self.coordinates[0],  # Coordinate X
-            'y': self.coordinates[1]  # Coordinate Y
+            'y': self.coordinates[1],  # Coordinate Y
         }

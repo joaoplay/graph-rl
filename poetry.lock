@@ -83,14 +83,14 @@ tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>
 
 [[package]]
 name = "boto3"
-version = "1.23.6"
+version = "1.23.7"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.6"
 
 [package.dependencies]
-botocore = ">=1.26.6,<1.27.0"
+botocore = ">=1.26.7,<1.27.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.5.0,<0.6.0"
 
@@ -99,7 +99,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.26.6"
+version = "1.26.7"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -1141,6 +1141,17 @@ typing-extensions = "*"
 type = "url"
 url = "https://download.pytorch.org/whl/cu113/torch-1.11.0%2Bcu113-cp39-cp39-linux_x86_64.whl"
 [[package]]
+name = "torch-cluster"
+version = "1.6.0"
+description = "PyTorch Extension Library of Optimized Graph Cluster Algorithms"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+test = ["pytest", "pytest-cov", "scipy"]
+
+[[package]]
 name = "torch-geometric"
 version = "2.0.4"
 description = "Graph Neural Network Library for PyTorch"
@@ -1162,6 +1173,39 @@ tqdm = "*"
 dev = ["pytest", "pytest-cov", "pre-commit"]
 full = ["h5py", "yacs", "numba", "captum", "rdflib", "trimesh", "networkx", "tabulate", "hydra-core", "matplotlib", "scikit-image", "pytorch-memlab", "class-resolver (>=0.3.2)"]
 test = ["pytest", "pytest-cov"]
+
+[[package]]
+name = "torch-scatter"
+version = "2.0.9"
+description = "PyTorch Extension Library of Optimized Scatter Operations"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+test = ["pytest", "pytest-runner", "pytest-cov"]
+
+[[package]]
+name = "torch-sparse"
+version = "0.6.13"
+description = "PyTorch Extension Library of Optimized Autograd Sparse Matrix Operations"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+scipy = "*"
+
+[package.extras]
+test = ["pytest", "pytest-cov"]
+
+[[package]]
+name = "torch-spline-conv"
+version = "1.2.1"
+description = "Implementation of the Spline-Based Convolution Operator of SplineCNN in PyTorch"
+category = "main"
+optional = false
+python-versions = ">=3.6"
 
 [[package]]
 name = "torchmetrics"
@@ -1329,7 +1373,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "f578268b5a4578e739775e8eb00869f8bb7c8cbd7278dae8ce9a2332082151e4"
+content-hash = "abbca63a455677b4401804181c518ed92e24c0df008adab85d5193b34e594783"
 
 [metadata.files]
 absl-py = [
@@ -1430,12 +1474,12 @@ attrs = [
     {file = "attrs-21.4.0.tar.gz", hash = "sha256:626ba8234211db98e869df76230a137c4c40a12d72445c45d5f5b716f076e2fd"},
 ]
 boto3 = [
-    {file = "boto3-1.23.6-py3-none-any.whl", hash = "sha256:6fed94cfe8e4502ec176821d3fefed9c1973d18ef491530b158108966cfc8ae1"},
-    {file = "boto3-1.23.6.tar.gz", hash = "sha256:725e507211cde015184e2b5921512df89f63852fb079eda6ab6c282af66f45bd"},
+    {file = "boto3-1.23.7-py3-none-any.whl", hash = "sha256:b59a210fa6a87f0c755b40403ffc66b9b285680bbc5ad5245cf167e2def33620"},
+    {file = "boto3-1.23.7.tar.gz", hash = "sha256:3fb956d097105a0fb98c29a622ff233fa8de68519aabd7088d7ffd36dfc33214"},
 ]
 botocore = [
-    {file = "botocore-1.26.6-py3-none-any.whl", hash = "sha256:2846ee4a548462ba6db70125bea1542b4ed39793240aabc62ddf96fb6ec7e4d1"},
-    {file = "botocore-1.26.6.tar.gz", hash = "sha256:ce3fb008ffb041d142cf3949b13529e8dc9a0db5f2ec0e86b159f10f2b56a46e"},
+    {file = "botocore-1.26.7-py3-none-any.whl", hash = "sha256:9f8d5e8d65b24d97fcb7804b84831e5627fceb52707167d2f496477675c98ded"},
+    {file = "botocore-1.26.7.tar.gz", hash = "sha256:0f4a467188644382856e96e85bff0b453442d5cf0c0f554154571a6e2468a005"},
 ]
 bravado = [
     {file = "bravado-11.0.3-py2.py3-none-any.whl", hash = "sha256:8ac8bbb645e49607917a5c07808116c708521f51e80d9c29bc4a168ff4dd22c6"},
@@ -2423,8 +2467,20 @@ tomli = [
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 torch = []
+torch-cluster = [
+    {file = "torch_cluster-1.6.0.tar.gz", hash = "sha256:249c1bd8c33a887b22bf569a59d0868545804032123594dd8c76ba1885859c39"},
+]
 torch-geometric = [
     {file = "torch_geometric-2.0.4.tar.gz", hash = "sha256:d64e4c7486fcf0c7fa82f0acbf5dd52035855469708bf89f8bc7fc607671c8b7"},
+]
+torch-scatter = [
+    {file = "torch_scatter-2.0.9.tar.gz", hash = "sha256:08f5511d64473badf0a71d156b36dc2b09b9c2f00a7cd373b935b490c477a7f1"},
+]
+torch-sparse = [
+    {file = "torch_sparse-0.6.13.tar.gz", hash = "sha256:b4896822559f9b47d8b0186d74c94b7449f91db155a57d617fbeae9b722fa1f3"},
+]
+torch-spline-conv = [
+    {file = "torch_spline_conv-1.2.1.tar.gz", hash = "sha256:364f658e0ecb4c5263a728c2961553e022fc44c11a633d5a1bf986cf169ab438"},
 ]
 torchmetrics = [
     {file = "torchmetrics-0.8.2-py3-none-any.whl", hash = "sha256:19e4ed0305b8c02fd5765a9ff9360c9c622842c2b3491e497ddbf2aec7ce9c5a"},

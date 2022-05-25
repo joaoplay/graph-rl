@@ -1,7 +1,10 @@
+from copy import deepcopy
 from functools import cached_property
 
 import networkx as nx
 import numpy as np
+import torch
+from torch_geometric.utils import from_networkx
 
 BUDGET_EPS = 1e-5
 
@@ -241,6 +244,16 @@ class GraphState:
     @cached_property
     def representation_dim(self):
         return self.num_nodes + sum(node[1] for node in self.nx_neighbourhood_graph.degree())
+
+    def to_pygeom_representation(self):
+        nx_copy = deepcopy(self.nx_graph)
+
+        # Set selected node
+        for node in nx_copy.nodes():
+            nx_copy.nodes[node]['x'] = [nx_copy.nodes[node]['x'], nx_copy.nodes[node]['y'], self.selected_start_node == node]
+
+        graph_data = from_networkx(nx_copy)
+        return graph_data
 
     @staticmethod
     def convert_all_to_representation(action_mode, graph_states):

@@ -19,6 +19,10 @@ hydra-core = "^1.1"
 pytorch-lightning = "^1.6.0"
 wandb = "^0.12.14"
 torch-geometric = "^2.0.4"
+torch-sparse = "^0.6.13"
+torch-cluster = "^1.6.0"
+torch-spline-conv = "^1.2.1"
+torch-scatter = "^2.0.9"
 
 [tool.poetry.dev-dependencies]
 

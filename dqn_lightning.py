@@ -122,10 +122,8 @@ class DQNLightning(LightningModule):
         action_mode = int(action_modes[1].item())
         actions_tensor = actions.unsqueeze(-1)
 
-        actions, state_action_values, prefix_sum = self.q_networks(action_mode, states, actions=actions_tensor)
-
+        actions, state_action_values, prefix_sum = self.q_networks(action_mode, states)
         q_sa = state_action_values.gather(1, actions_tensor)
-
         rewards = rewards.unsqueeze(-1)
 
         not_dones = ~dones
@@ -143,13 +141,10 @@ class DQNLightning(LightningModule):
                 _, _, forbidden_actions = not_done_next_states
 
                 # Get the q-value for the next state
-                _, q_t_next, prefix_sum_next = self.target_q_networks(next_action_mode, not_done_next_states,
-                                                                      None)
-                _, q_rhs = self.target_q_networks.select_action_from_q_values(next_action_mode, q_t_next,
-                                                                              prefix_sum_next, forbidden_actions)
+                q_t_next, _ = self.target_q_networks(next_action_mode, not_done_next_states)
+                _, q_rhs = self.target_q_networks.select_action_from_q_values(next_action_mode, q_t_next, forbidden_actions)
 
-                expected_state_action_values = q_rhs * self.hparams.gamma + rewards[
-                    not_dones]
+                expected_state_action_values = q_rhs * self.hparams.gamma + rewards[not_dones]
 
                 rewards[not_dones] = expected_state_action_values
 
@@ -185,11 +180,6 @@ class DQNLightning(LightningModule):
         wandb.log({'epsilon': epsilon})
 
         NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
-
-        # NEPTUNE_INSTANCE['training/total_wins'].log(self.agent.wins)
-        # NEPTUNE_INSTANCE['training/total_looses'].log(self.agent.looses)
-
-        #self.print_network_params()
 
         # Calculates training loss
         action_mode, loss = self.dqn_mse_loss(batch)

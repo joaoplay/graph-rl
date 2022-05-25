@@ -3,6 +3,7 @@ from typing import Optional
 from torch import nn
 
 from models.graph_dqn import GraphDQN
+from models.graph_sage_dqn import GraphSageDQN
 from models.no_embedding_graph_dqn import NoEmbeddingGraphDQN
 
 
@@ -20,14 +21,14 @@ class MultiActionModeDQN(nn.Module):
         super().__init__()
 
         self._dqn_by_action_mode = nn.ModuleDict(
-            {str(action_mode): GraphDQN(unique_id=action_mode,
-                                        embedding_dim=50,
-                                        hidden_output_dim=hidden_output_dim[action_mode],
-                                        actions_output_dim=action_output_dim[action_mode],
-                                        num_node_features=4)
+            {str(action_mode): GraphSageDQN(unique_id=action_mode,
+                                            embedding_dim=50,
+                                            hidden_output_dim=hidden_output_dim[action_mode],
+                                            actions_output_dim=action_output_dim[action_mode],
+                                            num_node_features=4)
              for action_mode in action_modes})
 
-    def select_action_from_q_values(self, action_mode, q_values, prefix_sum, forbidden_actions):
+    def select_action_from_q_values(self, action_mode, q_values, forbidden_actions):
         """
         Select an action from a set of Q-Values. Actions are indexed by its position in the Q-Values list. For instance,
         the index 0 in the Q-values list matches the selection the node with ID 0.
@@ -37,8 +38,8 @@ class MultiActionModeDQN(nn.Module):
         :param forbidden_actions:
         :return:
         """
-        return self._dqn_by_action_mode[str(action_mode)].select_action_from_q_values(q_values, prefix_sum, forbidden_actions)
+        return self._dqn_by_action_mode[str(action_mode)].select_action_from_q_values(q_values, forbidden_actions)
 
-    def forward(self, action_mode, states, actions, greedy_acts=False):
+    def forward(self, action_mode, states):
         action_mode = str(action_mode)
-        return self._dqn_by_action_mode[action_mode](states, actions, greedy_acts)
+        return self._dqn_by_action_mode[action_mode](states)
