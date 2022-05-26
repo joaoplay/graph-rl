@@ -63,6 +63,10 @@ class GraphSageDQN(nn.Module):
         print(data.edge_index.is_cuda)
 
         conv1_res = self.conv1(data.x, data.edge_index)
+
+        if USE_CUDA == 1:
+            conv1_res = conv1_res.cuda()
+
         conv2_res = self.conv2(conv1_res, data.edge_index)
 
         grouped_conv2_res = torch.reshape(conv2_res, (len(graphs), graphs[0].num_nodes, self.embedding_dim))
