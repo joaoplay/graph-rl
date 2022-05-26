@@ -176,8 +176,6 @@ class DQNLightning(LightningModule):
 
         NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
 
-        wandb.log({'epsilon': epsilon})
-
         NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
 
         # Calculates training loss

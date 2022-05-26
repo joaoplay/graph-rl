@@ -26,7 +26,7 @@ class GraphSageDQN(nn.Module):
 
         if USE_CUDA == 1:
             self.conv1 = self.conv1.cuda()
-            self.conv2 = self.conv1.cuda()
+            self.conv2 = self.conv2.cuda()
             self.fc = self.fc.cuda()
 
     @staticmethod
@@ -58,15 +58,10 @@ class GraphSageDQN(nn.Module):
         if USE_CUDA == 1:
             data.x = data.x.type(torch.FloatTensor).cuda()
             data.edge_index = data.edge_index.cuda()
-
-        print(data.x.is_cuda)
-        print(data.edge_index.is_cuda)
+        else:
+            data.x = data.x.type(torch.FloatTensor)
 
         conv1_res = self.conv1(data.x, data.edge_index)
-
-        if USE_CUDA == 1:
-            conv1_res = conv1_res.cuda()
-
         conv2_res = self.conv2(conv1_res, data.edge_index)
 
         grouped_conv2_res = torch.reshape(conv2_res, (len(graphs), graphs[0].num_nodes, self.embedding_dim))
