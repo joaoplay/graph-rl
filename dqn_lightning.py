@@ -122,7 +122,7 @@ class DQNLightning(LightningModule):
         action_mode = int(action_modes[1].item())
         actions_tensor = actions.unsqueeze(-1)
 
-        actions, state_action_values, prefix_sum = self.q_networks(action_mode, states)
+        state_action_values, forbidden_actions = self.q_networks(action_mode, states)
         q_sa = state_action_values.gather(1, actions_tensor)
         rewards = rewards.unsqueeze(-1)
 

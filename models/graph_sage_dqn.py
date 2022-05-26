@@ -28,14 +28,11 @@ class GraphSageDQN(nn.Module):
 
         min_tensor = torch.tensor(float(np.finfo(np.float32).min)).type_as(q_values)
 
-        forbidden_actions_bool = []
-        for i in range(100):
-            if i in forbidden_actions:
-                forbidden_actions_bool.append(True)
-            else:
-                forbidden_actions_bool.append(False)
+        forbidden_actions_mask = torch.zeros(q_values.shape, dtype=torch.bool)
+        for g_idx, g_forbidden_actions in enumerate(forbidden_actions):
+            forbidden_actions_mask[g_idx, list(g_forbidden_actions)] = True
 
-        q_values[forbidden_actions_bool] = min_tensor
+        q_values[forbidden_actions_mask] = min_tensor
 
         values, indices = torch.topk(q_values, 1, dim=1)
 
@@ -48,13 +45,16 @@ class GraphSageDQN(nn.Module):
         for graph in graphs:
             pygeom_data += [graph.to_pygeom_representation()]
 
-        data_loader = DataLoader(pygeom_data)
+        data_loader = DataLoader(pygeom_data, batch_size=len(graphs))
         data = next(iter(data_loader))
 
         conv1_res = self.conv1(data.x.type(torch.FloatTensor), data.edge_index)
         conv2_res = self.conv2(conv1_res, data.edge_index)
 
-        mean_embeddings = torch.mean(conv2_res, dim=0)
+        grouped_conv2_res = torch.reshape(conv2_res, (len(graphs), graphs[0].num_nodes, self.embedding_dim))
+
+        mean_embeddings = torch.mean(grouped_conv2_res, dim=1)
+
         q_values = self.fc(mean_embeddings)
 
         return q_values, forbidden_actions
