@@ -4,6 +4,8 @@ from torch import nn
 from torch_geometric.loader import DataLoader
 from torch_geometric.nn import SAGEConv
 
+from settings import USE_CUDA
+
 
 class GraphSageDQN(nn.Module):
 
@@ -21,6 +23,11 @@ class GraphSageDQN(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_output_dim, actions_output_dim)
         )
+
+        if USE_CUDA == 1:
+            self.conv1 = self.conv1.cuda()
+            self.conv2 = self.conv1.cuda()
+            self.fc = self.fc.cuda()
 
     @staticmethod
     def select_action_from_q_values(q_values, forbidden_actions):
@@ -47,6 +54,9 @@ class GraphSageDQN(nn.Module):
 
         data_loader = DataLoader(pygeom_data, batch_size=len(graphs))
         data = next(iter(data_loader))
+
+        if USE_CUDA == 1:
+            data = data.cuda()
 
         conv1_res = self.conv1(data.x.type(torch.FloatTensor), data.edge_index)
         conv2_res = self.conv2(conv1_res, data.edge_index)
