@@ -8,7 +8,6 @@ import torch
 from torch._six import string_classes
 from torch.utils.data._utils.collate import default_collate_err_msg_format, np_str_obj_array_pattern
 
-import wandb
 from matplotlib import pyplot as plt
 from neptune.new.types import File
 from pytorch_lightning import LightningModule
@@ -66,8 +65,8 @@ class DQNLightning(LightningModule):
             self.target_q_networks = self.target_q_networks.cuda()
 
 
-        wandb.watch(self.q_networks, log="all")
-        wandb.watch(self.target_q_networks, log="all")
+        #wandb.watch(self.q_networks, log="all")
+        #wandb.watch(self.target_q_networks, log="all")
 
         self.env = env
         self.graphs = graphs
