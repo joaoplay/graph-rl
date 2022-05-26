@@ -56,7 +56,7 @@ class GraphSageDQN(nn.Module):
         data = next(iter(data_loader))
 
         if USE_CUDA == 1:
-            data.x = data.x.cuda()
+            data.x = data.x.type(torch.FloatTensor).cuda()
             data.edge_index = data.edge_index.cuda()
 
         conv1_res = self.conv1(data.x.type(torch.FloatTensor), data.edge_index)
