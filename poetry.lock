@@ -83,14 +83,14 @@ tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>
 
 [[package]]
 name = "boto3"
-version = "1.23.7"
+version = "1.23.8"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.6"
 
 [package.dependencies]
-botocore = ">=1.26.7,<1.27.0"
+botocore = ">=1.26.8,<1.27.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.5.0,<0.6.0"
 
@@ -99,7 +99,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.26.7"
+version = "1.26.8"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -1151,6 +1151,9 @@ python-versions = ">=3.7"
 [package.extras]
 test = ["pytest", "pytest-cov", "scipy"]
 
+[package.source]
+type = "url"
+url = "https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_cluster-1.6.0-cp39-cp39-linux_x86_64.whl"
 [[package]]
 name = "torch-geometric"
 version = "2.0.4"
@@ -1180,11 +1183,14 @@ version = "2.0.9"
 description = "PyTorch Extension Library of Optimized Scatter Operations"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.extras]
-test = ["pytest", "pytest-runner", "pytest-cov"]
+test = ["pytest", "pytest-cov"]
 
+[package.source]
+type = "url"
+url = "https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp39-cp39-linux_x86_64.whl"
 [[package]]
 name = "torch-sparse"
 version = "0.6.13"
@@ -1199,14 +1205,23 @@ scipy = "*"
 [package.extras]
 test = ["pytest", "pytest-cov"]
 
+[package.source]
+type = "url"
+url = "https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_sparse-0.6.13-cp39-cp39-linux_x86_64.whl"
 [[package]]
 name = "torch-spline-conv"
 version = "1.2.1"
 description = "Implementation of the Spline-Based Convolution Operator of SplineCNN in PyTorch"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
+[package.extras]
+test = ["pytest", "pytest-cov"]
+
+[package.source]
+type = "url"
+url = "https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_spline_conv-1.2.1-cp39-cp39-linux_x86_64.whl"
 [[package]]
 name = "torchmetrics"
 version = "0.8.2"
@@ -1282,7 +1297,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "wandb"
-version = "0.12.16"
+version = "0.12.17"
 description = "A CLI and library for interacting with the Weights and Biases API."
 category = "main"
 optional = false
@@ -1294,7 +1309,7 @@ docker-pycreds = ">=0.4.0"
 GitPython = ">=1.0.0"
 pathtools = "*"
 promise = ">=2.0,<3"
-protobuf = ">=3.12.0"
+protobuf = ">=3.12.0,<4.0dev"
 psutil = ">=5.0.0"
 python-dateutil = ">=2.6.1"
 PyYAML = "*"
@@ -1316,11 +1331,11 @@ sweeps = ["numpy (>=1.15,<1.21)", "scipy (>=1.5.4)", "pyyaml", "scikit-learn (==
 
 [[package]]
 name = "webcolors"
-version = "1.11.1"
+version = "1.12"
 description = "A library for working with color names and color values formats defined by HTML and CSS."
 category = "main"
 optional = false
-python-versions = ">=3.5,"
+python-versions = ">=3.7"
 
 [[package]]
 name = "websocket-client"
@@ -1373,7 +1388,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "abbca63a455677b4401804181c518ed92e24c0df008adab85d5193b34e594783"
+content-hash = "ab5894aaa89f24f65120cf6f9b63a51dd7f5e08c9030fe0e65a21cda685d15bd"
 
 [metadata.files]
 absl-py = [
@@ -1474,12 +1489,12 @@ attrs = [
     {file = "attrs-21.4.0.tar.gz", hash = "sha256:626ba8234211db98e869df76230a137c4c40a12d72445c45d5f5b716f076e2fd"},
 ]
 boto3 = [
-    {file = "boto3-1.23.7-py3-none-any.whl", hash = "sha256:b59a210fa6a87f0c755b40403ffc66b9b285680bbc5ad5245cf167e2def33620"},
-    {file = "boto3-1.23.7.tar.gz", hash = "sha256:3fb956d097105a0fb98c29a622ff233fa8de68519aabd7088d7ffd36dfc33214"},
+    {file = "boto3-1.23.8-py3-none-any.whl", hash = "sha256:15733c2bbedce7a36fcf1749560c72c3ee90785aa6302a98658c7bffdcbe1f2a"},
+    {file = "boto3-1.23.8.tar.gz", hash = "sha256:ea8ebcea4ccb70d1cf57526d9eec6012c76796f28ada3e9cc1d89178683d8107"},
 ]
 botocore = [
-    {file = "botocore-1.26.7-py3-none-any.whl", hash = "sha256:9f8d5e8d65b24d97fcb7804b84831e5627fceb52707167d2f496477675c98ded"},
-    {file = "botocore-1.26.7.tar.gz", hash = "sha256:0f4a467188644382856e96e85bff0b453442d5cf0c0f554154571a6e2468a005"},
+    {file = "botocore-1.26.8-py3-none-any.whl", hash = "sha256:620851daf1245af5bc28137aa821375bac964aa0eddc482437c783fe01e298fc"},
+    {file = "botocore-1.26.8.tar.gz", hash = "sha256:e786722cb14de7319331cc55e9092174de66a768559700ef656d05ff41b3e24f"},
 ]
 bravado = [
     {file = "bravado-11.0.3-py2.py3-none-any.whl", hash = "sha256:8ac8bbb645e49607917a5c07808116c708521f51e80d9c29bc4a168ff4dd22c6"},
@@ -2467,21 +2482,13 @@ tomli = [
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 torch = []
-torch-cluster = [
-    {file = "torch_cluster-1.6.0.tar.gz", hash = "sha256:249c1bd8c33a887b22bf569a59d0868545804032123594dd8c76ba1885859c39"},
-]
+torch-cluster = []
 torch-geometric = [
     {file = "torch_geometric-2.0.4.tar.gz", hash = "sha256:d64e4c7486fcf0c7fa82f0acbf5dd52035855469708bf89f8bc7fc607671c8b7"},
 ]
-torch-scatter = [
-    {file = "torch_scatter-2.0.9.tar.gz", hash = "sha256:08f5511d64473badf0a71d156b36dc2b09b9c2f00a7cd373b935b490c477a7f1"},
-]
-torch-sparse = [
-    {file = "torch_sparse-0.6.13.tar.gz", hash = "sha256:b4896822559f9b47d8b0186d74c94b7449f91db155a57d617fbeae9b722fa1f3"},
-]
-torch-spline-conv = [
-    {file = "torch_spline_conv-1.2.1.tar.gz", hash = "sha256:364f658e0ecb4c5263a728c2961553e022fc44c11a633d5a1bf986cf169ab438"},
-]
+torch-scatter = []
+torch-sparse = []
+torch-spline-conv = []
 torchmetrics = [
     {file = "torchmetrics-0.8.2-py3-none-any.whl", hash = "sha256:19e4ed0305b8c02fd5765a9ff9360c9c622842c2b3491e497ddbf2aec7ce9c5a"},
     {file = "torchmetrics-0.8.2.tar.gz", hash = "sha256:8cec51df230838b07e1bffe407fd98c25b8e1cdf820525a4ba6ef7f7e5ac4d89"},
@@ -2503,12 +2510,12 @@ urllib3 = [
     {file = "urllib3-1.26.9.tar.gz", hash = "sha256:aabaf16477806a5e1dd19aa41f8c2b7950dd3c746362d7e3223dbe6de6ac448e"},
 ]
 wandb = [
-    {file = "wandb-0.12.16-py2.py3-none-any.whl", hash = "sha256:ed7782dadfb5bc457998eccd995f88ae564cdf2a36b12024e4a5d9a47b1b84e8"},
-    {file = "wandb-0.12.16.tar.gz", hash = "sha256:a738b5eb61081fa96fc2e16ffaf6dbde67b78f973ff45bda61ed93659ca09912"},
+    {file = "wandb-0.12.17-py2.py3-none-any.whl", hash = "sha256:40e599ed7a4a633a4e1da77d026ee872fcb60a207aafbd1bf8ec1ab5b8171ccf"},
+    {file = "wandb-0.12.17.tar.gz", hash = "sha256:ad2fe5a9cbb44c445cb0cfc6d04804f74dca2999ae98f0c8db93721b522f76f1"},
 ]
 webcolors = [
-    {file = "webcolors-1.11.1-py3-none-any.whl", hash = "sha256:b8cd5d865a25c51ff1218f0c90d0c0781fc64312a49b746b320cf50de1648f6e"},
-    {file = "webcolors-1.11.1.tar.gz", hash = "sha256:76f360636957d1c976db7466bc71dcb713bb95ac8911944dffc55c01cb516de6"},
+    {file = "webcolors-1.12-py3-none-any.whl", hash = "sha256:d98743d81d498a2d3eaf165196e65481f0d2ea85281463d856b1e51b09f62dce"},
+    {file = "webcolors-1.12.tar.gz", hash = "sha256:16d043d3a08fd6a1b1b7e3e9e62640d09790dce80d2bdd4792a175b35fe794a9"},
 ]
 websocket-client = [
     {file = "websocket-client-1.3.2.tar.gz", hash = "sha256:50b21db0058f7a953d67cc0445be4b948d7fc196ecbeb8083d68d94628e4abf6"},
