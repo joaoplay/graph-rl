@@ -71,6 +71,10 @@ class GraphState:
         self.previous_selected_start_node = None
         self.previous_selected_end_node = None
 
+        nodes_data = self.nx_graph.nodes(data=True)
+        self.input_nodes = [x for x, y in nodes_data if y['node_type'] == 1]
+        self.output_nodes = [x for x, y in nodes_data if y['node_type'] == 2]
+
         self.allow_void_actions = allow_void_actions
 
     def invalidate_selected_start_node(self):
@@ -162,13 +166,16 @@ class GraphState:
         nodes_with_no_edges_available = set([node_id for node_id in self.nx_neighbourhood_graph.nodes()
                                               if self.nx_neighbourhood_graph.degree[node_id] == self.nx_graph.degree[node_id]])
 
+        input_nodes_set = set(self.input_nodes)
+        output_nodes_set = set(self.output_nodes)
+
         """invalid_nodes = set()
         if not self.allow_void_actions:
             # Pick all nodes that are neither isolated nor full of edges
             remaining_nodes = self.all_nodes_set - isolated_nodes - nodes_with_no_edges_available
             invalid_nodes = set([node for node in remaining_nodes if len(self.get_invalid_end_nodes(start_node=node)) == self.num_nodes])"""
 
-        return nodes_with_no_edges_available
+        return nodes_with_no_edges_available | input_nodes_set | output_nodes_set
 
     def get_invalid_end_nodes(self, start_node=None):
         # Use the start_node passed as parameter whenever defined. Otherwise, use the selected start node
@@ -194,7 +201,10 @@ class GraphState:
 
         invalid_end_nodes.update(non_neighbor_nodes)
 
-        return invalid_end_nodes
+        input_nodes_set = set(self.input_nodes)
+        output_nodes_set = set(self.output_nodes)
+
+        return invalid_end_nodes | input_nodes_set | output_nodes_set
 
     def populate_forbidden_actions(self):
         if self.selected_start_node is None:

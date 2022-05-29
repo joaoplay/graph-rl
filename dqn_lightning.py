@@ -208,7 +208,27 @@ class DQNLightning(LightningModule):
         validation_agent.reset()
 
         done = False
+        step = 0
         while not done:
+            if step % 100 == 0 and validation_agent.env.last_irrigation_map is not None:
+                fig_irrigation, ax_irrigation = plt.subplots()
+                ax_irrigation.title.set_text(f'Global Step: {validation_agent.total_steps}')
+                ax_irrigation.imshow(np.flipud(validation_agent.env.last_irrigation_map), cmap='hot', vmin=0,
+                                     interpolation='nearest')
+
+                NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/irrigation'].log(File.as_image(fig_irrigation))
+
+                fig, ax = plt.subplots(figsize=(10, 10))
+                ax.title.set_text(f'Global Step: {validation_agent.total_steps}')
+                draw_nx_irrigation_network(validation_agent.env.last_irrigation_graph,
+                                           validation_agent.env.last_pressures,
+                                           validation_agent.env.last_edge_sources, validation_agent.env.last_edges_list,
+                                           ax)
+                NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/network-debug'].log(File.as_image(fig))
+                plt.show()
+
+            step += 1
+
             reward, done = validation_agent.play_validation_step(self.q_networks, self.get_device(batch))
 
             NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/instant-reward'].log(reward)

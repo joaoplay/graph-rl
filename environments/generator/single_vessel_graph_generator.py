@@ -29,9 +29,9 @@ class SingleVesselGraphGenerator:
     @staticmethod
     def get_pressure(node_type):
         if node_type == 1:
-            return 10
+            return -0.01
         elif node_type == 2:
-            return 5
+            return 1
         else:
             return 0
 
