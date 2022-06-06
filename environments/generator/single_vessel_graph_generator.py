@@ -29,7 +29,7 @@ class SingleVesselGraphGenerator:
     @staticmethod
     def get_pressure(node_type):
         if node_type == 1:
-            return -0.01
+            return -0.5
         elif node_type == 2:
             return 1
         else:
@@ -79,11 +79,13 @@ class SingleVesselGraphGenerator:
     def _generate_neighbourhood_nx_graph(self):
         full_graph_generator = FullGraphGenerator(self.size_x, self.size_y, self.interval_between_nodes)
         nx_graph = full_graph_generator.generate_nx_graph()
+
         return nx_graph
 
     def generate(self):
         nx_graph = self.generate_nx_graph()
         neighbour_graph = self._generate_neighbourhood_nx_graph()
+
         return FluidNetworkState(nx_graph, neighbour_graph, allow_void_actions=self.allow_void_actions)
 
     def generate_multiple_graphs(self, quantity):

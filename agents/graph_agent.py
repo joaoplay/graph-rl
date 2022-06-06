@@ -1,4 +1,5 @@
 from copy import deepcopy
+from datetime import time
 from itertools import compress
 from typing import Tuple, List
 
@@ -15,7 +16,7 @@ from agents.util.sample_tracker import BatchSampler
 from environments.graph_env import GraphEnv, ACTION_MODE_SELECTING_START_NODE, ACTION_MODE_SELECTING_END_NODE
 from graphs.graph_state import GraphState
 from models.multi_action_mode_dqn import MultiActionModeDQN
-from settings import NEPTUNE_INSTANCE, USE_CUDA
+from settings import NEPTUNE_INSTANCE, USE_CUDA, BASE_PATH
 from util import draw_nx_irrigation_network
 
 
@@ -191,32 +192,33 @@ class GraphAgent:
 
             self.selected_end_nodes_stats[actions[0]] += 1
 
+        """
+        if self.env.last_irrigation_map is not None:
+            fig_irrigation, ax_irrigation = plt.subplots()
+            ax_irrigation.title.set_text(f'Global Step: {self.total_steps}')
+            ax_irrigation.imshow(np.flipud(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
+            fig_irrigation.savefig(f'{BASE_PATH}/test_images/irrigation-{self.total_steps}.png')
+
+        if self.env.last_irrigation_graph is not None and self.env.last_pressures is not None \
+                and self.env.last_edge_sources is not None:
+            fig, ax = plt.subplots(figsize=(10, 10))
+            ax.title.set_text(f'Win: {self.wins} | Looses: {self.looses}')
+            draw_nx_irrigation_network(self.env.last_irrigation_graph, self.env.last_pressures,
+                                       self.env.last_edge_sources, self.env.last_edges_list, ax)
+            fig.savefig(f'{BASE_PATH}/test_images/graph-sim-{self.total_steps}.png')
+
+        plt.close('all')"""
+
         self.state = new_state
         if all(done):
-            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
+            print(f"Current Simulation Step: {self.env.steps_counter} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
 
             """fig, axs = plt.subplots(2)
             axs[0].bar(self.selected_start_nodes_stats.keys(),
                        self.selected_start_nodes_stats.values(), 2, color='g')
             axs[1].bar(self.selected_end_nodes_stats.keys(),
                        self.selected_end_nodes_stats.values(), 2, color='g')
-            NEPTUNE_INSTANCE['training/action_selection'].log(File.as_image(fig))
-
-            if self.env.last_irrigation_map is not None:
-                fig_irrigation, ax_irrigation = plt.subplots()
-                ax_irrigation.title.set_text(f'Global Step: {self.total_steps}')
-                ax_irrigation.imshow(np.flipud(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
-
-                NEPTUNE_INSTANCE['training/irrigation'].log(File.as_image(fig_irrigation))"""
-
-            """if self.env.last_irrigation_graph is not None and self.env.last_pressures is not None \
-                    and self.env.last_edge_sources is not None:
-                fig, ax = plt.subplots(figsize=(10, 10))
-                ax.title.set_text(f'Win: {self.wins} | Looses: {self.looses}')
-                draw_nx_irrigation_network(self.env.last_irrigation_graph, self.env.last_pressures, self.env.last_edge_sources, self.env.last_edges_list, ax)
-                NEPTUNE_INSTANCE['training/network-debug'].log(File.as_image(fig))"""
-
-            #plt.close('all')
+            NEPTUNE_INSTANCE['training/action_selection'].log(File.as_image(fig))"""
 
             """start_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_START_NODE)].repr_history, axis=0))
             end_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_END_NODE)].repr_history, axis=0))

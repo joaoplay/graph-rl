@@ -50,7 +50,8 @@ class GraphState:
         # A set with all nodes in the graph. This is useful to intercept sets of nodes.
         self.all_nodes_set = set(self.node_labels)
         # Keeps track on the degree of each node in the graph
-        self.node_degrees = np.array([deg for (node, deg) in sorted(nx_graph.degree(), key=lambda deg_pair: deg_pair[0])])
+        self.node_degrees = np.array(
+            [deg for (node, deg) in sorted(nx_graph.degree(), key=lambda deg_pair: deg_pair[0])])
 
         # Decompose start and end node of every edge
         x, y = zip(*nx_graph.edges())
@@ -74,6 +75,18 @@ class GraphState:
         nodes_data = self.nx_graph.nodes(data=True)
         self.input_nodes = [x for x, y in nodes_data if y['node_type'] == 1]
         self.output_nodes = [x for x, y in nodes_data if y['node_type'] == 2]
+
+        # FIXME: Move it to a method
+        self.valid_neighbours = {}
+        for x, y in nodes_data:
+            neighbours = self.nx_neighbourhood_graph.neighbors(x)
+            total_neighbours = self.nx_neighbourhood_graph.degree(x)
+            n_invalid_neighbours = 0
+            for n in neighbours:
+                if n in self.input_nodes or n in self.output_nodes:
+                    n_invalid_neighbours += 1
+
+            self.valid_neighbours[x] = total_neighbours - n_invalid_neighbours
 
         self.allow_void_actions = allow_void_actions
 
@@ -161,10 +174,10 @@ class GraphState:
         # Identify all isolated nodes. Nodes with zero degree
         isolated_nodes = set(nx.isolates(self.nx_graph))
         # Identify nodes with no edges available. FIXME: Is it correct? Probably we should check the neighborhood graph instead.
-        #nodes_with_no_edges_available = set([node_id for node_id in self.nx_neighbourhood_graph.nodes()
+        # nodes_with_no_edges_available = set([node_id for node_id in self.nx_neighbourhood_graph.nodes()
         #                                     if self.nx_graph.degree[node_id] > 2])
         nodes_with_no_edges_available = set([node_id for node_id in self.nx_neighbourhood_graph.nodes()
-                                              if self.nx_neighbourhood_graph.degree[node_id] == self.nx_graph.degree[node_id]])
+                                             if self.nx_graph.degree[node_id] >= self.valid_neighbours[node_id]] )
 
         input_nodes_set = set(self.input_nodes)
         output_nodes_set = set(self.output_nodes)
@@ -264,7 +277,8 @@ class GraphState:
 
             graph_representation = graph.to_representation(action_mode=action_mode)
 
-            convert_graph_states += [np.concatenate(([graph.num_nodes], forbidden_actions_encoding, graph_representation), dtype=np.float32)]
+            convert_graph_states += [
+                np.concatenate(([graph.num_nodes], forbidden_actions_encoding, graph_representation), dtype=np.float32)]
 
         return np.array(convert_graph_states)
 
@@ -299,7 +313,3 @@ class GraphState:
         graph_representation = np.concatenate((selected_node_one_hot, flatten_graph_one_hot))
 
         return graph_representation
-
-
-
-

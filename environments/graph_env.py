@@ -115,7 +115,7 @@ class GraphEnv:
                 irrigation_improvement = self.calculate_reward(graph_idx=graph_idx, node_added=node_added, start_node=start_node,
                                                                end_node=actions[graph_idx])
 
-                rewards[graph_idx] = -1.0  # + irrigation_improvement
+                rewards[graph_idx] = irrigation_improvement
 
                 # rewards[graph_idx] = 0
             """elif current_graph.previous_selected_start_node == actions[graph_idx]:
@@ -132,12 +132,12 @@ class GraphEnv:
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved():
                 self.done[graph_idx] = True
-                """max_graph_edges = self.graphs_list[graph_idx].nx_neighbourhood_graph.number_of_edges()
+                max_graph_edges = self.graphs_list[graph_idx].nx_neighbourhood_graph.number_of_edges()
                 current_graph_edges = self.graphs_list[graph_idx].nx_graph.number_of_edges()
 
                 min_edges = max_graph_edges / 2.0
 
-                rewards[graph_idx] = 1.0 - ((current_graph_edges - min_edges) / (max_graph_edges - min_edges))"""
+                rewards[graph_idx] = 1.0 - ((current_graph_edges - min_edges) / (max_graph_edges - min_edges))
                 # rewards[graph_idx] = -np.std(self.last_irrigation_map)
 
             if self.max_steps_achieved():
