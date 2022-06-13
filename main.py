@@ -6,8 +6,9 @@ from pytorch_lightning import Trainer, seed_everything
 
 from dqn_lightning import DQNLightning
 from environments.generator.single_vessel_graph_generator import SingleVesselGraphGenerator
+from environments.generator.vascular_network_from_file_generator import VasculatureNetworkFromFileGenerator
 from environments.graph_env import GraphEnv
-from settings import USE_CUDA
+from settings import USE_CUDA, BASE_PATH
 
 os.environ["WANDB_API_KEY"] = '237099249b3c0e91437061c393ab089d03339bc3'
 
@@ -19,10 +20,10 @@ WANDB_PATH = '/data' if USE_CUDA else '.'
 def run_from_config_file(cfg: DictConfig):
     seed_everything(cfg.random_seed, workers=True)
 
-    graph_generator = SingleVesselGraphGenerator(**cfg.environment)
+    gen = VasculatureNetworkFromFileGenerator(BASE_PATH + '/environments/graph_examples/two_vessels.yml')
 
     environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal)
-    train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
+    train_graphs = gen.generate_multiple_graphs(cfg.number_of_graphs)
 
     model = DQNLightning(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
                          multi_action_q_network=cfg.multi_action_q_network, **cfg.core)

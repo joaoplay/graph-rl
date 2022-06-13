@@ -315,7 +315,7 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     # Get k2
     k2 = build_k2(number_of_cells[0], number_of_cells[1])
     # Calculate oxygen in each cell
-    oxygen = calc_oxygen(sources_by_cell, k2, 18)
+    oxygen = calc_oxygen(sources_by_cell, k2, 15)
     oxygen = np.real(oxygen)
 
     return oxygen, sources_by_cell, pressures, edges_source, duplicated_free_edges
