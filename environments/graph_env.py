@@ -2,10 +2,13 @@ from copy import deepcopy
 from typing import Optional
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 from o2calculator.calculator import calculate_network_irrigation
 
 from graphs.graph_state import GraphState
+from settings import BASE_PATH
+from util import draw_nx_irrigation_network
 
 REWARD_EPS = 1e-4
 
@@ -104,9 +107,7 @@ class GraphEnv:
             self.graphs_list[graph_idx] = new_graph
 
             if self.current_action_mode == ACTION_MODE_SELECTING_START_NODE:
-                pass
-                # if current_graph.nx_graph.degree[actions[graph_idx]] > 2:
-                #    rewards[graph_idx] = -1
+                rewards[graph_idx] = -1
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 node_added = edge_insertion_cost > 0
@@ -132,22 +133,23 @@ class GraphEnv:
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved():
                 self.done[graph_idx] = True
-                max_graph_edges = self.graphs_list[graph_idx].nx_neighbourhood_graph.number_of_edges()
+                rewards[graph_idx] = 1.0
+                """max_graph_edges = self.graphs_list[graph_idx].nx_neighbourhood_graph.number_of_edges()
                 current_graph_edges = self.graphs_list[graph_idx].nx_graph.number_of_edges()
 
                 min_edges = max_graph_edges / 2.0
 
-                rewards[graph_idx] = 1.0 - ((current_graph_edges - min_edges) / (max_graph_edges - min_edges))
+                rewards[graph_idx] = 1.0 - ((current_graph_edges - min_edges) / (max_graph_edges - min_edges))"""
                 # rewards[graph_idx] = -np.std(self.last_irrigation_map)
 
             if self.max_steps_achieved():
                 self.done[graph_idx] = True
-                # rewards[graph_idx] = -1
+                rewards[graph_idx] = -1
 
             if new_graph.allowed_actions_not_found:
                 print("Allowed actions not found")
                 self.done[graph_idx] = True
-                # rewards[graph_idx] = -1
+                rewards[graph_idx] = -1
 
             """if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
                     and self.graphs_list[graph_idx].allowed_actions_not_found:
@@ -274,6 +276,8 @@ class GraphEnv:
         self.last_edges_list = None
         self.previous_irrigation_score = None
 
+        # Init an empty array of previous irrigation score. We need it to calculate the rewards
+        self.previous_irrigation_score = [0 for _ in range(len(graphs_list))]
         self.previous_irrigation_score = [self.calculate_reward(graph_idx=graph_idx) for graph_idx in
                                           range(len(graphs_list))]
 
@@ -340,10 +344,10 @@ class GraphEnv:
 
         irrigation_improvement = 0
         if prepared_data is not None:
-            if prepared_data == -1:  # No irrigation
+            """if prepared_data == -1:  # No irrigation
                 self.last_irrigation_map = None
-                self.previous_irrigation_score[graph_idx] = 0
-            elif prepared_data != -1:
+                # self.previous_irrigation_score[graph_idx] = 0"""
+            if prepared_data != -1:
                 irrigation, sources, pressures, edges_source, edges_list = calculate_network_irrigation(
                     prepared_data[0], prepared_data[1],
                     prepared_data[2], [10, 10], [0.1, 0.1])
@@ -366,10 +370,11 @@ class GraphEnv:
                 irrigation_score = (mean_irrigated_x + mean_irrigated_y) / 2.0
 
                 if self.previous_irrigation_score is not None:
+                    # print(f"Previous: {self.previous_irrigation_score[graph_idx]}, Current: {irrigation_score}")
                     irrigation_improvement = irrigation_score - self.previous_irrigation_score[graph_idx]
-
-                if self.previous_irrigation_score:
                     self.previous_irrigation_score[graph_idx] = irrigation_score
+
+                self.previous_irrigation_score[graph_idx] = irrigation_score
 
                 self.last_irrigation_map = irrigation
                 self.last_irrigation_graph = prepared_data[3]
