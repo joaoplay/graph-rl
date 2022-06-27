@@ -8,7 +8,7 @@ from util import draw_nx_irrigation_network
 
 
 def validate_reward():
-    gen = VasculatureNetworkFromFileGenerator(BASE_PATH + '/environments/graph_examples/functional.yml')
+    gen = VasculatureNetworkFromFileGenerator(BASE_PATH + '/environments/graph_examples/functional2.yml')
     graph = gen.generate()
 
     prepared_data = graph.prepare_for_reward_evaluation()

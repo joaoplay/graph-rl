@@ -20,7 +20,7 @@ WANDB_PATH = '/data' if USE_CUDA else '.'
 def run_from_config_file(cfg: DictConfig):
     seed_everything(cfg.random_seed, workers=True)
 
-    gen = VasculatureNetworkFromFileGenerator(BASE_PATH + '/environments/graph_examples/two_vessels.yml')
+    gen = VasculatureNetworkFromFileGenerator(BASE_PATH + cfg.environment.initial_env_path)
 
     environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal)
     train_graphs = gen.generate_multiple_graphs(cfg.number_of_graphs)
