@@ -38,7 +38,7 @@ RUN cd /usr/local/bin \
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-ENV PATH="${HOME}/.local/bin"
+ENV PATH="$HOME/.local/bin"
 
 ADD ./poetry.lock /deps/
 ADD ./pyproject.toml /deps/
