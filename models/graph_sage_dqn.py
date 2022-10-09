@@ -16,7 +16,6 @@ class GraphSageDQN(nn.Module):
         self.num_node_features = num_node_features
 
         self.conv1 = SAGEConv(in_channels=-1, out_channels=embedding_dim)
-        self.conv2 = SAGEConv(in_channels=embedding_dim, out_channels=embedding_dim)
 
         self.fc = nn.Sequential(
             nn.Linear(embedding_dim, hidden_output_dim),
@@ -26,7 +25,6 @@ class GraphSageDQN(nn.Module):
 
         if USE_CUDA == 1:
             self.conv1 = self.conv1.cuda()
-            self.conv2 = self.conv2.cuda()
             self.fc = self.fc.cuda()
 
     @staticmethod
@@ -62,9 +60,9 @@ class GraphSageDQN(nn.Module):
             data.x = data.x.type(torch.FloatTensor)
 
         conv1_res = self.conv1(data.x, data.edge_index)
-        conv2_res = self.conv2(conv1_res, data.edge_index)
+        #conv2_res = self.conv2(conv1_res, data.edge_index)
 
-        grouped_conv2_res = torch.reshape(conv2_res, (len(graphs), graphs[0].num_nodes, self.embedding_dim))
+        grouped_conv2_res = torch.reshape(conv1_res, (len(graphs), graphs[0].num_nodes, self.embedding_dim))
 
         mean_embeddings = torch.mean(grouped_conv2_res, dim=1)
 
