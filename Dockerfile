@@ -38,14 +38,12 @@ RUN cd /usr/local/bin \
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-ENV export PATH="/root/.local/bin:$PATH"
-
 ADD ./poetry.lock /deps/
 ADD ./pyproject.toml /deps/
 
-RUN poetry config virtualenvs.create false
+RUN /root/.local/bin/poetry config virtualenvs.create false
 
-RUN poetry install --no-interaction --no-ansi
+RUN /root/.local/bin/poetry install --no-interaction --no-ansi
 
 RUN cd /usr/lib \
     && git clone https://github.com/joaoplay/pytorch_structure2vec.git \
