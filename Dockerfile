@@ -36,7 +36,7 @@ RUN cd /usr/local/bin \
     && ln -s /usr/bin/python3.9 python \
     && ln -sf /usr/bin/python3.9 /usr/bin/python3
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
 ENV PATH="${PATH}:/root/.poetry/bin"
 
