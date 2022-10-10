@@ -11,6 +11,6 @@ class GraphNode:
 
     def get_features_dict(self):
         return {
-            'x': self.coordinates[0],  # Coordinate X
-            'y': self.coordinates[1],  # Coordinate Y
+            'dim1': self.coordinates[0],  # Coordinate X
+            'dim2': self.coordinates[1],  # Coordinate Y
         }

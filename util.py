@@ -28,15 +28,15 @@ def str_to_class(module_name, class_name):
 
 
 def draw_nx_graph_with_coordinates(networkx_graph, ax):
-    node_x = nx.get_node_attributes(networkx_graph, 'x')
-    node_y = nx.get_node_attributes(networkx_graph, 'y')
+    node_x = nx.get_node_attributes(networkx_graph, 'dim1')
+    node_y = nx.get_node_attributes(networkx_graph, 'dim2')
     coordinates = merge_dicts(node_x, node_y)
     nx.draw(networkx_graph, coordinates, ax, connectionstyle="arc3,rad=0.1", arrowsize=1, with_labels=True)
 
 
 def draw_nx_irrigation_network(networkx_graph, pressures, edges_flow, edges, ax):
-    node_x = nx.get_node_attributes(networkx_graph, 'x')
-    node_y = nx.get_node_attributes(networkx_graph, 'y')
+    node_x = nx.get_node_attributes(networkx_graph, 'dim1')
+    node_y = nx.get_node_attributes(networkx_graph, 'dim2')
     coordinates = merge_dicts(node_x, node_y)
 
     pressures_by_idx = {idx: round(pressure, 3) for idx, pressure in enumerate(pressures)}

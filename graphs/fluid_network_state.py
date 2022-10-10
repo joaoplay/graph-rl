@@ -21,8 +21,8 @@ class FluidNetworkState(GraphState):
         Get node features from a fluid network.
         :return:
         """
-        nodes_x = nx.get_node_attributes(self.nx_graph, 'x')
-        nodes_y = nx.get_node_attributes(self.nx_graph, 'y')
+        nodes_x = nx.get_node_attributes(self.nx_graph, 'dim1')
+        nodes_y = nx.get_node_attributes(self.nx_graph, 'dim2')
         coordinates = [[nodes_x[node_idx], nodes_y[node_idx]] for node_idx in range(self.nx_graph.number_of_nodes())]
 
         return coordinates

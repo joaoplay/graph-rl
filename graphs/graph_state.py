@@ -250,7 +250,7 @@ class GraphState:
 
         # Set selected node
         for node in nx_copy.nodes():
-            nx_copy.nodes[node]['x'] = [nx_copy.nodes[node]['x'], nx_copy.nodes[node]['y'], self.selected_start_node == node]
+            nx_copy.nodes[node]['x'] = [nx_copy.nodes[node]['dim1'], nx_copy.nodes[node]['dim2'], self.selected_start_node == node]
 
         graph_data = from_networkx(nx_copy)
         return graph_data
