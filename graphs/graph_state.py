@@ -246,13 +246,11 @@ class GraphState:
         return self.num_nodes + sum(node[1] for node in self.nx_neighbourhood_graph.degree())
 
     def to_pygeom_representation(self):
-        nx_copy = deepcopy(self.nx_graph)
-
         # Set selected node
-        for node in nx_copy.nodes():
-            nx_copy.nodes[node]['x'] = [nx_copy.nodes[node]['dim1'], nx_copy.nodes[node]['dim2'], self.selected_start_node == node]
+        for node in self.nx_graph.nodes():
+            self.nx_graph.nodes[node]['x'] = [self.nx_graph.nodes[node]['dim1'], self.nx_graph.nodes[node]['dim2'], self.selected_start_node == node]
 
-        graph_data = from_networkx(nx_copy)
+        graph_data = from_networkx(self.nx_graph)
         return graph_data
 
     @staticmethod
