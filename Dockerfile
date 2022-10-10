@@ -45,7 +45,7 @@ RUN /root/.local/bin/poetry config virtualenvs.in-project true
 
 RUN /root/.local/bin/poetry install --no-interaction --no-ansi
 
-ENV PATH="/code/.venv/bin:$PATH"
+ENV PATH="/deps/.venv/bin:$PATH"
 
 RUN cd /usr/lib \
     && git clone https://github.com/joaoplay/pytorch_structure2vec.git \
