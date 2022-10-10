@@ -24,8 +24,8 @@ class GraphSageDQN(nn.Module):
         )
 
         if USE_CUDA == 1:
-            self.conv1 = self.conv1.cuda()
-            self.fc = self.fc.cuda()
+            self.conv1 = self.conv1.cuda(device=1)
+            self.fc = self.fc.cuda(device=1)
 
     @staticmethod
     def select_action_from_q_values(q_values, forbidden_actions):
@@ -54,8 +54,8 @@ class GraphSageDQN(nn.Module):
         data = next(iter(data_loader))
 
         if USE_CUDA == 1:
-            data.x = data.x.type(torch.FloatTensor).cuda()
-            data.edge_index = data.edge_index.cuda()
+            data.x = data.x.type(torch.FloatTensor).cuda(device=1)
+            data.edge_index = data.edge_index.cuda(device=1)
         else:
             data.x = data.x.type(torch.FloatTensor)
 
