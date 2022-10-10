@@ -7,6 +7,6 @@ deterministic: true
 random_seed: 873
 max_steps: 800
 irrigation_goal: 2.0
-training_duration_in_hours: 23
+training_duration_in_hours: 120
 validation_interval: 5000
 num_dataloader_workers: 1
