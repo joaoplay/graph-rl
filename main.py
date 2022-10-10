@@ -34,6 +34,7 @@ def run_from_config_file(cfg: DictConfig):
         gpus=[1] if USE_CUDA else None,
         limit_val_batches=1,
         check_val_every_n_epoch=cfg.validation_interval,
+        enable_progress_bar=False
         # deterministic=cfg.deterministic
     )
 
