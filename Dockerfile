@@ -43,7 +43,7 @@ ADD ./pyproject.toml /deps/
 
 RUN /root/.local/bin/poetry install --no-interaction --no-ansi
 
-RUN source "$( poetry env list --full-path | grep Activated | cut -d' ' -f1 )/bin/activate"
+RUN source "$( /root/.local/bin/poetry env list --full-path | grep Activated | cut -d' ' -f1 )/bin/activate"
 
 RUN cd /usr/lib \
     && git clone https://github.com/joaoplay/pytorch_structure2vec.git \
