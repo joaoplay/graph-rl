@@ -31,7 +31,6 @@ def run_from_config_file(cfg: DictConfig):
     trainer = Trainer(
         max_time={'hours': cfg.training_duration_in_hours},
         gpus=[1] if USE_CUDA else None,
-        progress_bar_refresh_rate=0,
         limit_val_batches=1,
         check_val_every_n_epoch=cfg.validation_interval,
         # deterministic=cfg.deterministic
