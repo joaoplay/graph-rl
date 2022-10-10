@@ -61,8 +61,8 @@ class DQNLightning(LightningModule):
                                                     }, **self.hparams.multi_action_q_network)
 
         if USE_CUDA == 1:
-            self.q_networks = self.q_networks.cuda()
-            self.target_q_networks = self.target_q_networks.cuda()
+            self.q_networks = self.q_networks.cuda(device=1)
+            self.target_q_networks = self.target_q_networks.cuda(device=1)
 
 
         #wandb.watch(self.q_networks, log="all")

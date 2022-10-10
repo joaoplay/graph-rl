@@ -118,8 +118,8 @@ class GraphDQNAgent(BaseAgent):
                                                     })
 
         if USE_CUDA == 1:
-            self.q_networks = self.q_networks.cuda()
-            self.target_q_networks = self.target_q_networks.cuda()
+            self.q_networks = self.q_networks.cuda(device=1)
+            self.target_q_networks = self.target_q_networks.cuda(device=1)
 
         self.target_network_copy_interval = target_network_copy_interval
         self.validation_interval = validation_interval
@@ -210,7 +210,7 @@ class GraphDQNAgent(BaseAgent):
 
             if USE_CUDA == 1:
                 # Move rewards tensor to GPU whenever available
-                rewards_tensor = rewards_tensor.cuda()
+                rewards_tensor = rewards_tensor.cuda(device=1)
 
             # Keeps track on the next states that did not reach the end
             not_finished_next_states = []
@@ -253,12 +253,12 @@ class GraphDQNAgent(BaseAgent):
 
             actions_tensor = torch.tensor(actions).unsqueeze(-1)
             if USE_CUDA == 1:
-                actions_tensor = actions_tensor.cuda()
+                actions_tensor = actions_tensor.cuda(device=1)
 
             q_sa = q_s_all.gather(1, actions_tensor)
 
             if USE_CUDA == 1:
-                rewards_tensor.cuda()
+                rewards_tensor.cuda(device=1)
 
             # Calculate loss and gradients. Back-Propagate gradients
             loss = nn.MSELoss()(q_sa, rewards_tensor)
