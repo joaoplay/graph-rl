@@ -41,9 +41,11 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 ADD ./poetry.lock /deps/
 ADD ./pyproject.toml /deps/
 
+RUN /root/.local/bin/poetry config virtualenvs.in-project true
+
 RUN /root/.local/bin/poetry install --no-interaction --no-ansi
 
-RUN . "$( /root/.local/bin/poetry env list --full-path | grep Activated | cut -d' ' -f1 )/bin/activate"
+ENV PATH="/code/.venv/bin:$PATH"
 
 RUN cd /usr/lib \
     && git clone https://github.com/joaoplay/pytorch_structure2vec.git \
