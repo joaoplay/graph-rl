@@ -60,6 +60,7 @@ class GraphSageDQN(nn.Module):
         if USE_CUDA == 1:
             data.x = data.x.type(torch.FloatTensor).cuda(device=1)
             data.edge_index = data.edge_index.cuda(device=1)
+            data.batch = data.batch.cuda(device=1)
         else:
             data.x = data.x.type(torch.FloatTensor)
 
@@ -67,7 +68,7 @@ class GraphSageDQN(nn.Module):
         conv1_res = nn.ReLU()(conv1_res)
         conv2_res = self.conv2(conv1_res, data.edge_index)
 
-        graph_embed = global_mean_pool(conv2_res, data.batch)
+        graph_embed = global_mean_pool(conv2_res, None)
 
         q_values = self.fc(graph_embed)
 
