@@ -1,8 +1,9 @@
 import numpy as np
 import torch
 from torch import nn
+from torch.nn import Linear
 from torch_geometric.loader import DataLoader
-from torch_geometric.nn import SAGEConv
+from torch_geometric.nn import global_mean_pool, GCNConv
 
 from settings import USE_CUDA
 
@@ -15,16 +16,19 @@ class GraphSageDQN(nn.Module):
         self.embedding_dim = embedding_dim
         self.num_node_features = num_node_features
 
-        self.conv1 = SAGEConv(in_channels=-1, out_channels=embedding_dim)
+        self.conv1 = GCNConv(in_channels=-1, out_channels=embedding_dim)
+        self.conv2 = GCNConv(in_channels=embedding_dim, out_channels=embedding_dim)
+        self.fc = Linear(in_features=embedding_dim, out_features=actions_output_dim)
 
-        self.fc = nn.Sequential(
+        """self.fc = nn.Sequential(
             nn.Linear(embedding_dim, hidden_output_dim),
             nn.ReLU(),
             nn.Linear(hidden_output_dim, actions_output_dim)
-        )
+        )"""
 
         if USE_CUDA == 1:
             self.conv1 = self.conv1.cuda(device=1)
+            self.conv2 = self.conv2.cuda(device=1)
             self.fc = self.fc.cuda(device=1)
 
     @staticmethod
@@ -60,13 +64,12 @@ class GraphSageDQN(nn.Module):
             data.x = data.x.type(torch.FloatTensor)
 
         conv1_res = self.conv1(data.x, data.edge_index)
-        #conv2_res = self.conv2(conv1_res, data.edge_index)
+        conv1_res = nn.ReLU()(conv1_res)
+        conv2_res = self.conv2(conv1_res, data.edge_index)
 
-        grouped_conv2_res = torch.reshape(conv1_res, (len(graphs), graphs[0].num_nodes, self.embedding_dim))
+        graph_embed = global_mean_pool(conv2_res, data.batch)
 
-        mean_embeddings = torch.mean(grouped_conv2_res, dim=1)
-
-        q_values = self.fc(mean_embeddings)
+        q_values = self.fc(graph_embed)
 
         return q_values, forbidden_actions
 
