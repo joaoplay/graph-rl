@@ -43,6 +43,7 @@ class FluidNetworkState(GraphState):
                 and (self.nx_graph.degree[start_node] == 1 or self.nx_graph.degree[end_node] == 1):
             return None
 
+        # Deep copy
         nx_graph_copy = self.nx_graph.to_undirected()
         nx_graph_copy.remove_nodes_from(list(nx.isolates(nx_graph_copy)))
 

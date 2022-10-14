@@ -304,8 +304,13 @@ class GraphEnv:
 
     @property
     def current_graph_representation_copy(self):
+        """
+        FIXME: This is the critical point in terms of performance. It takes a lot of time to copy the graph representation.
+               We are deep copying the graph representation for each graph in the environment. This is not efficient.
+        :return:
+        """
         return [(deepcopy(self.graphs_list[i]), deepcopy(self.graphs_list[i].selected_start_node),
-                 deepcopy(self.graphs_list[i].forbidden_actions))
+                 deepcopy(self.graphs_list[i].forbidden_actions), self.graphs_list[i].to_pygeom_representation())
                 for i in range(len(self.graphs_list))]
 
     def clone_current_state(self, graph_indexes=None):

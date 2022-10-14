@@ -132,7 +132,7 @@ class GraphAgent:
         Returns:
             reward, done
         """
-
+        # Get the action from the DQN
         actions = self.get_action(self.env.current_action_mode, q_networks, epsilon, device)
 
         previous_action_mode = self.env.current_action_mode

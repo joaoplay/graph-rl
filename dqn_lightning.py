@@ -129,15 +129,16 @@ class DQNLightning(LightningModule):
         if torch.any(not_dones):
             with torch.no_grad():
                 # FIXME: This is awful. Need to fix this.
-                next_states_s, next_states_selected, next_states_forbidden = next_states
+                next_states_s, next_states_selected, next_states_forbidden, next_states_s_pygeom = next_states
                 not_done_next_states_s = [next_states_s[i] for i in range(len(next_states_s)) if not_dones[i].item()]
                 not_done_next_selected = [next_states_selected[i] for i in range(len(next_states_selected)) if not_dones[i].item()]
                 not_done_next_forbidden = [next_states_forbidden[i] for i in range(len(next_states_forbidden)) if not_dones[i].item()]
-                not_done_next_states = (not_done_next_states_s, not_done_next_selected, not_done_next_forbidden)
+                not_done_next_states_pygeom = [next_states_s_pygeom[i] for i in range(len(next_states_s_pygeom)) if not_dones[i].item()]
+                not_done_next_states = (not_done_next_states_s, not_done_next_selected, not_done_next_forbidden, not_done_next_states_pygeom)
 
                 next_action_mode = (action_mode + 1) % len(self.hparams.action_modes)
 
-                _, _, forbidden_actions = not_done_next_states
+                _, _, forbidden_actions, _ = not_done_next_states
 
                 # Get the q-value for the next state
                 q_t_next, _ = self.target_q_networks(next_action_mode, not_done_next_states)

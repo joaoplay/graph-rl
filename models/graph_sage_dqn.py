@@ -48,13 +48,13 @@ class GraphSageDQN(nn.Module):
         return indices, values
 
     def forward(self, states):
-        graphs, selected_nodes, forbidden_actions = states
+        graphs, selected_nodes, forbidden_actions, graphs_pyg = states
 
-        pygeom_data = []
-        for graph in graphs:
-            pygeom_data += [graph.to_pygeom_representation()]
+        #pygeom_data = []
+        #for graph in graphs:
+        #    pygeom_data += [graph.to_pygeom_representation]
 
-        data_loader = DataLoader(pygeom_data, batch_size=len(graphs))
+        data_loader = DataLoader(graphs_pyg, batch_size=len(graphs))
         data = next(iter(data_loader))
 
         if USE_CUDA == 1:
