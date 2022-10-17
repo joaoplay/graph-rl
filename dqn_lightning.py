@@ -199,7 +199,7 @@ class DQNLightning(LightningModule):
 
         return {"loss": loss, "log": log, "progress_bar": status}
 
-    def validation_step(self, batch, nb_batch):
+    def validation_step(self, batch, ncb_batch):
         """Tests the agent in the environment.
 
         """
