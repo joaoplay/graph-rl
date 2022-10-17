@@ -27,7 +27,7 @@ def run_from_config_file(cfg: DictConfig):
                          multi_action_q_network=cfg.multi_action_q_network, **cfg.core)
 
     trainer = Trainer(
-        max_epochs=1000,
+        max_epochs=50000,
         #max_time={'hours': cfg.training_duration_in_hours},
         gpus=[0] if USE_CUDA else None,
         enable_progress_bar=False,
