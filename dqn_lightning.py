@@ -66,8 +66,8 @@ class DQNLightning(LightningModule):
             self.target_q_networks = self.target_q_networks.cuda()
 
 
-        wandb.watch(self.q_networks, log="all")
-        wandb.watch(self.target_q_networks, log="all")
+        #wandb.watch(self.q_networks, log="all")
+        #wandb.watch(self.target_q_networks, log="all")
 
         self.env = env
         self.graphs = graphs
@@ -182,7 +182,7 @@ class DQNLightning(LightningModule):
 
         NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
 
-        wandb.log({'epsilon': epsilon})
+        #wandb.log({'epsilon': epsilon})
 
         NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
 
