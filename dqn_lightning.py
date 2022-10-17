@@ -4,7 +4,7 @@ from typing import Any, Tuple, List
 
 import numpy as np
 import torch
-import wandb
+#import wandb
 from matplotlib import pyplot as plt
 from neptune.new.types import File
 from pytorch_lightning import LightningModule
@@ -57,8 +57,8 @@ class DQNLightning(LightningModule):
                                                         ACTION_MODE_SELECTING_END_NODE: number_of_nodes,
                                                     }, **self.hparams.multi_action_q_network)
 
-        wandb.watch(self.q_networks, log="all")
-        wandb.watch(self.target_q_networks, log="all")
+        #wandb.watch(self.q_networks, log="all")
+        #wandb.watch(self.target_q_networks, log="all")
 
         self.env = env
         self.graphs = graphs
@@ -163,7 +163,7 @@ class DQNLightning(LightningModule):
 
         NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
 
-        wandb.log({'epsilon': epsilon})
+        #wandb.log({'epsilon': epsilon})
 
         NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
 

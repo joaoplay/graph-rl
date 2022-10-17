@@ -1,7 +1,6 @@
 import os
 
 import hydra
-import wandb
 from omegaconf import DictConfig
 from pytorch_lightning import Trainer, seed_everything
 
@@ -12,7 +11,7 @@ from settings import USE_CUDA
 
 os.environ["WANDB_API_KEY"] = '237099249b3c0e91437061c393ab089d03339bc3'
 
-wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"))
+#wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"))
 
 
 @hydra.main(config_path="configs", config_name="default_config")
@@ -30,7 +29,7 @@ def run_from_config_file(cfg: DictConfig):
     trainer = Trainer(
         max_time={'hours': cfg.training_duration_in_hours},
         gpus=[0] if USE_CUDA else None,
-        progress_bar_refresh_rate=0,
+        enable_progress_bar=False,
         limit_val_batches=1,
         check_val_every_n_epoch=cfg.validation_interval,
         # deterministic=cfg.deterministic
