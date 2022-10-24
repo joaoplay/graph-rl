@@ -1,6 +1,7 @@
 import os
 
 import hydra
+import wandb
 from omegaconf import DictConfig
 from pytorch_lightning import Trainer, seed_everything
 
@@ -14,7 +15,7 @@ os.environ["WANDB_API_KEY"] = '237099249b3c0e91437061c393ab089d03339bc3'
 # FIXME: Move it to ENV variable. I can't do it now because I don't want to deal with the DOCKER rebuild process.
 WANDB_PATH = '/data' if USE_CUDA == 1 else '.'
 
-#wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"), dir=WANDB_PATH)
+wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"), dir=WANDB_PATH)
 
 @hydra.main(config_path="configs", config_name="default_config")
 def run_from_config_file(cfg: DictConfig):

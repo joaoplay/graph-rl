@@ -5,6 +5,7 @@ from typing import Any, Tuple, List
 
 import numpy as np
 import torch
+import wandb
 from torch._six import string_classes
 from torch.utils.data._utils.collate import default_collate_err_msg_format, np_str_obj_array_pattern
 
@@ -64,9 +65,8 @@ class DQNLightning(LightningModule):
             self.q_networks = self.q_networks.cuda(device=1)
             self.target_q_networks = self.target_q_networks.cuda(device=1)
 
-
-        #wandb.watch(self.q_networks, log="all")
-        #wandb.watch(self.target_q_networks, log="all")
+        wandb.watch(self.q_networks, log="all")
+        wandb.watch(self.target_q_networks, log="all")
 
         self.env = env
         self.graphs = graphs
