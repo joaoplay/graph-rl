@@ -85,6 +85,13 @@ class DQNLightning(LightningModule):
         """
         for i in range(steps):
             reward, done = self.agent.play_step(self.q_networks, epsilon=1.0)
+
+            self.episode_reward += reward
+
+            if done:
+                NEPTUNE_INSTANCE['training/cumulative-reward'].log(self.episode_reward)
+                self.episode_reward = 0
+
             NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
 
     def forward(self, x: Tensor) -> Tensor:
