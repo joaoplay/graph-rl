@@ -190,6 +190,7 @@ class DQNLightning(LightningModule):
         if done:
             self.total_reward = self.episode_reward
             self.episode_reward = 0
+            NEPTUNE_INSTANCE['training/cumulative-reward'].log(self.total_reward)
 
         # Soft update of target network
         if self.global_step % self.hparams.sync_rate == 0:
