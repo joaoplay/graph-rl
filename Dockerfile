@@ -55,4 +55,6 @@ RUN cd /usr/lib \
 
 VOLUME ["/code"]
 
+RUN git config --global --add safe.directory /code
+
 WORKDIR /code
