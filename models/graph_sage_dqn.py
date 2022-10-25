@@ -16,9 +16,9 @@ class GraphSageDQN(nn.Module):
         self.embedding_dim = embedding_dim
         self.num_node_features = num_node_features
 
-        self.conv1 = GCNConv(in_channels=3, out_channels=embedding_dim)
-        self.conv2 = GCNConv(in_channels=embedding_dim, out_channels=embedding_dim)
-        self.fc = Linear(in_features=embedding_dim, out_features=actions_output_dim)
+        self.conv1 = GCNConv(in_channels=3, out_channels=hidden_output_dim)
+        self.conv2 = GCNConv(in_channels=hidden_output_dim, out_channels=hidden_output_dim)
+        self.fc = Linear(in_features=hidden_output_dim, out_features=actions_output_dim)
 
         """self.fc = nn.Sequential(
             nn.Linear(embedding_dim, hidden_output_dim),

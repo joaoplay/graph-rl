@@ -22,7 +22,7 @@ class MultiActionModeDQN(nn.Module):
 
         self._dqn_by_action_mode = nn.ModuleDict(
             {str(action_mode): GraphSageDQN(unique_id=action_mode,
-                                            embedding_dim=50,
+                                            embedding_dim=hidden_output_dim[action_mode],
                                             hidden_output_dim=hidden_output_dim[action_mode],
                                             actions_output_dim=action_output_dim[action_mode],
                                             num_node_features=4)
