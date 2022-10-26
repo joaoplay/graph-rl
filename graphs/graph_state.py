@@ -147,7 +147,8 @@ class GraphState:
         :param start_node:
         :return:
         """
-        return self.all_nodes_set - self.get_invalid_end_nodes(start_node=start_node)
+        valid_end_nodes = set(range(len(list(self.nx_neighbourhood_graph.neighbors(start_node))))) - self.get_invalid_end_nodes(start_node=start_node)
+        return valid_end_nodes
 
     def get_invalid_start_nodes(self):
         """
@@ -175,26 +176,24 @@ class GraphState:
         # We support a specific start node (apart from the one specified in selected_start_node) to mock a specific move
         start_node = start_node if start_node is not None else self.selected_start_node
 
-        invalid_end_nodes = set()
-        invalid_end_nodes.add(start_node)
-
         existing_edges = self.edge_pairs.reshape(-1, 2)
+
+        invalid_end_nodes = set()
 
         # Exclude all nodes that already have an edge FROM the selected node
         existing_left = existing_edges[existing_edges[:, 0] == start_node]
         invalid_end_nodes.update(np.ravel(existing_left[:, 1]))
 
-        # Exclude all nodes that already have an edge TO the selected node
+        # Exclude all nodes that already have an edge selected TO the  node
         existing_right = existing_edges[existing_edges[:, 1] == start_node]
         invalid_end_nodes.update(np.ravel(existing_right[:, 0]))
 
-        select_node_neighbors = set(self.nx_neighbourhood_graph.neighbors(start_node))
-        all_nodes = set(self.nx_neighbourhood_graph.nodes)
-        non_neighbor_nodes = all_nodes - select_node_neighbors
+        neighbour_map = {node_id: i for i, node_id in enumerate(self.nx_neighbourhood_graph.neighbors(start_node))}
+        invalid = []
+        for inv_neigh in invalid_end_nodes:
+            invalid.append(neighbour_map[inv_neigh])
 
-        invalid_end_nodes.update(non_neighbor_nodes)
-
-        return invalid_end_nodes
+        return set(invalid)
 
     def populate_forbidden_actions(self):
         if self.selected_start_node is None:
@@ -239,8 +238,12 @@ class GraphState:
         return self.all_nodes_set - self.forbidden_actions
 
     @cached_property
-    def representation_dim(self):
+    def start_node_selection_representation_dim(self):
         return self.num_nodes + sum(node[1] for node in self.nx_neighbourhood_graph.degree())
+
+    @cached_property
+    def end_node_selection_representation_dim(self):
+        return self.num_nodes + 8
 
     @staticmethod
     def convert_all_to_representation(action_mode, graph_states):
@@ -248,7 +251,8 @@ class GraphState:
         for graph in graph_states:
             forbidden_actions_list = list(graph.forbidden_actions)
 
-            forbidden_actions_encoding = np.zeros(graph.num_nodes)
+            actions_size = graph.num_nodes if graph.selected_start_node is None else 8
+            forbidden_actions_encoding = np.zeros(actions_size)
             if len(forbidden_actions_encoding) > 0:
                 forbidden_actions_encoding[forbidden_actions_list] = 1
 

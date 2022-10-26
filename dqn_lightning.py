@@ -36,25 +36,27 @@ class DQNLightning(LightningModule):
         self.save_hyperparameters()
 
         number_of_nodes = graphs[0].num_nodes
-        representation_dim = graphs[0].representation_dim
+        start_representation_dim = graphs[0].start_node_selection_representation_dim
+        end_representation_dim = graphs[0].end_node_selection_representation_dim
+
 
         self.q_networks = MultiActionModeDQN(action_modes=self.hparams.action_modes,
                                              input_dim={
-                                                 ACTION_MODE_SELECTING_START_NODE: representation_dim,
-                                                 ACTION_MODE_SELECTING_END_NODE: representation_dim,
+                                                 ACTION_MODE_SELECTING_START_NODE: start_representation_dim,
+                                                 ACTION_MODE_SELECTING_END_NODE: end_representation_dim,
                                              },
                                              action_output_dim={
                                                  ACTION_MODE_SELECTING_START_NODE: number_of_nodes,
-                                                 ACTION_MODE_SELECTING_END_NODE: number_of_nodes,
+                                                 ACTION_MODE_SELECTING_END_NODE: 8,
                                              }, **self.hparams.multi_action_q_network)
         self.target_q_networks = MultiActionModeDQN(action_modes=self.hparams.action_modes,
                                                     input_dim={
-                                                        ACTION_MODE_SELECTING_START_NODE: representation_dim,
-                                                        ACTION_MODE_SELECTING_END_NODE: representation_dim,
+                                                        ACTION_MODE_SELECTING_START_NODE: start_representation_dim,
+                                                        ACTION_MODE_SELECTING_END_NODE: end_representation_dim,
                                                     },
                                                     action_output_dim={
                                                         ACTION_MODE_SELECTING_START_NODE: number_of_nodes,
-                                                        ACTION_MODE_SELECTING_END_NODE: number_of_nodes,
+                                                        ACTION_MODE_SELECTING_END_NODE: 8,
                                                     }, **self.hparams.multi_action_q_network)
 
         #wandb.watch(self.q_networks, log="all")

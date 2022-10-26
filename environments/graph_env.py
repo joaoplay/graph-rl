@@ -237,7 +237,9 @@ class GraphEnv:
 
             previous_selected_start_node = graph.selected_start_node
 
-            graph, edge_insertion_cost = graph.add_or_remove_edge(graph.selected_start_node, action)
+            neighbours = list(graph.nx_neighbourhood_graph.neighbors(graph.selected_start_node))
+            end_node = neighbours[action]
+            graph, edge_insertion_cost = graph.add_or_remove_edge(graph.selected_start_node, end_node)
 
             graph.previous_selected_start_node = previous_selected_start_node
 
