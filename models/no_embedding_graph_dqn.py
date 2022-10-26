@@ -11,6 +11,8 @@ class NoEmbeddingGraphDQN(nn.Module):
     def __init__(self, unique_id: int, input_dim: int, hidden_output_dim: int, actions_output_dim: int) -> None:
         super().__init__()
 
+        self.actions_output_dim = actions_output_dim
+
         self.fc = nn.Sequential(
             Linear(input_dim, hidden_output_dim),
             nn.ReLU(),
@@ -35,11 +37,11 @@ class NoEmbeddingGraphDQN(nn.Module):
 
         return indices, values
 
-    @staticmethod
-    def strip_forbidden_actions(states):
+    def strip_forbidden_actions(self, states):
+        # The number of nodes is not needed anymore. It is inferred from the action output dimension.
         num_nodes = int(states[0][0].item())
-        forbidden_actions = states[:, 1: num_nodes + 1]
-        new_states = states[:, num_nodes + 2:]
+        forbidden_actions = states[:, 1: self.actions_output_dim + 1]
+        new_states = states[:, self.actions_output_dim + 1:]
 
         return new_states, forbidden_actions
 
@@ -48,8 +50,6 @@ class NoEmbeddingGraphDQN(nn.Module):
 
     def forward(self, states):
         graph_representation, forbidden_actions = self.prepare_data(states)
-
-        print(f"Unique ID: {self.unique_id} | Graph Representation Size: {graph_representation.shape}")
 
         q_values = self.fc(graph_representation)
 

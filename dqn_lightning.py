@@ -37,13 +37,11 @@ class DQNLightning(LightningModule):
 
         number_of_nodes = graphs[0].num_nodes
         start_representation_dim = graphs[0].start_node_selection_representation_dim
-        end_representation_dim = graphs[0].end_node_selection_representation_dim
-
 
         self.q_networks = MultiActionModeDQN(action_modes=self.hparams.action_modes,
                                              input_dim={
                                                  ACTION_MODE_SELECTING_START_NODE: start_representation_dim,
-                                                 ACTION_MODE_SELECTING_END_NODE: end_representation_dim,
+                                                 ACTION_MODE_SELECTING_END_NODE: start_representation_dim,
                                              },
                                              action_output_dim={
                                                  ACTION_MODE_SELECTING_START_NODE: number_of_nodes,
@@ -52,7 +50,7 @@ class DQNLightning(LightningModule):
         self.target_q_networks = MultiActionModeDQN(action_modes=self.hparams.action_modes,
                                                     input_dim={
                                                         ACTION_MODE_SELECTING_START_NODE: start_representation_dim,
-                                                        ACTION_MODE_SELECTING_END_NODE: end_representation_dim,
+                                                        ACTION_MODE_SELECTING_END_NODE: start_representation_dim,
                                                     },
                                                     action_output_dim={
                                                         ACTION_MODE_SELECTING_START_NODE: number_of_nodes,

@@ -243,7 +243,7 @@ class GraphState:
 
     @cached_property
     def end_node_selection_representation_dim(self):
-        return self.num_nodes + 8
+        return 8 + sum(node[1] for node in self.nx_neighbourhood_graph.degree())
 
     @staticmethod
     def convert_all_to_representation(action_mode, graph_states):
@@ -251,10 +251,18 @@ class GraphState:
         for graph in graph_states:
             forbidden_actions_list = list(graph.forbidden_actions)
 
-            actions_size = graph.num_nodes if graph.selected_start_node is None else 8
-            forbidden_actions_encoding = np.zeros(actions_size)
-            if len(forbidden_actions_encoding) > 0:
+            if graph.selected_start_node is None:
+                forbidden_actions_encoding = np.zeros(graph.num_nodes)
+                if len(forbidden_actions_encoding) > 0:
+                    forbidden_actions_encoding[forbidden_actions_list] = 1
+            else:
+                forbidden_actions_encoding = np.zeros(8)
+                # Invalidate all not available actions
                 forbidden_actions_encoding[forbidden_actions_list] = 1
+
+                neighbourhood_size = len(list(graph.nx_neighbourhood_graph.neighbors(graph.selected_start_node)))
+                # Invalidate unexisting nodes
+                forbidden_actions_encoding[neighbourhood_size:] = 1
 
             graph_representation = graph.to_representation(action_mode=action_mode)
 
