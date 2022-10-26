@@ -11,6 +11,8 @@ ENV PYTHON_VERSION 3.9
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+ENV FORCE_CUDA=1
+
 ARG USE_CUDA=0
 ENV USE_CUDA=${USE_CUDA}
 
@@ -34,16 +36,16 @@ RUN cd /usr/local/bin \
     && ln -s /usr/bin/python3.9 python \
     && ln -sf /usr/bin/python3.9 /usr/bin/python3
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-
-ENV PATH="${PATH}:/root/.poetry/bin"
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
 ADD ./poetry.lock /deps/
 ADD ./pyproject.toml /deps/
 
-RUN poetry config virtualenvs.create false
+RUN /root/.local/bin/poetry config virtualenvs.in-project true
 
-RUN poetry install --no-interaction --no-ansi
+RUN /root/.local/bin/poetry install --no-interaction --no-ansi
+
+ENV PATH="/deps/.venv/bin:$PATH"
 
 RUN cd /usr/lib \
     && git clone https://github.com/joaoplay/pytorch_structure2vec.git \
@@ -52,5 +54,7 @@ RUN cd /usr/lib \
     && make -j4
 
 VOLUME ["/code"]
+
+RUN git config --global --add safe.directory /code
 
 WORKDIR /code
