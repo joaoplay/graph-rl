@@ -26,11 +26,24 @@ class SingleVesselGraphGenerator:
         else:
             return 0
 
+    # Viscosity: 4 * 10-3
+    # Diameter: 10
+    # (pi * r^4 / 8) * 0.1mm
+    
+    # Raio converter para metros
+    # 
+    
+    # 1mm
+    
+    # Factor de conversão 10e^12
+
     @staticmethod
     def get_pressure(node_type):
         if node_type == 1:
+            # FIXME: 45
             return 10
         elif node_type == 2:
+            # FIXME: 40
             return 5
         else:
             return 0
