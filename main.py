@@ -7,7 +7,7 @@ from pytorch_lightning import Trainer, seed_everything
 from dqn_lightning import DQNLightning
 from environments.generator.single_vessel_graph_generator import SingleVesselGraphGenerator
 from environments.graph_env import GraphEnv
-from settings import USE_CUDA
+from settings import USE_CUDA, NEPTUNE_INSTANCE
 
 os.environ["WANDB_API_KEY"] = '237099249b3c0e91437061c393ab089d03339bc3'
 
@@ -16,6 +16,8 @@ os.environ["WANDB_API_KEY"] = '237099249b3c0e91437061c393ab089d03339bc3'
 
 @hydra.main(config_path="configs", config_name="default_config")
 def run_from_config_file(cfg: DictConfig):
+    NEPTUNE_INSTANCE['config'] = cfg
+
     seed_everything(cfg.random_seed, workers=True)
 
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
