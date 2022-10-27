@@ -79,6 +79,11 @@ class DQNLightning(LightningModule):
             reward, done = self.agent.play_step(self.q_networks, epsilon=1.0)
             NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
 
+            self.episode_reward += reward
+            if done:
+                NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
+                self.episode_reward = 0
+
     def forward(self, x: Tensor) -> Tensor:
         """Passes in a state x through the network and gets the q_values of each action as an output.
 
@@ -179,6 +184,7 @@ class DQNLightning(LightningModule):
             NEPTUNE_INSTANCE['training/end-node-selection-loss'].log(loss)
 
         if done:
+            NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
             self.total_reward = self.episode_reward
             self.episode_reward = 0
 
