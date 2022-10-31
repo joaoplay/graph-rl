@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 from copy import deepcopy
 from typing import Any, Tuple, List
@@ -66,7 +67,6 @@ class DQNLightning(LightningModule):
         self.agent = GraphAgent(self.env, self.graphs, self.buffer)
         self.total_reward = 0
         self.episode_reward = 0
-        self.populate(self.hparams.warm_start_steps)
 
     def populate(self, steps: int = 1000) -> None:
         """Carries out several random steps through the environment to initially fill up the replay buffer with
@@ -245,6 +245,27 @@ class DQNLightning(LightningModule):
             NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/network-debug'].log(File.as_image(fig))
 
         plt.close('all')
+
+    def save_models(self, path):
+        """Saves the model to the specified path.
+
+        Args:
+            path: path to save the model
+        """
+        torch.save(self.q_networks.state_dict(), f'{path}/q_networks.pt')
+        torch.save(self.target_q_networks.state_dict(), f'{path}/target_q_networks.pt')
+
+    def load_models(self, path):
+        """
+        Check if model exists and load it
+        :param path:
+        :return:
+        """
+        if os.path.exists(f'{path}q_networks.pt'):
+            self.q_networks.load_state_dict(torch.load(f'{path}q_networks.pt'))
+            self.target_q_networks.load_state_dict(torch.load(f'{path}target_q_networks.pt'))
+        else:
+            print("No model found. Starting from scratch.")
 
     def print_network_params(self):
         print("Q-Networks")
