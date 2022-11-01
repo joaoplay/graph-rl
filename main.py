@@ -33,17 +33,17 @@ def run_hierarchical_experiment(cfg: DictConfig):
 
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
-    for h in cfg.hierarchical['irrigation']:
+    for h in cfg.hierarchical:
         print(f'Running irrigation hierarchical level {h}')
 
-        goal = h.goal
+        goal = h.irrigation_goal
         training_steps = h.training_steps
 
         environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=goal)
         train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
         model = DQNLightning(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
-                             multi_action_q_network=cfg.multi_action_q_network, **cfg.core)
+                             multi_action_q_network=cfg.multi_action_q_network, **h.core)
         model.load_models(folder_path)
         model.populate(model.hparams.warm_start_steps)
 

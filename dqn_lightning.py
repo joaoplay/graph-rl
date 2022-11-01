@@ -194,6 +194,7 @@ class DQNLightning(LightningModule):
             self.target_q_networks.load_state_dict(self.q_networks.state_dict())
 
         log = {
+            "is_episode_end": done,
             "total_reward": torch.tensor(self.total_reward).to(device),
             "reward": torch.tensor(reward).to(device),
             "train_loss": loss,
@@ -214,9 +215,11 @@ class DQNLightning(LightningModule):
         validation_agent.reset()
 
         done = False
+        cum_reward = 0
         while not done:
             reward, done = validation_agent.play_validation_step(self.q_networks, self.get_device(batch))
 
+            cum_reward += reward
             NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/instant-reward'].log(reward)
 
         NEPTUNE_INSTANCE[f'validation/episode-length'].log(validation_agent.env.steps_counter)
@@ -245,6 +248,8 @@ class DQNLightning(LightningModule):
             NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/network-debug'].log(File.as_image(fig))
 
         plt.close('all')
+
+        return {'cum_reward': cum_reward}
 
     def save_models(self, path):
         """Saves the model to the specified path.
