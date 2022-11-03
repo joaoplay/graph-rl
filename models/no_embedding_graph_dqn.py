@@ -5,7 +5,6 @@ from torch.nn import Linear
 
 from settings import USE_CUDA
 
-
 class NoEmbeddingGraphDQN(nn.Module):
 
     def __init__(self, unique_id: int, input_dim: int, hidden_output_dim: int, actions_output_dim: int) -> None:
