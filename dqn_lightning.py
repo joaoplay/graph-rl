@@ -249,7 +249,8 @@ class DQNLightning(LightningModule):
 
         plt.close('all')
 
-        return {'cum_reward': cum_reward}
+        self.log('episode-length', validation_agent.env.steps_counter)
+        return {'episode-length': validation_agent.env.steps_counter}
 
     def save_models(self, path):
         """Saves the model to the specified path.
