@@ -239,7 +239,7 @@ class GraphState:
 
     @cached_property
     def start_node_selection_representation_dim(self):
-        return self.num_nodes + sum(node[1] for node in self.nx_neighbourhood_graph.degree()) + 8281 # FIXME: This is hardcoded
+        return self.num_nodes + sum(node[1] for node in self.nx_neighbourhood_graph.degree())
 
     @cached_property
     def end_node_selection_representation_dim(self):

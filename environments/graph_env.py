@@ -39,7 +39,7 @@ class GraphEnv:
 
     """
 
-    def __init__(self, max_steps, irrigation_goal) -> None:
+    def __init__(self, max_steps, irrigation_goal, inject_irrigation) -> None:
         super().__init__()
 
         # Batch of graphs
@@ -47,6 +47,7 @@ class GraphEnv:
         self.action_modes = DEFAULT_ACTION_MODES
         self.max_steps = max_steps
         self.irrigation_goal = irrigation_goal
+        self.inject_irrigation = inject_irrigation
 
         self.steps_counter = 0
         self.action_type_statistics = []

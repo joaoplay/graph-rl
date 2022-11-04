@@ -41,7 +41,7 @@ def run_hierarchical_experiment(cfg: DictConfig):
         goal = h.irrigation_goal
         training_steps = h.training_steps
 
-        environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=goal)
+        environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=goal, inject_irrigation=cfg.inject_irrigation)
         train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
         model = DQNLightning(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
@@ -68,7 +68,7 @@ def run_hierarchical_experiment(cfg: DictConfig):
 def run_experiment(cfg: DictConfig):
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
-    environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal)
+    environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal, inject_irrigation=cfg.inject_irrigation)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
     model = DQNLightning(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,

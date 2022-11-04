@@ -37,7 +37,9 @@ class DQNLightning(LightningModule):
         self.save_hyperparameters()
 
         number_of_nodes = graphs[0].num_nodes
-        start_representation_dim = graphs[0].start_node_selection_representation_dim
+
+        # FIXME: This is hardcoded for now. Should be changed to a more general solution.
+        start_representation_dim = graphs[0].start_node_selection_representation_dim + (8281 if env.inject_irrigation else 0)
 
         self.q_networks = MultiActionModeDQN(action_modes=self.hparams.action_modes,
                                              input_dim={
