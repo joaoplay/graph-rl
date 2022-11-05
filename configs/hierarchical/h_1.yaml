@@ -57,7 +57,7 @@
     eps_last_frame: 1000000
     eps_start: 1.0
     eps_end: 0.1
-    warm_start_steps: 100000
+    warm_start_steps: 200
 - irrigation_goal: 4.0
   training_steps: 3000000
   core:

@@ -309,8 +309,13 @@ class GraphEnv:
     @property
     def current_graph_representation_copy(self):
         graph_representations = GraphState.convert_all_to_representation(self.current_action_mode, self.graphs_list)
-        irrigated_cells = np.where(self.last_irrigation_map > self.irrigation_goal, 1, 0).reshape(1, -1).astype(np.float32)
-        return np.concatenate((graph_representations, irrigated_cells), axis=1)
+
+        if self.inject_irrigation:
+            # Inject irrigation matrix when required
+            irrigated_cells = np.where(self.last_irrigation_map > self.irrigation_goal, 1, 0).reshape(1, -1).astype(np.float32)
+            graph_representations = np.concatenate((graph_representations, irrigated_cells), axis=1)
+
+        return graph_representations
 
     def clone_current_state(self, graph_indexes=None):
         """
