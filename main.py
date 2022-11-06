@@ -52,7 +52,7 @@ def run_hierarchical_experiment(cfg: DictConfig):
         trainer = Trainer(
             max_epochs=-1,
             # max_time={'hours': cfg.training_duration_in_hours},
-            gpus=[0] if USE_CUDA else None,
+            # gpus=[0] if USE_CUDA else None,
             enable_progress_bar=False,
             limit_val_batches=1,
             check_val_every_n_epoch=cfg.validation_interval,
