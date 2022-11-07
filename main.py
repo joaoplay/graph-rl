@@ -59,7 +59,7 @@ def run_hierarchical_experiment(cfg: DictConfig):
             limit_val_batches=1,
             check_val_every_n_epoch=cfg.validation_interval,
             # deterministic=cfg.deterministic
-            callbacks=[EarlyStopping(monitor='episode-length', patience=3, mode='min', min_delta=2)]
+            callbacks=[EarlyStopping(monitor='episode-length', patience=cfg.early_stopping_patience, mode='min', min_delta=2)]
         )
 
         trainer.fit(model)
@@ -86,7 +86,7 @@ def run_experiment(cfg: DictConfig):
         enable_progress_bar=False,
         limit_val_batches=1,
         check_val_every_n_epoch=cfg.validation_interval,
-        callbacks=[EarlyStopping(monitor='episode-length', patience=3, mode='min', min_delta=2)]
+        callbacks=[EarlyStopping(monitor='episode-length', patience=cfg.early_stopping_patience, mode='min', min_delta=1)]
         # deterministic=cfg.deterministic
     )
 
