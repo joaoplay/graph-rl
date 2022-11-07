@@ -41,7 +41,9 @@ def run_hierarchical_experiment(cfg: DictConfig):
         goal = h.irrigation_goal
         training_steps = h.training_steps
 
-        environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=goal, inject_irrigation=cfg.inject_irrigation)
+        environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=goal, inject_irrigation=cfg.inject_irrigation,
+                               irrigation_compression=cfg.irrigation_compression, irrigation_grid_dim=cfg.irrigation_grid_dim,
+                               irrigation_grid_cell_size=cfg.irrigation_grid_cell_size)
         train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
         model = DQNLightning(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
@@ -52,12 +54,12 @@ def run_hierarchical_experiment(cfg: DictConfig):
         trainer = Trainer(
             max_epochs=-1,
             # max_time={'hours': cfg.training_duration_in_hours},
-            # gpus=[0] if USE_CUDA else None,
+            gpus=[0] if USE_CUDA else None,
             enable_progress_bar=False,
             limit_val_batches=1,
             check_val_every_n_epoch=cfg.validation_interval,
             # deterministic=cfg.deterministic
-            callbacks=[EarlyStopping(monitor='episode_length', patience=3, mode='min', min_delta=2)]
+            callbacks=[EarlyStopping(monitor='episode-length', patience=3, mode='min', min_delta=2)]
         )
 
         trainer.fit(model)
@@ -68,7 +70,9 @@ def run_hierarchical_experiment(cfg: DictConfig):
 def run_experiment(cfg: DictConfig):
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
-    environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal, inject_irrigation=cfg.inject_irrigation)
+    environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal, inject_irrigation=cfg.inject_irrigation,
+                           irrigation_compression=cfg.irrigation_compression, irrigation_grid_dim=cfg.irrigation_grid_dim,
+                           irrigation_grid_cell_size=cfg.irrigation_grid_cell_size)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
     model = DQNLightning(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
@@ -82,7 +86,7 @@ def run_experiment(cfg: DictConfig):
         enable_progress_bar=False,
         limit_val_batches=1,
         check_val_every_n_epoch=cfg.validation_interval,
-        callbacks=[EarlyStopping(monitor='episode_length', patience=3, mode='min', min_delta=2)]
+        callbacks=[EarlyStopping(monitor='episode-length', patience=3, mode='min', min_delta=2)]
         # deterministic=cfg.deterministic
     )
 

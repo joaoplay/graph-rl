@@ -10,4 +10,7 @@ irrigation_goal: 0.75
 training_duration_in_hours: 360
 validation_interval: 5000
 num_dataloader_workers: 0.5
-inject_irrigation: false
+inject_irrigation: true
+irrigation_compression: 2
+irrigation_grid_dim: [10,10]
+irrigation_grid_cell_size: [0.1,0.1]

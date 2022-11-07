@@ -2,6 +2,7 @@ from copy import deepcopy
 from typing import Optional
 
 import numpy as np
+import skimage.measure
 
 from o2calculator.calculator import calculate_network_irrigation
 
@@ -39,7 +40,8 @@ class GraphEnv:
 
     """
 
-    def __init__(self, max_steps, irrigation_goal, inject_irrigation) -> None:
+    def __init__(self, max_steps, irrigation_goal, inject_irrigation,
+                 irrigation_compression, irrigation_grid_dim, irrigation_grid_cell_size) -> None:
         super().__init__()
 
         # Batch of graphs
@@ -48,6 +50,9 @@ class GraphEnv:
         self.max_steps = max_steps
         self.irrigation_goal = irrigation_goal
         self.inject_irrigation = inject_irrigation
+        self.irrigation_compression = irrigation_compression
+        self.irrigation_grid_dim = np.array(irrigation_grid_dim)
+        self.irrigation_grid_cell_size = np.array(irrigation_grid_cell_size)
 
         self.steps_counter = 0
         self.action_type_statistics = []
@@ -67,6 +72,13 @@ class GraphEnv:
         self.start_node_selection_statistics = None
         self.end_node_selection_statistics = None
         self.repeated_actions = 0
+
+    @property
+    def compressed_irrigation_matrix_size(self):
+        matrix_dim = np.divide((self.irrigation_grid_dim - 1), self.irrigation_grid_cell_size).astype(int) + 1
+        dummy_matrix = np.zeros(matrix_dim)
+        compressed_matrix = skimage.measure.block_reduce(dummy_matrix, (self.irrigation_compression, self.irrigation_compression), np.max)
+        return np.prod(compressed_matrix.shape)
 
     def step(self, actions):
         """
@@ -311,8 +323,12 @@ class GraphEnv:
         graph_representations = GraphState.convert_all_to_representation(self.current_action_mode, self.graphs_list)
 
         if self.inject_irrigation:
+            compressed_irrigation = self.last_irrigation_map
+            if self.irrigation_compression:
+                compressed_irrigation = skimage.measure.block_reduce(self.last_irrigation_map, (self.irrigation_compression, self.irrigation_compression), np.max)
+
             # Inject irrigation matrix when required
-            irrigated_cells = np.where(self.last_irrigation_map > self.irrigation_goal, 1, 0).reshape(1, -1).astype(np.float32)
+            irrigated_cells = np.where(compressed_irrigation > self.irrigation_goal, 1, 0).reshape(1, -1).astype(np.float32)
             graph_representations = np.concatenate((graph_representations, irrigated_cells), axis=1)
 
         return graph_representations
@@ -356,7 +372,7 @@ class GraphEnv:
             elif prepared_data != -1:
                 irrigation, sources, pressures, edges_source, edges_list = calculate_network_irrigation(
                     prepared_data[0], prepared_data[1],
-                    prepared_data[2], [10, 10], [0.1, 0.1])
+                    prepared_data[2], self.irrigation_grid_dim, self.irrigation_grid_cell_size)
 
                 sections_x = np.array_split(irrigation, 20, axis=0)
                 sections_y = np.array_split(irrigation, 20, axis=1)
