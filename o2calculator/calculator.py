@@ -173,7 +173,7 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
     :return:
     """
     # Init source matrix with zeros
-    source = np.zeros(n_cells)
+    source = torch.zeros(n_cells.tolist())
 
     n_dims = len(n_cells)
 
@@ -187,27 +187,33 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
 
         # Calculate the start and ending cell. It will be useful to iterate over all cells wherein the current edge is
         # travelling
-        min_coordinates = np.minimum(start_node_features[0:n_dims], end_node_features[0:n_dims], dtype=float)
-        max_coordinates = np.maximum(start_node_features[0:n_dims], end_node_features[0:n_dims], dtype=float)
+        min_coordinates = torch.minimum(start_node_features[0:n_dims], end_node_features[0:n_dims]).numpy().astype(float)
+        max_coordinates = torch.maximum(start_node_features[0:n_dims], end_node_features[0:n_dims]).numpy().astype(float)
 
         min_cell = np.divide(min_coordinates, cell_size, out=np.zeros_like(min_coordinates), where=cell_size != 0) \
             .astype(int)
         max_cell = np.divide(max_coordinates, cell_size, out=np.zeros_like(max_coordinates), where=cell_size != 0) \
             .astype(int)
 
-        max_cell = np.minimum(max_cell + 1, n_cells)
+        min_cell = torch.from_numpy(min_cell)
+        max_cell = torch.from_numpy(max_cell)
 
-        start_node_coordinates = start_node_features[0:n_dims].astype(float)
-        end_node_coordinates = end_node_features[0:n_dims].astype(float)
+        max_cell = torch.minimum(max_cell + 1, n_cells)
+
+        start_node_coordinates = start_node_features[0:n_dims].numpy().astype(float)
+        end_node_coordinates = end_node_features[0:n_dims].numpy().astype(float)
 
         start_node_cell = np.divide(start_node_coordinates, cell_size, out=np.zeros_like(start_node_coordinates), where=cell_size != 0).astype(int)
         end_node_cell = np.divide(end_node_coordinates, cell_size, out=np.zeros_like(end_node_coordinates), where=cell_size != 0).astype(int)
 
+        start_node_cell = torch.from_numpy(start_node_cell)
+        end_node_cell = torch.from_numpy(end_node_cell)
+
         def find_cells_in_dim(dim):
-            t = (np.arange(min_cell[dim], max_cell[dim]) - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
-            repeated = np.tile(end_node_cell - start_node_cell, (t.size, 1))
+            t = (torch.arange(min_cell[dim], max_cell[dim]) - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
+            repeated = torch.tile(end_node_cell - start_node_cell, (t.size(dim=0), 1))
             temp = t.reshape(-1, 1) * repeated
-            points = np.add(start_node_cell, temp)
+            points = torch.add(start_node_cell, temp)
 
             """for i in range(min_cell[dim], max_cell[dim]):
                 t = (i - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
@@ -216,8 +222,8 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
 
             return points
 
-        pointsX = find_cells_in_dim(0).astype(int)
-        pointsY = find_cells_in_dim(1).astype(int)
+        pointsX = find_cells_in_dim(0).type(torch.IntTensor)
+        pointsY = find_cells_in_dim(1).type(torch.IntTensor)
 
         points_final = np.concatenate([pointsX, pointsY])
 
@@ -239,6 +245,9 @@ def build_k2(l_x, l_y):
     :param l_y:
     :return:
     """
+    l_x = l_x.item()
+    l_y = l_y.item()
+
     kx = np.zeros((l_x, l_y))
     ky = np.zeros((l_x, l_y))
 
@@ -273,7 +282,7 @@ def calculate_pressures(matrix, static_pressures):
     :param static_pressures:
     :return:
     """
-    return np.dot(matrix, static_pressures)
+    return torch.mm(matrix, static_pressures.unsqueeze(1))
 
 
 def calculate_network_irrigation(node_features, edges_list, edges_features, environment_dim, cell_size):
@@ -292,10 +301,10 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
         logging.error("Not invertible. Assigning reward 0")
         return 0
 
-    reverse_matrix = reverse_matrix.cpu().detach().numpy()
+    #reverse_matrix = reverse_matrix.cpu().detach().numpy()
 
     # Calculate static pressures
-    static_pressures = np.array([node[3] for node in node_features])
+    static_pressures = torch.tensor([node[3] for node in node_features]).type(torch.FloatTensor)
     # Calculate pressure in each node
     pressures = calculate_pressures(reverse_matrix, static_pressures)
 
@@ -305,17 +314,18 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     edges_source = build_edges_source(edges=duplicated_free_edges, edges_features=edges_features,
                                       pressures=pressures)
 
-    np_environment_dim = np.array(environment_dim)
-    number_of_cells = np.divide((np_environment_dim - 1), cell_size).astype(int) + 1
+    np_environment_dim = torch.tensor(environment_dim)
+    number_of_cells = torch.div((np_environment_dim - 1.0), torch.tensor(cell_size)).type(torch.IntTensor) + 1
 
     # Build matrix with number of cells in each dimension defined by L_X, L_Y, L_Z
-    sources_by_cell = build_source(np.array(duplicated_free_edges), np.array(node_features), edges_source,
+    sources_by_cell = build_source(torch.tensor(duplicated_free_edges), torch.tensor(node_features), edges_source,
                                    number_of_cells, cell_size)
 
     # Get k2
+
     k2 = build_k2(number_of_cells[0], number_of_cells[1])
     # Calculate oxygen in each cell
     oxygen = calc_oxygen(sources_by_cell, k2, 15)
     oxygen = np.real(oxygen)
 
-    return oxygen, sources_by_cell, pressures, edges_source, duplicated_free_edges
+    return oxygen, sources_by_cell.numpy(), pressures.numpy(), edges_source, duplicated_free_edges
