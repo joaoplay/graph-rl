@@ -49,7 +49,7 @@ class DQNLightning(LightningModule):
                                              action_output_dim={
                                                  ACTION_MODE_SELECTING_START_NODE: number_of_nodes,
                                                  ACTION_MODE_SELECTING_END_NODE: 8,
-                                             }, **self.hparams.multi_action_q_network)
+                                             }, **self.hparams.multi_action_q_network).to(self.device)
         self.target_q_networks = MultiActionModeDQN(action_modes=self.hparams.action_modes,
                                                     input_dim={
                                                         ACTION_MODE_SELECTING_START_NODE: start_representation_dim,
@@ -58,7 +58,7 @@ class DQNLightning(LightningModule):
                                                     action_output_dim={
                                                         ACTION_MODE_SELECTING_START_NODE: number_of_nodes,
                                                         ACTION_MODE_SELECTING_END_NODE: 8,
-                                                    }, **self.hparams.multi_action_q_network)
+                                                    }, **self.hparams.multi_action_q_network).to(self.device)
 
         self.env = env
         self.graphs = graphs
@@ -153,8 +153,8 @@ class DQNLightning(LightningModule):
         """
         device = self.get_device(batch)
         # FIXME: Confirm it!
-        self.q_networks.to(device)
-        self.target_q_networks.to(device)
+        #self.q_networks.to(device)
+        #self.target_q_networks.to(device)
 
         epsilon = max(
             self.hparams.eps_end,
