@@ -19,6 +19,7 @@ hydra-core = "^1.1"
 pytorch-lightning = "^1.6.0"
 wandb = "^0.12.14"
 scikit-image = "^0.19.3"
+Cython = "*"
 
 [tool.poetry.dev-dependencies]
 

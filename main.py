@@ -2,6 +2,7 @@ import os
 import time
 
 import hydra
+import numpy as np
 import torch
 from omegaconf import DictConfig
 from pytorch_lightning import Trainer, seed_everything
@@ -81,7 +82,7 @@ def run_experiment(cfg: DictConfig):
 
     trainer = Trainer(
         max_epochs=-1,
-        #max_time={'hours': cfg.training_duration_in_hours},
+        #max_time={'minutes': 5},
         gpus=[cfg.gpu_device] if USE_CUDA else None,
         enable_progress_bar=False,
         limit_val_batches=1,

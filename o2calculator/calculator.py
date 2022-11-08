@@ -11,6 +11,10 @@ from numpy.ma import sqrt
 
 from settings import BASE_PATH, USE_CUDA
 
+import pyximport; pyximport.install()
+
+import bre
+
 
 def remove_duplicated_edges(edges_list):
     """
@@ -158,6 +162,20 @@ def build_edges_source(edges, edges_features, pressures):
     return edges_source
 
 
+def find_cells_in_dim(dim, min_cell, max_cell, end_node_cell, start_node_cell):
+    t = (np.arange(min_cell[dim], max_cell[dim]) - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
+    repeated = np.tile(end_node_cell - start_node_cell, (t.size, 1))
+    temp = t.reshape(-1, 1) * repeated
+    points = np.add(start_node_cell, temp)
+
+    """for i in range(min_cell[dim], max_cell[dim]):
+        t = (i - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
+        temp = t * (max_cell - min_cell)
+        points += [tuple(np.add(min_cell, temp).astype(int))]"""
+
+    return points
+
+
 def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
     """
     Build source 3D map with source values. The number of cells in each dimension is determined by Lx, ly and Lz.
@@ -200,24 +218,13 @@ def build_source(edges, nodes_features, edges_source, n_cells, cell_size):
         start_node_coordinates = start_node_features[0:n_dims].astype(float)
         end_node_coordinates = end_node_features[0:n_dims].astype(float)
 
-        start_node_cell = np.divide(start_node_coordinates, cell_size, out=np.zeros_like(start_node_coordinates), where=cell_size != 0).astype(int)
-        end_node_cell = np.divide(end_node_coordinates, cell_size, out=np.zeros_like(end_node_coordinates), where=cell_size != 0).astype(int)
+        start_node_cell = np.divide(start_node_coordinates, cell_size, out=np.zeros_like(start_node_coordinates),
+                                    where=cell_size != 0).astype(int)
+        end_node_cell = np.divide(end_node_coordinates, cell_size, out=np.zeros_like(end_node_coordinates),
+                                  where=cell_size != 0).astype(int)
 
-        def find_cells_in_dim(dim):
-            t = (np.arange(min_cell[dim], max_cell[dim]) - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
-            repeated = np.tile(end_node_cell - start_node_cell, (t.size, 1))
-            temp = t.reshape(-1, 1) * repeated
-            points = np.add(start_node_cell, temp)
-
-            """for i in range(min_cell[dim], max_cell[dim]):
-                t = (i - min_cell[dim]) / (max_cell[dim] - min_cell[dim])
-                temp = t * (max_cell - min_cell)
-                points += [tuple(np.add(min_cell, temp).astype(int))]"""
-
-            return points
-
-        pointsX = find_cells_in_dim(0).astype(int)
-        pointsY = find_cells_in_dim(1).astype(int)
+        pointsX = find_cells_in_dim(0, min_cell, max_cell, end_node_cell, start_node_cell).astype(int)
+        pointsY = find_cells_in_dim(1, min_cell, max_cell, end_node_cell, start_node_cell).astype(int)
 
         points_final = np.concatenate([pointsX, pointsY])
 
@@ -308,9 +315,32 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     np_environment_dim = np.array(environment_dim)
     number_of_cells = np.divide((np_environment_dim - 1), cell_size).astype(int) + 1
 
+    # FIXME: It only supports 2D
+    edges_with_coordinates = np.zeros((2, 2, len(duplicated_free_edges[0])))
+    for edge_idx in range(len(duplicated_free_edges[0])):
+        start_node_idx = duplicated_free_edges[0][edge_idx]
+        end_node_idx = duplicated_free_edges[1][edge_idx]
+
+        start_node_features = node_features[start_node_idx]
+        end_node_features = node_features[end_node_idx]
+
+        edges_with_coordinates[0, :, edge_idx] = start_node_features[0:2]
+        edges_with_coordinates[1, :, edge_idx] = end_node_features[0:2]
+
+    edge_cells = edges_with_coordinates / cell_size[0]
+
+    #edges_cells = np.divide(edges_with_coordinates, cell_size[0], out=np.zeros_like(edges_with_coordinates),
+    #                        where=cell_size != 0).astype(int)
+
     # Build matrix with number of cells in each dimension defined by L_X, L_Y, L_Z
-    sources_by_cell = build_source(np.array(duplicated_free_edges), np.array(node_features), edges_source,
-                                   number_of_cells, cell_size)
+    #sources_by_cell_slow = build_source(np.array(duplicated_free_edges), np.array(node_features), edges_source,
+    #                               number_of_cells, cell_size)
+
+    edges_sources_array = np.array(edges_source, dtype=np.float32)
+
+    sticks = edge_cells.reshape((4, -1)).transpose().astype(np.int32)
+    sources_by_cell = np.zeros(number_of_cells, dtype=np.float32)
+    bre.bres_segments_count(sticks, sources_by_cell, edges_sources_array)
 
     # Get k2
     k2 = build_k2(number_of_cells[0], number_of_cells[1])
