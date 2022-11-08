@@ -82,7 +82,7 @@ def run_experiment(cfg: DictConfig):
 
     trainer = Trainer(
         max_epochs=-1,
-        #max_time={'minutes': 5},
+        max_time={'seconds': 5},
         gpus=[cfg.gpu_device] if USE_CUDA else None,
         enable_progress_bar=False,
         limit_val_batches=1,

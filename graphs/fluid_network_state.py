@@ -16,6 +16,13 @@ class FluidNetworkState(GraphState):
     FIXME: Add details on the structure of graph features
     """
 
+    def __init__(self, nx_graph, nx_neighbourhood_graph, allow_void_actions=True) -> None:
+        super().__init__(nx_graph, nx_neighbourhood_graph, allow_void_actions)
+        # Cache input and output nodes
+        nodes_data = self.nx_graph.nodes(data=True)
+        self.input_nodes = [x for x, y in nodes_data if y['node_type'] == 1]
+        self.output_nodes = [x for x, y in nodes_data if y['node_type'] == 2]
+
     def get_node_features(self):
         """
         Get node features from a fluid network.
@@ -32,30 +39,27 @@ class FluidNetworkState(GraphState):
         Prepare a graph state before sending it to the fluid network
         :return:
         """
-        nodes_data = self.nx_graph.nodes(data=True)
-        input_nodes = [x for x, y in nodes_data if y['node_type'] == 1]
-        output_nodes = [x for x, y in nodes_data if y['node_type'] == 2]
-
         if node_added and \
                 start_node is not None and end_node is not None and \
-                (not any([node in input_nodes for node in [start_node, end_node]]) or
-                 not any([node in output_nodes for node in [start_node, end_node]])) \
+                (not any([node in self.input_nodes for node in [start_node, end_node]]) or
+                 not any([node in self.output_nodes for node in [start_node, end_node]])) \
                 and (self.nx_graph.degree[start_node] == 1 or self.nx_graph.degree[end_node] == 1):
             return None
 
-        nx_graph_copy = self.nx_graph.to_undirected()
+        #nx_graph_copy = self.nx_graph.to_undirected()
+        nx_graph_copy = Graph(self.nx_graph)
         nx_graph_copy.remove_nodes_from(list(nx.isolates(nx_graph_copy)))
 
         no_flow_nodes = set()
         for component in nx.connected_components(nx_graph_copy):
             in_node_found = False
-            for in_node in input_nodes:
+            for in_node in self.input_nodes:
                 if in_node in component:
                     in_node_found = True
                     break
 
             out_node_found = False
-            for out_node in output_nodes:
+            for out_node in self.output_nodes:
                 if out_node in component:
                     out_node_found = True
                     break

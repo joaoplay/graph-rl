@@ -6,4 +6,4 @@ replay_size: 100000
 eps_last_frame: 100000
 eps_start: 1.0
 eps_end: 0.01
-warm_start_steps: 200
+warm_start_steps: 50000
