@@ -50,7 +50,7 @@ def run_hierarchical_experiment(cfg: DictConfig):
         model.populate(model.hparams.warm_start_steps)
 
         trainer = Trainer(
-            max_epochs=-1,
+            max_epochs=training_steps,
             # max_time={'hours': cfg.training_duration_in_hours},
             gpus=[cfg.gpu_device] if USE_CUDA else None,
             enable_progress_bar=False,
@@ -78,8 +78,8 @@ def run_experiment(cfg: DictConfig):
     model.populate(model.hparams.warm_start_steps)
 
     trainer = Trainer(
-        max_epochs=-1,
-        #max_time={'seconds': 5},
+        #max_epochs=-1,
+        max_time={'hours': 120},
         gpus=[cfg.gpu_device] if USE_CUDA else None,
         enable_progress_bar=False,
         limit_val_batches=1,
