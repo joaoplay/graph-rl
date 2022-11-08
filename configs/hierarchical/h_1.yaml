@@ -1,15 +1,3 @@
-- irrigation_goal: 1.0
-  training_steps: 300000
-  core:
-    lr: 0.0001
-    sync_rate: 1000
-    batch_size: 64
-    gamma: 0.99
-    replay_size: 100000
-    eps_last_frame: 100000
-    eps_start: 1.0
-    eps_end: 0.1
-    warm_start_steps: 200
 - irrigation_goal: 2.0
   training_steps: 3000000
   core:
@@ -20,7 +8,7 @@
     replay_size: 1000000
     eps_last_frame: 1000000
     eps_start: 1.0
-    eps_end: 0.1
+    eps_end: 0.01
     warm_start_steps: 100000
 - irrigation_goal: 3.0
   training_steps: 3000000
@@ -32,7 +20,7 @@
     replay_size: 1000000
     eps_last_frame: 1000000
     eps_start: 1.0
-    eps_end: 0.1
+    eps_end: 0.01
     warm_start_steps: 100000
 - irrigation_goal: 5.0
   training_steps: 3000000
@@ -44,5 +32,5 @@
     replay_size: 1000000
     eps_last_frame: 1000000
     eps_start: 1.0
-    eps_end: 0.1
+    eps_end: 0.01
     warm_start_steps: 100000
