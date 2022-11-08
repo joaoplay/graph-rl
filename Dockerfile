@@ -28,7 +28,7 @@ RUN apt-get update && \
     apt-get install --no-install-recommends -y python3.9 python3-pip python3-setuptools python3-distutils && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y python3.9-distutils
+RUN apt-get update && apt-get install -y python3.9-distutils python3.9-dev
 
 RUN apt-get install -y intel-mkl
 
