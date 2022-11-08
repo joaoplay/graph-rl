@@ -1,8 +1,10 @@
 import logging
+import time
 from collections import OrderedDict
 from functools import cache
 
 import numpy as np
+import scipy
 import torch
 from numpy.ma import sqrt
 
@@ -248,8 +250,8 @@ def build_k2(l_x, l_y):
 
     for ix in range(l_x):
         for iy in range(l_y):
-            kx[:, iy] = np.fft.fftfreq(l_x) * (2 * np.pi)
-            ky[ix, :] = np.fft.fftfreq(l_y) * (2 * np.pi)
+            kx[:, iy] = scipy.fft.fftfreq(l_x) * (2 * np.pi)
+            ky[ix, :] = scipy.fft.fftfreq(l_y) * (2 * np.pi)
 
     k2 = sqrt(kx ** 2 + ky ** 2)
 
@@ -264,9 +266,9 @@ def calc_oxygen(source, k2, oxygen_diff_length):
     :param k2:
     :return:
     """
-    source_k = np.fft.fftn(source)
+    source_k = scipy.fft.fftn(source)
     o2_k = source_k / (k2 + 1 / oxygen_diff_length)
-    o2 = np.fft.ifftn(o2_k)
+    o2 = scipy.fft.ifftn(o2_k)
     return o2
 
 
