@@ -2,11 +2,8 @@ import os
 import time
 
 import hydra
-import numpy as np
-import torch
 from omegaconf import DictConfig
 from pytorch_lightning import Trainer, seed_everything
-from pytorch_lightning.callbacks import EarlyStopping
 
 from dqn_lightning import DQNLightning
 from environments.generator.single_vessel_graph_generator import SingleVesselGraphGenerator
@@ -60,7 +57,7 @@ def run_hierarchical_experiment(cfg: DictConfig):
             limit_val_batches=1,
             check_val_every_n_epoch=cfg.validation_interval,
             # deterministic=cfg.deterministic
-            callbacks=[EarlyStopping(monitor='episode-length', patience=cfg.early_stopping_patience, mode='min', min_delta=2)]
+            #callbacks=[EarlyStopping(monitor='episode-length', patience=cfg.early_stopping_patience, mode='min', min_delta=2)]
         )
 
         trainer.fit(model)
@@ -82,12 +79,12 @@ def run_experiment(cfg: DictConfig):
 
     trainer = Trainer(
         max_epochs=-1,
-        max_time={'seconds': 5},
+        #max_time={'seconds': 5},
         gpus=[cfg.gpu_device] if USE_CUDA else None,
         enable_progress_bar=False,
         limit_val_batches=1,
         check_val_every_n_epoch=cfg.validation_interval,
-        callbacks=[EarlyStopping(monitor='episode-length', patience=cfg.early_stopping_patience, mode='min', min_delta=1)]
+        #callbacks=[EarlyStopping(monitor='episode-length', patience=cfg.early_stopping_patience, mode='min', min_delta=1)]
         # deterministic=cfg.deterministic
     )
 
