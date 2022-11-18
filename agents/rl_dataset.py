@@ -20,7 +20,7 @@ class RLDataset(IterableDataset):
         self.sample_size = sample_size
 
     def __iter__(self):
-        action_mode, states, actions, rewards, dones, new_states = self.buffer.sample(self.sample_size)
-        for i in range(len(dones)):
-            yield action_mode, states[i], actions[i], rewards[i], dones[i], new_states[i]
+        action_mode, states, actions, rewards, solved, new_states, goals = self.buffer.sample(self.sample_size)
+        for i in range(len(solved)):
+            yield action_mode, states[i], actions[i], rewards[i], solved[i], new_states[i], goals[i]
 

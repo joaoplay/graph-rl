@@ -75,7 +75,7 @@ class DQNLightning(LightningModule):
             steps: number of random steps to populate the buffer with
         """
         for i in range(steps):
-            reward, done = self.agent.play_step(self.q_networks, epsilon=1.0)
+            reward, done, _ = self.agent.play_step(self.q_networks, epsilon=1.0)
             NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
 
             self.episode_reward += reward
@@ -152,9 +152,6 @@ class DQNLightning(LightningModule):
             Training loss and log metrics
         """
         device = self.get_device(batch)
-        # FIXME: Confirm it!
-        #self.q_networks.to(device)
-        #self.target_q_networks.to(device)
 
         epsilon = max(
             self.hparams.eps_end,
@@ -162,7 +159,7 @@ class DQNLightning(LightningModule):
         )
 
         # Step through environment with agent
-        reward, done = self.agent.play_step(self.q_networks, epsilon, device)
+        reward, done, solved = self.agent.play_step(self.q_networks, epsilon, device)
         self.episode_reward += reward
 
         NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
@@ -204,52 +201,6 @@ class DQNLightning(LightningModule):
         }
 
         return {"loss": loss, "log": log, "progress_bar": status}
-
-    def validation_step(self, batch, ncb_batch):
-        """Tests the agent in the environment.
-
-        """
-        validation_env = deepcopy(self.env)
-        validation_agent = GraphAgent(validation_env, self.graphs, self.buffer)
-        validation_agent.reset()
-
-        done = False
-        cum_reward = 0
-        while not done:
-            reward, done = validation_agent.play_validation_step(self.q_networks, self.get_device(batch))
-
-            cum_reward += reward
-            NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/instant-reward'].log(reward)
-
-        NEPTUNE_INSTANCE[f'validation/episode-length'].log(validation_agent.env.steps_counter)
-
-        fig, axs = plt.subplots(2)
-        axs[0].bar(validation_agent.env.start_node_selection_statistics.keys(),
-                   validation_agent.env.start_node_selection_statistics.values(), 2, color='g')
-        axs[1].bar(validation_agent.env.end_node_selection_statistics.keys(),
-                   validation_agent.env.end_node_selection_statistics.values(), 2, color='g')
-        NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/action-selection'].log(File.as_image(fig))
-
-        if validation_agent.env.last_irrigation_map is not None:
-            fig_irrigation, ax_irrigation = plt.subplots()
-            ax_irrigation.title.set_text(f'Global Step: {validation_agent.total_steps}')
-            ax_irrigation.imshow(np.flipud(validation_agent.env.last_irrigation_map), cmap='hot', vmin=0,
-                                 interpolation='nearest')
-
-            NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/irrigation'].log(File.as_image(fig_irrigation))
-
-        if validation_agent.env.last_irrigation_graph is not None and validation_agent.env.last_pressures is not None \
-                and validation_agent.env.last_edge_sources is not None:
-            fig, ax = plt.subplots(figsize=(10, 10))
-            ax.title.set_text(f'Global Step: {validation_agent.total_steps}')
-            draw_nx_irrigation_network(validation_agent.env.last_irrigation_graph, validation_agent.env.last_pressures,
-                                       validation_agent.env.last_edge_sources, validation_agent.env.last_edges_list, ax)
-            NEPTUNE_INSTANCE[f'validation/{self.current_epoch}/network-debug'].log(File.as_image(fig))
-
-        plt.close('all')
-
-        self.log('episode-length', validation_agent.env.steps_counter)
-        return {'episode-length': validation_agent.env.steps_counter}
 
     def save_models(self, path):
         """Saves the model to the specified path.

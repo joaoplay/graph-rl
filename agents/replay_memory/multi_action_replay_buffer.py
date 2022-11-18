@@ -16,9 +16,9 @@ class MultiActionReplayBuffer:
         experience_buffer = self.experience_buffer_by_action_mode[action_mode]
         experience_buffer.append(experience)
 
-    def append_many(self, action_mode, states, actions, rewards, terminals, next_states):
+    def append_many(self, action_mode, states, actions, rewards, terminals, next_states, goals):
         experience_buffer = self.experience_buffer_by_action_mode[action_mode]
-        experience_buffer.append_many(states, actions, rewards, terminals, next_states)
+        return experience_buffer.append_many(states, actions, rewards, terminals, next_states, goals)
 
     def get_experience_buffer(self, action_mode):
         return self.experience_buffer_by_action_mode[action_mode]

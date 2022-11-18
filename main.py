@@ -5,6 +5,7 @@ import hydra
 from omegaconf import DictConfig
 from pytorch_lightning import Trainer, seed_everything
 
+from dqn import DQN
 from dqn_lightning import DQNLightning
 from early_stopping.episode_length_early_stopping import EpisodeLengthEarlyStopping
 from environments.generator.single_vessel_graph_generator import SingleVesselGraphGenerator
@@ -16,7 +17,8 @@ os.environ["WANDB_API_KEY"] = '237099249b3c0e91437061c393ab089d03339bc3'
 # FIXME: Move it to ENV variable. I can't do it now because I don't want to deal with the DOCKER rebuild process.
 WANDB_PATH = '/data' if USE_CUDA == 1 else '.'
 
-#wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"))
+
+# wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"))
 
 
 def check_hierarchical_folder(path):
@@ -41,7 +43,8 @@ def run_hierarchical_experiment(cfg: DictConfig):
         training_steps = h.training_steps
 
         environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=goal, inject_irrigation=cfg.inject_irrigation,
-                               irrigation_compression=cfg.irrigation_compression, irrigation_grid_dim=cfg.irrigation_grid_dim,
+                               irrigation_compression=cfg.irrigation_compression,
+                               irrigation_grid_dim=cfg.irrigation_grid_dim,
                                irrigation_grid_cell_size=cfg.irrigation_grid_cell_size)
         train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
@@ -69,27 +72,18 @@ def run_hierarchical_experiment(cfg: DictConfig):
 def run_experiment(cfg: DictConfig):
     graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
-    environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal, inject_irrigation=cfg.inject_irrigation,
-                           irrigation_compression=cfg.irrigation_compression, irrigation_grid_dim=cfg.irrigation_grid_dim,
+    environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal,
+                           inject_irrigation=cfg.inject_irrigation,
+                           irrigation_compression=cfg.irrigation_compression,
+                           irrigation_grid_dim=cfg.irrigation_grid_dim,
                            irrigation_grid_cell_size=cfg.irrigation_grid_cell_size)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
-    model = DQNLightning(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
-                         multi_action_q_network=cfg.multi_action_q_network, **cfg.core)
+    model = DQN(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
+                multi_action_q_network=cfg.multi_action_q_network, **cfg.core)
     model.populate(model.hparams.warm_start_steps)
 
-    trainer = Trainer(
-        max_epochs=-1,
-        #max_time={'hours': 120},
-        gpus=[cfg.gpu_device] if USE_CUDA else None,
-        enable_progress_bar=False,
-        limit_val_batches=1,
-        check_val_every_n_epoch=cfg.validation_interval,
-        #callbacks=[EarlyStopping(monitor='episode-length', patience=cfg.early_stopping_patience, mode='min', min_delta=1)]
-        # deterministic=cfg.deterministic
-    )
-
-    trainer.fit(model)
+    model.train(10000000, validation_interval=cfg.validation_interval)
 
 
 @hydra.main(config_path="configs", config_name="default_config")

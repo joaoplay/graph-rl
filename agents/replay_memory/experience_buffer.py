@@ -2,7 +2,7 @@ import collections
 
 import numpy as np
 
-Experience = collections.namedtuple('Experience', field_names=['state', 'action', 'reward', 'done', 'next_state'])
+Experience = collections.namedtuple('Experience', field_names=['state', 'action', 'reward', 'done', 'next_state', 'goal'])
 
 
 class ExperienceBuffer:
@@ -18,10 +18,10 @@ class ExperienceBuffer:
     def append(self, experience):
         self.buffer.append(experience)
 
-    def append_many(self, states, actions, rewards, terminals, next_states):
+    def append_many(self, states, actions, rewards, terminals, next_states, goal):
         for exp_idx in range(len(states)):
             self.append(Experience(states[exp_idx], actions[exp_idx], rewards[exp_idx], terminals[exp_idx],
-                                   next_states[exp_idx]))
+                                   next_states[exp_idx], goal[exp_idx]))
 
     def sample(self, batch_size):
         indices = np.random.choice(len(self.buffer), batch_size, replace=False)

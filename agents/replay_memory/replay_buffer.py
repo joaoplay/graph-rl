@@ -1,7 +1,7 @@
 from collections import deque, namedtuple
 import numpy as np
 
-Experience = namedtuple("Experience", field_names=["state", "action", "reward", "done", "new_state"], )
+Experience = namedtuple("Experience", field_names=["state", "action", "reward", "solved", "new_state", "goal"], )
 
 
 class ReplayBuffer:
@@ -22,22 +22,25 @@ class ReplayBuffer:
     def append(self, experience):
         self.buffer.append(experience)
 
-    def append_many(self, states, actions, rewards, terminals, next_states):
+    def append_many(self, states, actions, rewards, terminals, next_states, goals):
+        experiences = []
         for exp_idx in range(len(states)):
-            self.append(Experience(states[exp_idx], actions[exp_idx], rewards[exp_idx], terminals[exp_idx],
-                                   next_states[exp_idx]))
+            experience = Experience(states[exp_idx], actions[exp_idx], rewards[exp_idx], terminals[exp_idx],
+                                    next_states[exp_idx], goals[exp_idx])
+            experiences += [experience]
+            self.append(experience)
+
+        return experiences
 
     def sample(self, batch_size: int):
         indices = np.random.choice(len(self.buffer), batch_size, replace=False)
-        states, actions, rewards, dones, next_states = zip(*(self.buffer[idx] for idx in indices))
-
-        #print("Sampling")
-        #print(rewards)
+        states, actions, rewards, solved, next_states, goals = zip(*(self.buffer[idx] for idx in indices))
 
         return (
             np.array(states, dtype=np.float32),
             np.array(actions),
             np.array(rewards, dtype=np.float32),
-            np.array(dones, dtype=np.bool),
+            np.array(solved, dtype=np.bool),
             np.array(next_states, dtype=np.float32),
+            np.array(goals, dtype=np.float32),
         )

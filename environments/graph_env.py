@@ -58,6 +58,7 @@ class GraphEnv:
         self.action_type_statistics = []
 
         self.done = None
+        self.solved = None
 
         # FIXME: Change this to a class that contains historic information
         self.last_irrigation_map = None
@@ -72,6 +73,8 @@ class GraphEnv:
         self.start_node_selection_statistics = None
         self.end_node_selection_statistics = None
         self.repeated_actions = 0
+
+        self.episode_retrospective = []
 
     @property
     def compressed_irrigation_matrix_size(self):
@@ -102,8 +105,6 @@ class GraphEnv:
 
             start_node = self.graphs_list[graph_idx].selected_start_node
 
-            # print(f"Action Mode: {self.current_action_mode} | Action: {actions[graph_idx]}")
-
             # Execute action and get the resulting graph (a deepcopy) and the insertion cost (in terms of edge budget)
             new_graph, edge_insertion_cost = self.execute_action(current_graph, actions[graph_idx])
 
@@ -122,54 +123,25 @@ class GraphEnv:
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 node_added = edge_insertion_cost > 0
-                # rewards[graph_idx] = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
-                #                                           start_node=start_node, end_node=actions[graph_idx])
-                irrigation_improvement = self.calculate_reward(graph_idx=graph_idx, node_added=node_added, start_node=start_node,
-                                                               end_node=actions[graph_idx])
+                irrigation_improvement = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
+                                                               start_node=start_node, end_node=actions[graph_idx])
 
-                rewards[graph_idx] = -1.0 + irrigation_improvement
-
-                # rewards[graph_idx] = 0
-            """elif current_graph.previous_selected_start_node == actions[graph_idx]:
-                # Selecting the same start node again. We are going to penalize this action
-                rewards[graph_idx] = -1.0
-                self.done[graph_idx] = True"""
-            """else:
-                if current_graph.previous_selected_start_node == actions[graph_idx]:
-                    rewards[graph_idx] = -1.0
-                    self.repeated_actions += 1
-                else:
-                    rewards[graph_idx] = 0"""
+                rewards[graph_idx] = -1.0  # + irrigation_improvement
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
-            if self.irrigation_goal_achieved():
+            if self.irrigation_goal_achieved() or self.max_steps_achieved():
                 self.done[graph_idx] = True
-                """max_graph_edges = self.graphs_list[graph_idx].nx_neighbourhood_graph.number_of_edges()
-                current_graph_edges = self.graphs_list[graph_idx].nx_graph.number_of_edges()
-
-                min_edges = max_graph_edges / 2.0
-
-                rewards[graph_idx] = 1.0 - ((current_graph_edges - min_edges) / (max_graph_edges - min_edges))"""
-                # rewards[graph_idx] = -np.std(self.last_irrigation_map)
-
-            if self.max_steps_achieved():
-                self.done[graph_idx] = True
-                # rewards[graph_idx] = -1
+                self.solved[graph_idx] = self.irrigation_goal_achieved()
 
             if new_graph.allowed_actions_not_found:
                 print("Allowed actions not found")
                 self.done[graph_idx] = True
-                # rewards[graph_idx] = -1
-
-            """if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE \
-                    and self.graphs_list[graph_idx].allowed_actions_not_found:
-                # A new edge was added and no valid start nodes are available. The current graph reached a dead end, and therefore
-                # it's time to end the generation process.
-                raise Exception("Allowed actions not found")"""
+                self.solved[graph_idx] = False
+                exit(1)
 
         self.steps_counter += 1
 
-        return self.current_graph_representation_copy, rewards, deepcopy(self.done)
+        return self.current_graph_representation_copy, rewards, deepcopy(self.done), deepcopy(self.solved)
 
     @staticmethod
     def _get_random_action(graph: GraphState):
@@ -278,6 +250,7 @@ class GraphEnv:
         # Init simulation statistics array
         self.action_type_statistics = [[] for _ in range(len(graphs_list))]
         self.done = [False for _ in range(len(graphs_list))]
+        self.solved = [False for _ in range(len(graphs_list))]
 
         self.steps_counter = 0
 

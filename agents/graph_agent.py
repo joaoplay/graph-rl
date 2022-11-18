@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 from itertools import compress
 from typing import Tuple, List
 
@@ -7,8 +7,6 @@ import torch
 from matplotlib import pyplot as plt
 from neptune.new.types import File
 from torch import nn
-
-
 
 from agents.replay_memory.multi_action_replay_buffer import MultiActionReplayBuffer
 from agents.util.sample_tracker import BatchSampler
@@ -39,9 +37,9 @@ class GraphAgent:
         self.looses = 0
         self.selected_start_nodes_stats = {}
         self.selected_end_nodes_stats = {}
-        self.repeated_actions = 0
         self.episode_reward = 0
         self.q_values_history = []
+        self.current_episode_transitions = None
         self.reset()
 
     def reset(self):
@@ -50,9 +48,9 @@ class GraphAgent:
         self.state = self.env.current_graph_representation_copy
         self.selected_start_nodes_stats = {}
         self.selected_end_nodes_stats = {}
-        self.repeated_actions = 0
         self.episode_reward = 0
         self.q_values_history = []
+        self.current_episode_transitions = {action_mode: [] for action_mode in self.replay_buffer.action_modes}
 
     def choose_greedy_actions(self, action_mode, q_network):
         """
@@ -69,7 +67,7 @@ class GraphAgent:
         # Get action that maximizes Q-value (for each graph)
         q_values, forbidden_actions = q_network(action_mode=action_mode, states=state)
         actions, _ = q_network.select_action_from_q_values(action_mode=action_mode, q_values=q_values,
-                                                           forbidden_actions=forbidden_actions )
+                                                           forbidden_actions=forbidden_actions)
         actions = list(actions.view(-1).cpu().numpy())
 
         return actions
@@ -99,10 +97,8 @@ class GraphAgent:
 
                 return greedy_actions
         else:
-            # print("Selecting end node")
             # A start node is already selected. It's now time to select the end node
             if self.exploratory_actions_cache is not None:
-                # print("A previous end node exists: ", self.current_exploratory_actions[1])
                 # If an exploratory action was chosen in the previous step, we already know the next action. It is stored
                 # in the current_exploratory_actions
                 return self.exploratory_actions_cache[1]
@@ -116,11 +112,11 @@ class GraphAgent:
     def play_validation_step(self, q_networks: MultiActionModeDQN, device: str = "cpu"):
         actions = self.get_action(self.env.current_action_mode, q_networks, 0.0, device)
         # Do step in the environment
-        new_state, reward, done = self.env.step(actions)
+        new_state, reward, done, solved = self.env.step(actions)
 
         self.state = new_state
 
-        return reward[0], done[0]
+        return reward[0], done[0], solved[0]
 
     @torch.no_grad()
     def play_step(self, q_networks: MultiActionModeDQN, epsilon: float = 0.0, device: str = "cpu"):
@@ -132,52 +128,47 @@ class GraphAgent:
             device: current device
 
         Returns:
-            reward, done
+            reward, solved
         """
 
         actions = self.get_action(self.env.current_action_mode, q_networks, epsilon, device)
 
         previous_action_mode = self.env.current_action_mode
-        previous_done = deepcopy(self.env.done)
+        previous_solved = deepcopy(self.env.solved)
 
         # Do step in the environment
-        new_state, reward, done = self.env.step(actions)
+        new_state, reward, done, solved = self.env.step(actions)
 
         self.episode_reward += reward[0]
 
-        now_done = [True for idx, was_done in enumerate(previous_done) if not was_done and done[idx]]
-        not_done = [True for idx, was_done in enumerate(previous_done) if not was_done and not done[idx]]
+        now_solved = [True for idx, was_solved in enumerate(previous_solved) if not was_solved and solved[idx]]
+        not_solved = [True for idx, was_solved in enumerate(previous_solved) if not was_solved and not solved[idx]]
 
         prev_states = []
         next_states = []
         rewards = []
-        all_done = []
-        if any(now_done):
-            prev_states += list(compress(self.state, now_done))
-            next_states += list(compress(new_state, now_done))
-            now_done_rewards = list(compress(reward, now_done))
-            rewards += now_done_rewards
-            all_done += [True] * len(rewards)
-            # self.wins += sum([1 if reward > 0 else 0 for reward in now_done_rewards])
-            # self.looses += sum([1 if reward < 0 else 0 for reward in now_done_rewards])
-            self.wins += sum([1 for _ in now_done_rewards if self.env.steps_counter < self.env.max_steps])
-            self.looses += sum([1 for _ in now_done_rewards if self.env.steps_counter >= self.env.max_steps])
+        all_solved = []
 
-        if any(not_done):
-            prev_states += list(compress(self.state, not_done))
-            next_states += list(compress(new_state, not_done))
-            rewards += list(compress(reward, not_done))
-            all_done += [False] * len(rewards)
+        if any(now_solved):
+            prev_states += list(compress(self.state, now_solved))
+            next_states += list(compress(new_state, now_solved))
+            now_solved_rewards = list(compress(reward, now_solved))
+            rewards += now_solved_rewards
+            all_solved += [True] * len(rewards)
+            self.wins += sum([1 for _ in now_solved_rewards if self.env.steps_counter < self.env.max_steps])
+            self.looses += sum([1 for _ in now_solved_rewards if self.env.steps_counter >= self.env.max_steps])
 
-            if any(reward < 0 for reward in rewards):
-                self.repeated_actions += 1
+        if any(not_solved):
+            prev_states += list(compress(self.state, not_solved))
+            next_states += list(compress(new_state, not_solved))
+            rewards += list(compress(reward, not_solved))
+            all_solved += [False] * len(rewards)
 
         if len(prev_states) > 0:
-            # prev_states = GraphState.convert_all_to_representation(previous_action_mode, prev_states)
-            # next_states = GraphState.convert_all_to_representation(self.env.current_action_mode, next_states)
-            self.replay_buffer.append_many(action_mode=previous_action_mode, states=prev_states,
-                                           actions=actions, rewards=rewards, terminals=all_done,
-                                           next_states=next_states)
+            experiences = self.replay_buffer.append_many(action_mode=previous_action_mode, states=prev_states,
+                                                         actions=actions, rewards=rewards, terminals=all_solved,
+                                                         next_states=next_states, goals=np.ones(len(prev_states)))
+            self.current_episode_transitions[previous_action_mode].extend(experiences)
 
         # Log statistics
         if previous_action_mode == ACTION_MODE_SELECTING_START_NODE:
@@ -193,42 +184,25 @@ class GraphAgent:
 
         self.state = new_state
         if all(done):
-            print(f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Repeated Actions: {self.repeated_actions} | Episode Reward: {self.episode_reward}")
+            print(
+                f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Episode Reward: {self.episode_reward}")
 
-            """fig, axs = plt.subplots(2)
-            axs[0].bar(self.selected_start_nodes_stats.keys(),
-                       self.selected_start_nodes_stats.values(), 2, color='g')
-            axs[1].bar(self.selected_end_nodes_stats.keys(),
-                       self.selected_end_nodes_stats.values(), 2, color='g')
-            NEPTUNE_INSTANCE['training/action_selection'].log(File.as_image(fig))
-
-            if self.env.last_irrigation_map is not None:
-                fig_irrigation, ax_irrigation = plt.subplots()
-                ax_irrigation.title.set_text(f'Global Step: {self.total_steps}')
-                ax_irrigation.imshow(np.flipud(self.env.last_irrigation_map), cmap='hot', interpolation='nearest')
-
-                NEPTUNE_INSTANCE['training/irrigation'].log(File.as_image(fig_irrigation))"""
-
-            """if self.env.last_irrigation_graph is not None and self.env.last_pressures is not None \
-                    and self.env.last_edge_sources is not None:
-                fig, ax = plt.subplots(figsize=(10, 10))
-                ax.title.set_text(f'Win: {self.wins} | Looses: {self.looses}')
-                draw_nx_irrigation_network(self.env.last_irrigation_graph, self.env.last_pressures, self.env.last_edge_sources, self.env.last_edges_list, ax)
-                NEPTUNE_INSTANCE['training/network-debug'].log(File.as_image(fig))"""
-
-            #plt.close('all')
-
-            """start_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_START_NODE)].repr_history, axis=0))
-            end_node_repr_history = pd.DataFrame(np.stack(q_networks._dqn_by_action_mode[str(ACTION_MODE_SELECTING_END_NODE)].repr_history, axis=0))
-
-            start_node_repr_history.to_csv(f"start_node_repr_history.csv", sep=";", decimal=",", header=False, index=False)
-            end_node_repr_history.to_csv(f"end_node_repr_history.csv", sep=";", decimal=",", header=False, index=False)"""
-
+            if not self.env.irrigation_goal_achieved():
+                irrigation_score = self.env.previous_irrigation_score
+                for act_mode, action_mode_experiences in self.current_episode_transitions.items():
+                    self.replay_buffer.append_many(action_mode=act_mode,
+                                                   states=[e.state for e in action_mode_experiences],
+                                                   actions=[e.action for e in action_mode_experiences],
+                                                   rewards=[e.reward for e in action_mode_experiences],
+                                                   terminals=[e.solved for e in action_mode_experiences],
+                                                   next_states=[e.new_state for e in action_mode_experiences],
+                                                   goals=[irrigation_score[0] for _ in range(len(action_mode_experiences))])
+            # Reset environment
             self.reset()
 
         self.total_steps += 1
 
-        return reward[0], done[0]
+        return reward[0], done[0], solved[0]
 
     @staticmethod
     def sample_batch(data, data_sampler):
