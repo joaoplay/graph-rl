@@ -120,6 +120,8 @@ class DQN:
         states = states.to(self.device)
         next_states = next_states.to(self.device)
         actions_tensor = actions_tensor.to(self.device)
+        rewards = rewards.to(self.device)
+        solved = solved.to(self.device)
 
         state_action_values, _ = self.q_networks(action_mode, states)
 
