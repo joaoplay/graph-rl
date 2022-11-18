@@ -61,13 +61,14 @@ class GraphAgent:
         # Get the environments state of each graphs
         state = torch.tensor(self.state)
 
-        if USE_CUDA == 1:
-            state = state.cuda()
-
         # FIXME: Pass it as a parameter
         goal = np.ones((1, 1))
         concat_state_goal = np.concatenate([state, goal], axis=1)
         state_plus_goal = torch.tensor(concat_state_goal, dtype=torch.float).to(state.device)
+
+        if USE_CUDA == 1:
+            state_plus_goal = state_plus_goal.cuda()
+
         # Get action that maximizes Q-value (for each graph)
         q_values, forbidden_actions = q_network(action_mode=action_mode, states=state_plus_goal)
         actions, _ = q_network.select_action_from_q_values(action_mode=action_mode, q_values=q_values,
