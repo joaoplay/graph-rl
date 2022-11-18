@@ -117,6 +117,9 @@ class DQN:
         action_mode = int(action_modes[1].item())
         actions_tensor = actions.unsqueeze(-1)
 
+        states = states.to(self.device)
+        next_states = next_states.to(self.device)
+
         state_action_values, _ = self.q_networks(action_mode, states)
 
         q_sa = state_action_values.gather(1, actions_tensor)
