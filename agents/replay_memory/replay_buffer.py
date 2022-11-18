@@ -24,9 +24,13 @@ class ReplayBuffer:
 
     def append_many(self, states, actions, rewards, terminals, next_states, goals):
         experiences = []
+
         for exp_idx in range(len(states)):
-            experience = Experience(states[exp_idx], actions[exp_idx], rewards[exp_idx], terminals[exp_idx],
-                                    next_states[exp_idx], goals[exp_idx])
+            goals_np = np.array([goals[exp_idx]], dtype=np.float32)
+            state_plus_goal = np.concatenate((states[exp_idx], goals_np))
+            next_state_plus_goal = np.concatenate((next_states[exp_idx], goals_np))
+            experience = Experience(state_plus_goal, actions[exp_idx], rewards[exp_idx], terminals[exp_idx],
+                                    next_state_plus_goal, goals[exp_idx])
             experiences += [experience]
             self.append(experience)
 

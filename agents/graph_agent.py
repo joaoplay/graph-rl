@@ -64,8 +64,12 @@ class GraphAgent:
         if USE_CUDA == 1:
             state = state.cuda()
 
+        # FIXME: Pass it as a parameter
+        goal = np.ones((1, 1))
+        concat_state_goal = np.concatenate([state, goal], axis=1)
+        state_plus_goal = torch.tensor(concat_state_goal, dtype=torch.float).to(state.device)
         # Get action that maximizes Q-value (for each graph)
-        q_values, forbidden_actions = q_network(action_mode=action_mode, states=state)
+        q_values, forbidden_actions = q_network(action_mode=action_mode, states=state_plus_goal)
         actions, _ = q_network.select_action_from_q_values(action_mode=action_mode, q_values=q_values,
                                                            forbidden_actions=forbidden_actions)
         actions = list(actions.view(-1).cpu().numpy())
@@ -167,7 +171,7 @@ class GraphAgent:
         if len(prev_states) > 0:
             experiences = self.replay_buffer.append_many(action_mode=previous_action_mode, states=prev_states,
                                                          actions=actions, rewards=rewards, terminals=all_solved,
-                                                         next_states=next_states, goals=np.ones(len(prev_states)))
+                                                         next_states=next_states, goals=[1 for _ in range(len(prev_states))])
             self.current_episode_transitions[previous_action_mode].extend(experiences)
 
         # Log statistics
@@ -191,11 +195,11 @@ class GraphAgent:
                 irrigation_score = self.env.previous_irrigation_score
                 for act_mode, action_mode_experiences in self.current_episode_transitions.items():
                     self.replay_buffer.append_many(action_mode=act_mode,
-                                                   states=[e.state for e in action_mode_experiences],
+                                                   states=[e.state[:-1] for e in action_mode_experiences],
                                                    actions=[e.action for e in action_mode_experiences],
                                                    rewards=[e.reward for e in action_mode_experiences],
                                                    terminals=[e.solved for e in action_mode_experiences],
-                                                   next_states=[e.new_state for e in action_mode_experiences],
+                                                   next_states=[e.new_state[:-1] for e in action_mode_experiences],
                                                    goals=[irrigation_score[0] for _ in range(len(action_mode_experiences))])
             # Reset environment
             self.reset()

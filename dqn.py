@@ -47,7 +47,7 @@ class DQN:
 
         # FIXME: This is hardcoded for now. Should be changed to a more general solution.
         start_representation_dim = graphs[0].start_node_selection_representation_dim + (
-            env.compressed_irrigation_matrix_size if env.inject_irrigation else 0)
+            env.compressed_irrigation_matrix_size if env.inject_irrigation else 0) + 1  # Inject goal
 
         self.q_networks = MultiActionModeDQN(action_modes=action_modes,
                                              input_dim={
