@@ -180,8 +180,6 @@ class DQN:
             print(f"Syncing target networks at step {self.global_step}")
             self.target_q_networks.load_state_dict(self.q_networks.state_dict())
 
-        self.global_step += 1
-
         return action_mode, loss
 
     def train(self, steps: int, validation_interval: int) -> None:
@@ -214,6 +212,8 @@ class DQN:
                     for t in range(self.env.max_steps):
                         batch = next(iter(dataloader))
                         self.train_batch(batch)
+
+            self.global_step += 1
 
     def validate(self):
         """Tests the agent in the environment.
