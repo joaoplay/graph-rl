@@ -289,7 +289,7 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
 
     pressures_tensor = torch.FloatTensor(matrix)
     if USE_CUDA == 1:
-        pressures_tensor = pressures_tensor.to(device=1)
+        pressures_tensor = pressures_tensor.to(device='cuda')
 
     # Invert matrix
     try:

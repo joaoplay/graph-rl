@@ -80,7 +80,7 @@ def run_experiment(cfg: DictConfig):
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
     model = DQN(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
-                multi_action_q_network=cfg.multi_action_q_network, **cfg.core)
+                multi_action_q_network=cfg.multi_action_q_network, **cfg.core, device='cuda')
     model.populate(model.hparams.warm_start_steps)
 
     model.train(10000000, validation_interval=cfg.validation_interval)
