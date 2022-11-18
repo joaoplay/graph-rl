@@ -177,7 +177,7 @@ class DQN:
 
         # Soft update of target network
         if self.global_step % self.hparams.sync_rate == 0:
-            print(f"Syncing target networks at step {self.global_step}")
+            #print(f"Syncing target networks at step {self.global_step}")
             self.target_q_networks.load_state_dict(self.q_networks.state_dict())
 
         return action_mode, loss
@@ -219,7 +219,7 @@ class DQN:
         """Tests the agent in the environment.
 
         """
-        print("Validating...")
+        #print("Validating...")
 
         validation_env = deepcopy(self.env)
         validation_agent = GraphAgent(validation_env, self.graphs, self.buffer)
