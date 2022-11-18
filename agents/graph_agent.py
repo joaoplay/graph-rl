@@ -160,8 +160,7 @@ class GraphAgent:
             now_solved_rewards = list(compress(reward, now_solved))
             rewards += now_solved_rewards
             all_solved += [True] * len(rewards)
-            self.wins += sum([1 for _ in now_solved_rewards if self.env.steps_counter < self.env.max_steps])
-            self.looses += sum([1 for _ in now_solved_rewards if self.env.steps_counter >= self.env.max_steps])
+            self.wins += sum([1 for _ in now_solved_rewards])
 
         if any(not_solved):
             prev_states += list(compress(self.state, not_solved))
@@ -190,7 +189,9 @@ class GraphAgent:
         self.state = new_state
         if all(done):
             print(
-                f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Looses: {self.looses} | Episode Reward: {self.episode_reward}")
+                f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Episode Reward: {self.episode_reward}")
+
+            NEPTUNE_INSTANCE['training/total_wins'].log(self.wins)
 
             if not self.env.irrigation_goal_achieved():
                 irrigation_score = self.env.previous_irrigation_score
