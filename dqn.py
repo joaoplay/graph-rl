@@ -72,8 +72,8 @@ class DQN:
 
         self.env = env
         self.graphs = graphs
-        self.buffer = MultiActionReplayBuffer(action_modes=action_modes, use_hindsight=self.use_hindsight)
-        self.agent = GraphAgent(self.env, self.graphs, self.buffer, self.use_hindsight)
+        self.buffer = MultiActionReplayBuffer(action_modes=action_modes, capacity=10 ** 5, use_hindsight=use_hindsight)
+        self.agent = GraphAgent(self.env, self.graphs, self.buffer, use_hindsight)
         self.total_reward = 0
         self.episode_reward = 0
         self.global_step = 0
@@ -223,7 +223,7 @@ class DQN:
         #print("Validating...")
 
         validation_env = deepcopy(self.env)
-        validation_agent = GraphAgent(validation_env, self.graphs, self.buffer)
+        validation_agent = GraphAgent(validation_env, self.graphs, self.buffer, use_hindsight=self.use_hindsight)
         validation_agent.reset()
 
         done = False
