@@ -24,7 +24,7 @@ class DQN:
                  gamma: float = 0.99, sync_rate: int = 10000, replay_size: int = 10 ** 6,
                  eps_last_frame: int = 5 * 10 ** 5, eps_start: float = 1.0, eps_end: float = 0.2,
                  warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES,
-                 multi_action_q_network: dict = None, num_dataloader_workers: int = 1, device='cpu') -> None:
+                 multi_action_q_network: dict = None, num_dataloader_workers: int = 1, device='cpu', use_hindsight=False) -> None:
         super().__init__()
 
         self.hparams = Namespace(
@@ -40,14 +40,16 @@ class DQN:
             action_modes=action_modes,
             multi_action_q_network=multi_action_q_network,
             num_dataloader_workers=num_dataloader_workers,
-            device=device
+            use_hindsight=use_hindsight,
+            device=device,
         )
 
+        self.use_hindsight = use_hindsight
         number_of_nodes = graphs[0].num_nodes
 
         # FIXME: This is hardcoded for now. Should be changed to a more general solution.
         start_representation_dim = graphs[0].start_node_selection_representation_dim + (
-            env.compressed_irrigation_matrix_size if env.inject_irrigation else 0) + 1  # Inject goal
+            env.compressed_irrigation_matrix_size if env.inject_irrigation else 0) + (1 if use_hindsight else 0)
 
         self.q_networks = MultiActionModeDQN(action_modes=action_modes,
                                              input_dim={
@@ -70,8 +72,8 @@ class DQN:
 
         self.env = env
         self.graphs = graphs
-        self.buffer = MultiActionReplayBuffer(action_modes)
-        self.agent = GraphAgent(self.env, self.graphs, self.buffer)
+        self.buffer = MultiActionReplayBuffer(action_modes=action_modes, use_hindsight=self.use_hindsight)
+        self.agent = GraphAgent(self.env, self.graphs, self.buffer, self.use_hindsight)
         self.total_reward = 0
         self.episode_reward = 0
         self.global_step = 0
@@ -177,7 +179,6 @@ class DQN:
 
         # Soft update of target network
         if self.global_step % self.hparams.sync_rate == 0:
-            #print(f"Syncing target networks at step {self.global_step}")
             self.target_q_networks.load_state_dict(self.q_networks.state_dict())
 
         return action_mode, loss
@@ -207,7 +208,7 @@ class DQN:
                 self.total_reward = self.episode_reward
                 self.episode_reward = 0
 
-                if not solved:
+                if self.use_hindsight and not solved:
                     # The previous episode did not solve the environment.
                     for t in range(self.env.max_steps):
                         batch = next(iter(dataloader))

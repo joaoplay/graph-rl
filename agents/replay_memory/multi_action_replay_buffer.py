@@ -5,11 +5,11 @@ from agents.replay_memory.replay_buffer import ReplayBuffer
 
 class MultiActionReplayBuffer:
 
-    def __init__(self, action_modes: tuple[int], capacity=10 ** 5) -> None:
+    def __init__(self, action_modes: tuple[int], capacity=10 ** 5, use_hindsight=False) -> None:
         super().__init__()
 
         self.action_modes = action_modes
-        self.experience_buffer_by_action_mode = {action_mode: ReplayBuffer(capacity=capacity)
+        self.experience_buffer_by_action_mode = {action_mode: ReplayBuffer(capacity=capacity, use_hindsight=use_hindsight)
                                                  for action_mode in self.action_modes}
 
     def append(self, action_mode, experience):

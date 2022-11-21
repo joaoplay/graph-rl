@@ -20,7 +20,7 @@ from util import draw_nx_irrigation_network
 class GraphAgent:
     """Base Agent class handling the interaction with the environment."""
 
-    def __init__(self, env: GraphEnv, graph_list, replay_buffer: MultiActionReplayBuffer) -> None:
+    def __init__(self, env: GraphEnv, graph_list, replay_buffer: MultiActionReplayBuffer, use_hindsight=False) -> None:
         """
         Args:
             env: training environment
@@ -40,6 +40,7 @@ class GraphAgent:
         self.episode_reward = 0
         self.q_values_history = []
         self.current_episode_transitions = None
+        self.use_hindsight = use_hindsight
         self.reset()
 
     def reset(self):
@@ -62,15 +63,16 @@ class GraphAgent:
         state = torch.tensor(self.state)
 
         # FIXME: Pass it as a parameter
-        goal = np.ones((1, 1))
-        concat_state_goal = np.concatenate([state, goal], axis=1)
-        state_plus_goal = torch.tensor(concat_state_goal, dtype=torch.float).to(state.device)
+        if self.use_hindsight:
+            goal = np.ones((1, 1))
+            concat_state_goal = np.concatenate([state, goal], axis=1)
+            state = torch.tensor(concat_state_goal, dtype=torch.float)
 
         if USE_CUDA == 1:
-            state_plus_goal = state_plus_goal.cuda()
+            state = state.cuda()
 
         # Get action that maximizes Q-value (for each graph)
-        q_values, forbidden_actions = q_network(action_mode=action_mode, states=state_plus_goal)
+        q_values, forbidden_actions = q_network(action_mode=action_mode, states=state)
         actions, _ = q_network.select_action_from_q_values(action_mode=action_mode, q_values=q_values,
                                                            forbidden_actions=forbidden_actions)
         actions = list(actions.view(-1).cpu().numpy())
@@ -193,7 +195,8 @@ class GraphAgent:
 
             NEPTUNE_INSTANCE['training/total_wins'].log(self.wins)
 
-            if not self.env.irrigation_goal_achieved():
+            # Add retrospective transitions to the replay buffer when hindsight mode is enabled
+            if self.use_hindsight and not self.env.irrigation_goal_achieved():
                 irrigation_score = self.env.previous_irrigation_score
                 for act_mode, action_mode_experiences in self.current_episode_transitions.items():
                     self.replay_buffer.append_many(action_mode=act_mode,

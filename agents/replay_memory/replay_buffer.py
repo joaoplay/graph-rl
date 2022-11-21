@@ -11,10 +11,11 @@ class ReplayBuffer:
         capacity: size of the buffer
     """
 
-    def __init__(self, capacity) -> None:
+    def __init__(self, capacity, use_hindsight=False) -> None:
         super().__init__()
 
         self.buffer = deque(maxlen=capacity)
+        self.use_hindsight = use_hindsight
 
     def __len__(self):
         return len(self.buffer)
@@ -26,11 +27,15 @@ class ReplayBuffer:
         experiences = []
 
         for exp_idx in range(len(states)):
-            goals_np = np.array([goals[exp_idx]], dtype=np.float32)
-            state_plus_goal = np.concatenate((states[exp_idx], goals_np))
-            next_state_plus_goal = np.concatenate((next_states[exp_idx], goals_np))
-            experience = Experience(state_plus_goal, actions[exp_idx], rewards[exp_idx], terminals[exp_idx],
-                                    next_state_plus_goal, goals[exp_idx])
+            state = states[exp_idx]
+            next_state = next_states[exp_idx]
+            if self.use_hindsight:
+                goals_np = np.array([goals[exp_idx]], dtype=np.float32)
+                state = np.concatenate((states[exp_idx], goals_np))
+                next_state = np.concatenate((next_states[exp_idx], goals_np))
+
+            experience = Experience(state, actions[exp_idx], rewards[exp_idx], terminals[exp_idx],
+                                    next_state, goals[exp_idx])
             experiences += [experience]
             self.append(experience)
 
