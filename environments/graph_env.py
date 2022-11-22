@@ -41,7 +41,7 @@ class GraphEnv:
     """
 
     def __init__(self, max_steps, irrigation_goal, inject_irrigation,
-                 irrigation_compression, irrigation_grid_dim, irrigation_grid_cell_size) -> None:
+                 irrigation_compression, irrigation_grid_dim, irrigation_grid_cell_size, irrigation_percentage_goal) -> None:
         super().__init__()
 
         # Batch of graphs
@@ -53,6 +53,7 @@ class GraphEnv:
         self.irrigation_compression = irrigation_compression
         self.irrigation_grid_dim = np.array(irrigation_grid_dim)
         self.irrigation_grid_cell_size = np.array(irrigation_grid_cell_size)
+        self.irrigation_percentage_goal = irrigation_percentage_goal
 
         self.steps_counter = 0
         self.action_type_statistics = []
@@ -129,7 +130,7 @@ class GraphEnv:
                 rewards[graph_idx] = -1.0  # + irrigation_improvement
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
-            if self.irrigation_goal_achieved() or self.max_steps_achieved():
+            if self.irrigation_goal_achieved() or self.max_steps_achieved() or self.irrigation_percentage_goal_achieved():
                 self.done[graph_idx] = True
                 self.solved[graph_idx] = self.irrigation_goal_achieved()
 
@@ -183,6 +184,9 @@ class GraphEnv:
             return False
 
         return np.all((self.last_irrigation_map > self.irrigation_goal))
+
+    def irrigation_percentage_goal_achieved(self):
+        self.previous_irrigation_score
 
     @property
     def current_action_mode(self):
@@ -347,7 +351,7 @@ class GraphEnv:
                     prepared_data[0], prepared_data[1],
                     prepared_data[2], self.irrigation_grid_dim, self.irrigation_grid_cell_size)
 
-                sections_x = np.array_split(irrigation, 20, axis=0)
+                """sections_x = np.array_split(irrigation, 20, axis=0)
                 sections_y = np.array_split(irrigation, 20, axis=1)
 
                 def percentage_irrigated(sections):
@@ -362,7 +366,9 @@ class GraphEnv:
                 mean_irrigated_x = np.mean(irrigated_x)
                 mean_irrigated_y = np.mean(irrigated_y)
 
-                irrigation_score = (mean_irrigated_x + mean_irrigated_y) / 2.0
+                irrigation_score = (mean_irrigated_x + mean_irrigated_y) / 2.0"""
+
+                irrigation_score = np.count_nonzero(irrigation[irrigation > self.irrigation_goal]) / irrigation.size
 
                 if self.previous_irrigation_score is not None:
                     irrigation_improvement = irrigation_score - self.previous_irrigation_score[graph_idx]

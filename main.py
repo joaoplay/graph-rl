@@ -42,26 +42,17 @@ def run_hierarchical_experiment(cfg: DictConfig):
         environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=goal, inject_irrigation=cfg.inject_irrigation,
                                irrigation_compression=cfg.irrigation_compression,
                                irrigation_grid_dim=cfg.irrigation_grid_dim,
-                               irrigation_grid_cell_size=cfg.irrigation_grid_cell_size)
+                               irrigation_grid_cell_size=cfg.irrigation_grid_cell_size,
+                               irrigation_percentage_goal=h.irrigation_percentage_goal)
         train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
-        model = DQNLightning(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
-                             multi_action_q_network=cfg.multi_action_q_network, **h.core)
+        model = DQN(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
+                    multi_action_q_network=cfg.multi_action_q_network, **h.core, device='cuda' if USE_CUDA else 'cpu',
+                    use_hindsight=cfg.use_hindsight)
         model.load_models(folder_path)
         model.populate(model.hparams.warm_start_steps)
 
-        trainer = Trainer(
-            max_epochs=-1,
-            # max_time={'hours': cfg.training_duration_in_hours},
-            gpus=[cfg.gpu_device] if USE_CUDA else None,
-            enable_progress_bar=False,
-            limit_val_batches=1,
-            check_val_every_n_epoch=cfg.validation_interval,
-            # deterministic=cfg.deterministic
-            callbacks=[EpisodeLengthEarlyStopping(max_steps_without_improvement=cfg.early_stopping_patience)]
-        )
-
-        trainer.fit(model)
+        model.train(training_steps, validation_interval=cfg.validation_interval)
 
         model.save_models(folder_path)
 
@@ -73,7 +64,8 @@ def run_experiment(cfg: DictConfig):
                            inject_irrigation=cfg.inject_irrigation,
                            irrigation_compression=cfg.irrigation_compression,
                            irrigation_grid_dim=cfg.irrigation_grid_dim,
-                           irrigation_grid_cell_size=cfg.irrigation_grid_cell_size)
+                           irrigation_grid_cell_size=cfg.irrigation_grid_cell_size,
+                           irrigation_percentage_goal=1.0)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
     model = DQN(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,

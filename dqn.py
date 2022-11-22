@@ -1,3 +1,4 @@
+import os
 from argparse import Namespace
 from copy import deepcopy
 
@@ -263,6 +264,27 @@ class DQN:
         plt.close('all')
 
         return {'episode-length': validation_agent.env.steps_counter}
+
+    def save_models(self, path):
+        """Saves the model to the specified path.
+
+        Args:
+            path: path to save the model
+        """
+        torch.save(self.q_networks.state_dict(), f'{path}/q_networks.pt')
+        torch.save(self.target_q_networks.state_dict(), f'{path}/target_q_networks.pt')
+
+    def load_models(self, path):
+        """
+        Check if model exists and load it
+        :param path:
+        :return:
+        """
+        if os.path.exists(f'{path}q_networks.pt'):
+            self.q_networks.load_state_dict(torch.load(f'{path}q_networks.pt'))
+            self.target_q_networks.load_state_dict(torch.load(f'{path}target_q_networks.pt'))
+        else:
+            print("No model found. Starting from scratch.")
 
 
 

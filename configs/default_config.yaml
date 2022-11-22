@@ -1,7 +1,7 @@
 defaults:
   - multi_action_q_network: default_q_net
   - environment: environment_1
-  - core: core_1
+  - hierarchical: h_1
 number_of_graphs: 1
 deterministic: true
 random_seed: 873
