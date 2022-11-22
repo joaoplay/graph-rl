@@ -10,7 +10,7 @@ from dqn_lightning import DQNLightning
 from early_stopping.episode_length_early_stopping import EpisodeLengthEarlyStopping
 from environments.generator.single_vessel_graph_generator import SingleVesselGraphGenerator
 from environments.graph_env import GraphEnv
-from settings import USE_CUDA, NEPTUNE_INSTANCE
+from settings import USE_CUDA, NEPTUNE_INSTANCE, WANDB_PATH
 
 os.environ["WANDB_API_KEY"] = '237099249b3c0e91437061c393ab089d03339bc3'
 
