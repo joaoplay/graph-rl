@@ -255,6 +255,7 @@ class DQN:
                 and validation_agent.env.last_edge_sources is not None:
             fig, ax = plt.subplots(figsize=(10, 10))
             ax.title.set_text(f'Global Step: {validation_agent.total_steps}')
+
             draw_nx_irrigation_network(validation_agent.env.last_irrigation_graph, validation_agent.env.last_pressures,
                                        validation_agent.env.last_edge_sources, validation_agent.env.last_edges_list, ax)
             NEPTUNE_INSTANCE[f'validation/{self.global_step}/network-debug'].log(File.as_image(fig))
