@@ -186,7 +186,7 @@ class GraphEnv:
         return np.all((self.last_irrigation_map > self.irrigation_goal))
 
     def irrigation_percentage_goal_achieved(self):
-        self.previous_irrigation_score
+        return self.previous_irrigation_score[0] >= self.irrigation_percentage_goal
 
     @property
     def current_action_mode(self):

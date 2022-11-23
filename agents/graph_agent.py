@@ -190,8 +190,8 @@ class GraphAgent:
 
         self.state = new_state
         if all(done):
-            #print(
-            #    f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Episode Reward: {self.episode_reward}")
+            print(
+                f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Episode Reward: {self.episode_reward}")
 
             NEPTUNE_INSTANCE['training/total_wins'].log(self.wins)
 
