@@ -221,8 +221,6 @@ class DQN:
         """Tests the agent in the environment.
 
         """
-        #print("Validating...")
-
         validation_env = deepcopy(self.env)
         validation_agent = GraphAgent(validation_env, self.graphs, self.buffer, use_hindsight=self.use_hindsight)
         validation_agent.reset()
@@ -261,7 +259,14 @@ class DQN:
                                        validation_agent.env.last_edge_sources, validation_agent.env.last_edges_list, ax)
             NEPTUNE_INSTANCE[f'validation/{self.global_step}/network-debug'].log(File.as_image(fig))
 
-        plt.close('all')
+            fig, ax = plt.subplots(figsize=(10, 10))
+
+            draw_nx_irrigation_network(validation_agent.env.last_raw_irrigation_map, validation_agent.env.last_pressures,
+                                       validation_agent.env.last_edge_sources, validation_agent.env.last_edges_list, ax)
+
+            plt.show()
+
+        #plt.close('all')
 
         return {'episode-length': validation_agent.env.steps_counter}
 

@@ -21,6 +21,8 @@ wandb = "^0.12.14"
 scikit-image = "^0.19.3"
 Cython = "*"
 scipy = "*"
+bezier = "*"
+
 
 [tool.poetry.dev-dependencies]
 

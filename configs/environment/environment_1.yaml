@@ -1,4 +1,3 @@
 size_x: 10
 size_y: 10
 interval_between_nodes: 1
-allow_void_actions: False

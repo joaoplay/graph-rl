@@ -11,12 +11,11 @@ from graphs.fluid_network_state import FluidNetworkState
 
 class SingleVesselGraphGenerator:
 
-    def __init__(self, size_x, size_y, interval_between_nodes, allow_void_actions=True) -> None:
+    def __init__(self, size_x, size_y, interval_between_nodes) -> None:
         super().__init__()
         self.size_x = size_x
         self.size_y = size_y
         self.interval_between_nodes = interval_between_nodes
-        self.allow_void_actions = allow_void_actions
 
     def get_node_type(self, x, y):
         if (x == 0 or x == 5) and y == 0:
@@ -97,7 +96,7 @@ class SingleVesselGraphGenerator:
     def generate(self):
         nx_graph = self.generate_nx_graph()
         neighbour_graph = self._generate_neighbourhood_nx_graph()
-        return FluidNetworkState(nx_graph, neighbour_graph, allow_void_actions=self.allow_void_actions)
+        return FluidNetworkState(nx_graph, neighbour_graph)
 
     def generate_multiple_graphs(self, quantity):
         return [self.generate() for _ in range(quantity)]

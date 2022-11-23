@@ -43,7 +43,8 @@ def run_hierarchical_experiment(cfg: DictConfig):
                                irrigation_compression=cfg.irrigation_compression,
                                irrigation_grid_dim=cfg.irrigation_grid_dim,
                                irrigation_grid_cell_size=cfg.irrigation_grid_cell_size,
-                               irrigation_percentage_goal=h.irrigation_percentage_goal)
+                               irrigation_percentage_goal=h.irrigation_percentage_goal,
+                               exclude_isolated_from_start_nodes=cfg.exclude_isolated_from_start_nodes)
         train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
         model = DQN(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
@@ -65,7 +66,8 @@ def run_experiment(cfg: DictConfig):
                            irrigation_compression=cfg.irrigation_compression,
                            irrigation_grid_dim=cfg.irrigation_grid_dim,
                            irrigation_grid_cell_size=cfg.irrigation_grid_cell_size,
-                           irrigation_percentage_goal=1.0)
+                           irrigation_percentage_goal=1.0,
+                           exclude_isolated_from_start_nodes=cfg.exclude_isolated_from_start_nodes)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
     model = DQN(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,

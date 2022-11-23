@@ -41,7 +41,8 @@ class GraphEnv:
     """
 
     def __init__(self, max_steps, irrigation_goal, inject_irrigation,
-                 irrigation_compression, irrigation_grid_dim, irrigation_grid_cell_size, irrigation_percentage_goal) -> None:
+                 irrigation_compression, irrigation_grid_dim, irrigation_grid_cell_size, irrigation_percentage_goal,
+                 exclude_isolated_from_start_nodes=False) -> None:
         super().__init__()
 
         # Batch of graphs
@@ -76,6 +77,8 @@ class GraphEnv:
         self.repeated_actions = 0
 
         self.episode_retrospective = []
+
+        self.exclude_isolated_from_start_nodes = exclude_isolated_from_start_nodes
 
     @property
     def compressed_irrigation_matrix_size(self):
@@ -250,6 +253,11 @@ class GraphEnv:
         :return:
         """
         self.graphs_list = graphs_list
+
+        # Exclude isolated nodes from start nodes when required
+        if self.exclude_isolated_from_start_nodes:
+            for graph in self.graphs_list:
+                graph.exclude_isolated_from_start_nodes = True
 
         # Init simulation statistics array
         self.action_type_statistics = [[] for _ in range(len(graphs_list))]

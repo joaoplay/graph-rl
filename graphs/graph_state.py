@@ -30,7 +30,7 @@ class GraphState:
          ```nx.convert_node_labels_to_integers(nx_graph, first_label=0, ordering='default', label_attribute=None)```
     """
 
-    def __init__(self, nx_graph, nx_neighbourhood_graph, allow_void_actions=True) -> None:
+    def __init__(self, nx_graph, nx_neighbourhood_graph, exclude_isolated_from_start_nodes=False) -> None:
         """
         :param nx_graph: The NetworkX Graph representing the current graph structure.
         :param nx_neighbourhood_graph: A NetworkX Graph which represent the valid neighborhood of each node.
@@ -71,7 +71,7 @@ class GraphState:
         self.previous_selected_start_node = None
         self.previous_selected_end_node = None
 
-        self.allow_void_actions = allow_void_actions
+        self.exclude_isolated_from_start_nodes = exclude_isolated_from_start_nodes
 
     def invalidate_selected_start_node(self):
         """
@@ -156,20 +156,18 @@ class GraphState:
         :return:
         """
         # Identify all isolated nodes. Nodes with zero degree
-        isolated_nodes = set(nx.isolates(self.nx_graph))
         # Identify nodes with no edges available. FIXME: Is it correct? Probably we should check the neighborhood graph instead.
         #nodes_with_no_edges_available = set([node_id for node_id in self.nx_neighbourhood_graph.nodes()
         #                                     if self.nx_graph.degree[node_id] > 2])
+
         nodes_with_no_edges_available = set([node_id for node_id in self.nx_neighbourhood_graph.nodes()
                                               if self.nx_neighbourhood_graph.degree[node_id] == self.nx_graph.degree[node_id]])
 
-        """invalid_nodes = set()
-        if not self.allow_void_actions:
-            # Pick all nodes that are neither isolated nor full of edges
-            remaining_nodes = self.all_nodes_set - isolated_nodes - nodes_with_no_edges_available
-            invalid_nodes = set([node for node in remaining_nodes if len(self.get_invalid_end_nodes(start_node=node)) == self.num_nodes])"""
+        isolated_nodes = set()
+        if self.exclude_isolated_from_start_nodes:
+            isolated_nodes = set(nx.isolates(self.nx_graph))
 
-        return nodes_with_no_edges_available
+        return nodes_with_no_edges_available | isolated_nodes
 
     def get_invalid_end_nodes(self, start_node=None):
         # Use the start_node passed as parameter whenever defined. Otherwise, use the selected start node

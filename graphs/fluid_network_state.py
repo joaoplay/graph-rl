@@ -16,8 +16,8 @@ class FluidNetworkState(GraphState):
     FIXME: Add details on the structure of graph features
     """
 
-    def __init__(self, nx_graph, nx_neighbourhood_graph, allow_void_actions=True) -> None:
-        super().__init__(nx_graph, nx_neighbourhood_graph, allow_void_actions)
+    def __init__(self, nx_graph, nx_neighbourhood_graph, exclude_isolated_from_start_nodes=False) -> None:
+        super().__init__(nx_graph, nx_neighbourhood_graph, exclude_isolated_from_start_nodes)
         # Cache input and output nodes
         nodes_data = self.nx_graph.nodes(data=True)
         self.input_nodes = [x for x, y in nodes_data if y['node_type'] == 1]
