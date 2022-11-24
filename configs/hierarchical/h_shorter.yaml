@@ -1,0 +1,39 @@
+- irrigation_goal: 4.0
+  irrigation_percentage_goal: 0.34
+  training_steps: 1500000
+  core:
+    lr: 0.0001
+    sync_rate: 10000
+    batch_size: 64
+    gamma: 0.99
+    replay_size: 500000
+    eps_last_frame: 250000
+    eps_start: 1.0
+    eps_end: 0.01
+    warm_start_steps: 50000
+- irrigation_goal: 4.0
+  irrigation_percentage_goal: 0.64
+  training_steps: 1500000
+  core:
+    lr: 0.0001
+    sync_rate: 10000
+    batch_size: 64
+    gamma: 0.99
+    replay_size: 500000
+    eps_last_frame: 250000
+    eps_start: 1.0
+    eps_end: 0.01
+    warm_start_steps: 50000
+- irrigation_goal: 4.0
+  irrigation_percentage_goal: 1.0
+  training_steps: 1500000
+  core:
+    lr: 0.0001
+    sync_rate: 10000
+    batch_size: 64
+    gamma: 0.99
+    replay_size: 500000
+    eps_last_frame: 250000
+    eps_start: 1.0
+    eps_end: 0.01
+    warm_start_steps: 50000
