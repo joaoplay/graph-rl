@@ -127,15 +127,19 @@ class GraphEnv:
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 node_added = edge_insertion_cost > 0
+                # Calculate irrigation in order to check if the episode is over
                 irrigation_improvement = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                                                                start_node=start_node, end_node=actions[graph_idx])
 
-                rewards[graph_idx] = -1.0  # + irrigation_improvement
+                rewards[graph_idx] = -0.01  # + irrigation_improvement
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved() or self.max_steps_achieved() or self.irrigation_percentage_goal_achieved():
                 self.done[graph_idx] = True
-                self.solved[graph_idx] = self.irrigation_goal_achieved() or self.irrigation_percentage_goal_achieved()
+
+                if self.irrigation_goal_achieved() or self.irrigation_percentage_goal_achieved():
+                    self.solved[graph_idx] = True
+                    rewards[graph_idx] = 1.0
 
             if new_graph.allowed_actions_not_found:
                 print("Allowed actions not found")
