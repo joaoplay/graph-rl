@@ -13,7 +13,7 @@ from agents.util.sample_tracker import BatchSampler
 from environments.graph_env import GraphEnv, ACTION_MODE_SELECTING_START_NODE, ACTION_MODE_SELECTING_END_NODE
 from graphs.graph_state import GraphState
 from models.multi_action_mode_dqn import MultiActionModeDQN
-from settings import NEPTUNE_INSTANCE, USE_CUDA
+from settings import USE_CUDA
 from util import draw_nx_irrigation_network
 
 
@@ -193,7 +193,7 @@ class GraphAgent:
             #print(
             #    f"Current Simulation Step: {self.env.steps_counter} | Win: {self.wins} | Episode Reward: {self.episode_reward}")
 
-            NEPTUNE_INSTANCE['training/total_wins'].log(self.wins)
+            #NEPTUNE_INSTANCE['training/total_wins'].log(self.wins)
 
             # Add retrospective transitions to the replay buffer when hindsight mode is enabled
             if self.use_hindsight and not self.env.irrigation_goal_achieved():

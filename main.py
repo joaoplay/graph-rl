@@ -2,21 +2,16 @@ import os
 import time
 
 import hydra
+import wandb
 from omegaconf import DictConfig
-from pytorch_lightning import Trainer, seed_everything
+from pytorch_lightning import seed_everything
 
 from dqn import DQN
-from dqn_lightning import DQNLightning
-from early_stopping.episode_length_early_stopping import EpisodeLengthEarlyStopping
 from environments.generator.single_vessel_graph_generator import SingleVesselGraphGenerator
 from environments.graph_env import GraphEnv
-from settings import USE_CUDA, NEPTUNE_INSTANCE, WANDB_PATH
+from settings import USE_CUDA, WANDB_PATH
 
 os.environ["WANDB_API_KEY"] = '237099249b3c0e91437061c393ab089d03339bc3'
-
-
-# wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"))
-
 
 def check_hierarchical_folder(path):
     if not os.path.exists(path):
@@ -80,7 +75,9 @@ def run_experiment(cfg: DictConfig):
 
 @hydra.main(config_path="configs", config_name="default_config")
 def run_from_config_file(cfg: DictConfig):
-    NEPTUNE_INSTANCE['config'] = cfg
+    wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"), config=cfg)
+
+    #NEPTUNE_INSTANCE['config'] = cfg
 
     seed_everything(cfg.random_seed, workers=True)
 

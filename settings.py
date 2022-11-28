@@ -1,13 +1,14 @@
 import os
 
-import neptune.new as neptune
-
 USE_CUDA = int(os.getenv("USE_CUDA", 0))
 
 original_cwd = os.getcwd()
 
 # FIXME: Move it to ENV variable. I can't do it now because I don't want to deal with the DOCKER rebuild process.
 WANDB_PATH = '/data' if USE_CUDA == 1 else '.'
+
+"""
+Uncomment this line if you want to use Neptune.
 
 os.chdir(WANDB_PATH)
 
@@ -18,5 +19,6 @@ NEPTUNE_INSTANCE = neptune.init(project="jbsimoes/graph-rl",
                                 name=os.getenv("NEPTUNE_RUN_NAME", None))
 
 os.chdir(original_cwd)
+"""
 
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))

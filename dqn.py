@@ -4,6 +4,7 @@ from copy import deepcopy
 
 import numpy as np
 import torch
+import wandb
 from matplotlib import pyplot as plt
 from torch import nn, optim
 from torch.utils.data import DataLoader
@@ -14,9 +15,7 @@ from agents.rl_dataset import RLDataset
 from environments.graph_env import GraphEnv, DEFAULT_ACTION_MODES, ACTION_MODE_SELECTING_START_NODE, \
     ACTION_MODE_SELECTING_END_NODE
 from models.multi_action_mode_dqn import MultiActionModeDQN
-from settings import NEPTUNE_INSTANCE
 from util import draw_nx_irrigation_network
-from neptune.new.types import File
 
 
 class DQN:
@@ -84,6 +83,7 @@ class DQN:
         self.total_validation_losses = 0
         self.total_training_wins = 0
         self.total_training_losses = 0
+        self.current_validation_step = 0
 
     def populate(self, steps: int = 1000) -> None:
         """Carries out several random steps through the environment to initially fill up the replay buffer with
@@ -94,12 +94,15 @@ class DQN:
         """
         for i in range(steps):
             reward, done, _ = self.agent.play_step(self.q_networks, epsilon=1.0)
-            NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
+            #NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
 
             self.episode_reward += reward
             if done:
-                NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
+                #NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
+                wandb.log({'training/cum_reward': self.episode_reward}, commit=False)
                 self.episode_reward = 0
+
+            # wandb.log({'training/instant_reward': reward}, commit=True)
 
     def dqn_mse_loss(self, batch):
         """Calculates the mse loss using a mini batch from the replay buffer.
@@ -160,8 +163,9 @@ class DQN:
         self.episode_reward += reward
 
         # Log step results
-        NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
-        NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
+        #NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
+        #NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
+        #wandb.log({'training/instant_reward': reward, 'training/epsilon': epsilon}, commit=False)
 
         return reward, done, solved
 
@@ -171,18 +175,20 @@ class DQN:
         loss.backward()
         self.optimizer.step()
 
-        if action_mode == ACTION_MODE_SELECTING_START_NODE:
-            NEPTUNE_INSTANCE['training/start-node-selection-loss'].log(loss)
-        else:
-            NEPTUNE_INSTANCE['training/end-node-selection-loss'].log(loss)
+        # if action_mode == ACTION_MODE_SELECTING_START_NODE:
+        #     NEPTUNE_INSTANCE['training/start-node-selection-loss'].log(loss)
+        # else:
+        #     NEPTUNE_INSTANCE['training/end-node-selection-loss'].log(loss)
 
-        NEPTUNE_INSTANCE['training/goal'].log(torch.mean(batch[6]))
+        #NEPTUNE_INSTANCE['training/goal'].log(torch.mean(batch[6]))
+
+        goal_mean = torch.mean(batch[6])
 
         # Soft update of target network
         if self.global_step % self.hparams.sync_rate == 0:
             self.target_q_networks.load_state_dict(self.q_networks.state_dict())
 
-        return action_mode, loss
+        return action_mode, loss, goal_mean
 
     def train(self, steps: int, validation_interval: int) -> None:
         dataset = RLDataset(self.buffer, self.hparams.batch_size)
@@ -201,11 +207,12 @@ class DQN:
             # Get a single batch of data from the replay buffer
             batch = next(iter(dataloader))
             # Train the network on the batch
-            self.train_batch(batch)
+            action_mode, loss, goal_mean = self.train_batch(batch)
 
             if done:
                 # The episode has ended. Log the episode reward and reset it
-                NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
+                #NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
+                wandb.log({'training/cum_reward': self.episode_reward}, commit=True)
                 self.total_reward = self.episode_reward
                 self.episode_reward = 0
 
@@ -214,6 +221,8 @@ class DQN:
                     for t in range(self.env.max_steps):
                         batch = next(iter(dataloader))
                         self.train_batch(batch)
+
+            # wandb.log({'training/instant_reward': reward}, commit=True)
 
             self.global_step += 1
 
@@ -231,16 +240,16 @@ class DQN:
             reward, done, solved = validation_agent.play_validation_step(self.q_networks, self.device)
 
             cum_reward += reward
-            NEPTUNE_INSTANCE[f'validation/{self.global_step}/instant-reward'].log(reward)
 
-        NEPTUNE_INSTANCE[f'validation/episode-length'].log(validation_agent.env.steps_counter)
+        # NEPTUNE_INSTANCE[f'validation/episode-length'].log(validation_agent.env.steps_counter)
+        wandb.log({'validation/episode-length': validation_agent.env.steps_counter, 'validation_step': self.current_validation_step}, commit=False)
 
         fig, axs = plt.subplots(2)
         axs[0].bar(validation_agent.env.start_node_selection_statistics.keys(),
                    validation_agent.env.start_node_selection_statistics.values(), 2, color='g')
         axs[1].bar(validation_agent.env.end_node_selection_statistics.keys(),
                    validation_agent.env.end_node_selection_statistics.values(), 2, color='g')
-        NEPTUNE_INSTANCE[f'validation/{self.global_step}/action-selection'].log(File.as_image(fig))
+        # NEPTUNE_INSTANCE[f'validation/{self.global_step}/action-selection'].log(File.as_image(fig))
 
         if validation_agent.env.last_irrigation_map is not None:
             fig_irrigation, ax_irrigation = plt.subplots()
@@ -248,7 +257,9 @@ class DQN:
             ax_irrigation.imshow(np.flipud(validation_agent.env.last_irrigation_map), cmap='hot', vmin=0,
                                  interpolation='nearest')
 
-            NEPTUNE_INSTANCE[f'validation/{self.global_step}/irrigation'].log(File.as_image(fig_irrigation))
+            wandb.log({'validation/irrigation': wandb.Image(fig_irrigation)}, commit=False)
+            # NEPTUNE_INSTANCE[f'validation/{self.global_step}/irrigation-map'].log(File.as_image(fig_irrigation))
+            # NEPTUNE_INSTANCE[f'validation/{self.global_step}/irrigation'].log(File.as_image(fig_irrigation))
 
         if validation_agent.env.last_irrigation_graph is not None and validation_agent.env.last_pressures is not None \
                 and validation_agent.env.last_edge_sources is not None:
@@ -257,9 +268,13 @@ class DQN:
 
             draw_nx_irrigation_network(validation_agent.env.last_irrigation_graph, validation_agent.env.last_pressures,
                                        validation_agent.env.last_edge_sources, validation_agent.env.last_edges_list, ax)
-            NEPTUNE_INSTANCE[f'validation/{self.global_step}/network-debug'].log(File.as_image(fig))
+
+            wandb.log({'validation/network-debug': wandb.Image(fig)}, commit=True)
+            # NEPTUNE_INSTANCE[f'validation/{self.global_step}/network-debug'].log(File.as_image(fig))
 
         plt.close('all')
+
+        self.current_validation_step += 1
 
         return {'episode-length': validation_agent.env.steps_counter}
 
