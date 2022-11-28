@@ -99,7 +99,7 @@ class DQN:
             self.episode_reward += reward
             if done:
                 #NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
-                wandb.log({'training/cum_reward': self.episode_reward}, commit=False)
+                wandb.log({'training/cum_reward': self.episode_reward}, commit=True)
                 self.episode_reward = 0
 
             # wandb.log({'training/instant_reward': reward}, commit=True)
