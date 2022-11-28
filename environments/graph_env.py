@@ -123,7 +123,7 @@ class GraphEnv:
 
             if self.current_action_mode == ACTION_MODE_SELECTING_START_NODE:
                 if current_graph.nx_graph.degree[actions[graph_idx]] > 2:
-                    rewards[graph_idx] = -0.01
+                    rewards[graph_idx] = -1
 
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 node_added = edge_insertion_cost > 0
@@ -131,7 +131,7 @@ class GraphEnv:
                 irrigation_improvement = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                                                                start_node=start_node, end_node=actions[graph_idx])
 
-                rewards[graph_idx] = -0.01  # + irrigation_improvement
+                rewards[graph_idx] = -1.0  # + irrigation_improvement
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved() or self.max_steps_achieved() or self.irrigation_percentage_goal_achieved():
