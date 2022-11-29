@@ -42,7 +42,7 @@ class GraphEnv:
 
     def __init__(self, max_steps, irrigation_goal, inject_irrigation,
                  irrigation_compression, irrigation_grid_dim, irrigation_grid_cell_size, irrigation_percentage_goal,
-                 exclude_isolated_from_start_nodes=False) -> None:
+                 exclude_isolated_from_start_nodes=False, use_irrigation_improvement=False) -> None:
         super().__init__()
 
         # Batch of graphs
@@ -55,6 +55,7 @@ class GraphEnv:
         self.irrigation_grid_dim = np.array(irrigation_grid_dim)
         self.irrigation_grid_cell_size = np.array(irrigation_grid_cell_size)
         self.irrigation_percentage_goal = irrigation_percentage_goal
+        self.use_irrigation_improvement = use_irrigation_improvement
 
         self.steps_counter = 0
         self.action_type_statistics = []
@@ -131,7 +132,9 @@ class GraphEnv:
                 irrigation_improvement = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
                                                                start_node=start_node, end_node=actions[graph_idx])
 
-                rewards[graph_idx] = -1.0  # + irrigation_improvement
+                rewards[graph_idx] = -1.0
+                if self.use_irrigation_improvement:
+                    rewards[graph_idx] += irrigation_improvement
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved() or self.max_steps_achieved() or self.irrigation_percentage_goal_achieved():
@@ -139,7 +142,6 @@ class GraphEnv:
 
                 if self.irrigation_goal_achieved() or self.irrigation_percentage_goal_achieved():
                     self.solved[graph_idx] = True
-                    rewards[graph_idx] = 1.0
 
             if new_graph.allowed_actions_not_found:
                 print("Allowed actions not found")

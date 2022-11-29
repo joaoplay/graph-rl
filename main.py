@@ -62,7 +62,8 @@ def run_experiment(cfg: DictConfig):
                            irrigation_grid_dim=cfg.irrigation_grid_dim,
                            irrigation_grid_cell_size=cfg.irrigation_grid_cell_size,
                            irrigation_percentage_goal=1.0,
-                           exclude_isolated_from_start_nodes=cfg.exclude_isolated_from_start_nodes)
+                           exclude_isolated_from_start_nodes=cfg.exclude_isolated_from_start_nodes,
+                           use_irrigation_improvement=cfg.use_irrigation_improvement)
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
     model = DQN(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
