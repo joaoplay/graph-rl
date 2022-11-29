@@ -76,7 +76,8 @@ def run_experiment(cfg: DictConfig):
 
 @hydra.main(config_path="configs", config_name="default_config")
 def run_from_config_file(cfg: DictConfig):
-    wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"), config=cfg)
+    wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"), config=cfg,
+               name=os.getenv("NEPTUNE_RUN_NAME", None))
 
     #NEPTUNE_INSTANCE['config'] = cfg
 
