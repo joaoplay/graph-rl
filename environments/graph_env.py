@@ -85,7 +85,9 @@ class GraphEnv:
     def compressed_irrigation_matrix_size(self):
         matrix_dim = np.divide((self.irrigation_grid_dim - 1), self.irrigation_grid_cell_size).astype(int) + 1
         dummy_matrix = np.zeros(matrix_dim)
-        compressed_matrix = skimage.measure.block_reduce(dummy_matrix, (self.irrigation_compression, self.irrigation_compression), np.max)
+        compressed_matrix = skimage.measure.block_reduce(dummy_matrix,
+                                                         (self.irrigation_compression, self.irrigation_compression),
+                                                         np.max)
         return np.prod(compressed_matrix.shape)
 
     def step(self, actions):
@@ -316,10 +318,12 @@ class GraphEnv:
         if self.inject_irrigation:
             compressed_irrigation = self.last_irrigation_map
             if self.irrigation_compression:
-                compressed_irrigation = skimage.measure.block_reduce(self.last_irrigation_map, (self.irrigation_compression, self.irrigation_compression), np.max)
+                compressed_irrigation = skimage.measure.block_reduce(self.last_irrigation_map, (
+                self.irrigation_compression, self.irrigation_compression), np.max)
 
             # Inject irrigation matrix when required
-            irrigated_cells = np.where(compressed_irrigation > self.irrigation_goal, 1, 0).reshape(1, -1).astype(np.float32)
+            irrigated_cells = np.where(compressed_irrigation > self.irrigation_goal, 1, 0).reshape(1, -1).astype(
+                np.float32)
             graph_representations = np.concatenate((graph_representations, irrigated_cells), axis=1)
 
         return graph_representations
@@ -365,10 +369,10 @@ class GraphEnv:
                     prepared_data[0], prepared_data[1],
                     prepared_data[2], self.irrigation_grid_dim, self.irrigation_grid_cell_size)
 
-                """sections_x = np.array_split(irrigation, 20, axis=0)
-                sections_y = np.array_split(irrigation, 20, axis=1)
+                # sections_x = np.array_split(irrigation, 20, axis=0)
+                # sections_y = np.array_split(irrigation, 20, axis=1)
 
-                def percentage_irrigated(sections):
+                """def percentage_irrigated(sections):
                     irrigated = []
                     for s in sections:
                         irrigated += [np.count_nonzero(s[s > self.irrigation_goal]) / s.size]
@@ -382,13 +386,21 @@ class GraphEnv:
 
                 irrigation_score = (mean_irrigated_x + mean_irrigated_y) / 2.0"""
 
-                irrigation_score = np.count_nonzero(irrigation[irrigation > self.irrigation_goal]) / irrigation.size
+                # irrigation_score = np.count_nonzero(irrigation[irrigation > self.irrigation_goal]) / irrigation.size
+
+                over_irrigation_value = irrigation - self.irrigation_goal
+                over_irrigation_value[over_irrigation_value < 0] = -1
+                over_irrigation_value[over_irrigation_value != -1] = np.power(0.8, over_irrigation_value[over_irrigation_value != -1])
+
+                irrigation_score = np.mean(over_irrigation_value)
 
                 if self.previous_irrigation_score is not None:
                     irrigation_improvement = irrigation_score - self.previous_irrigation_score[graph_idx]
 
                 if self.previous_irrigation_score:
                     self.previous_irrigation_score[graph_idx] = irrigation_score
+
+                print("Improvement: ", irrigation_improvement)
 
                 self.last_irrigation_map = irrigation
                 self.last_irrigation_graph = prepared_data[3]
