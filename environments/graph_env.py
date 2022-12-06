@@ -400,8 +400,6 @@ class GraphEnv:
                 if self.previous_irrigation_score:
                     self.previous_irrigation_score[graph_idx] = irrigation_score
 
-                print("Improvement: ", irrigation_improvement)
-
                 self.last_irrigation_map = irrigation
                 self.last_irrigation_graph = prepared_data[3]
                 self.last_sources = sources
