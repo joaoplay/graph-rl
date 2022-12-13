@@ -139,7 +139,6 @@ class GraphEnv:
                 rewards[graph_idx] = -1.0
                 if self.use_irrigation_improvement:
                     rewards[graph_idx] += irrigation_improvement
-                    print(rewards[graph_idx])
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved() or self.max_steps_achieved():
