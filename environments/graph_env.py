@@ -131,7 +131,7 @@ class GraphEnv:
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 node_added = edge_insertion_cost > 0
                 # Calculate irrigation in order to check if the episode is over
-                irrigation_improvement, _ = self.calculate_reward(graph_idx=graph_idx,
+                irrigation_improvement, score = self.calculate_reward(graph_idx=graph_idx,
                                                                   node_added=node_added,
                                                                   start_node=start_node,
                                                                   end_node=actions[graph_idx])
@@ -139,6 +139,7 @@ class GraphEnv:
                 rewards[graph_idx] = -1.0
                 if self.use_irrigation_improvement:
                     rewards[graph_idx] += irrigation_improvement
+                    # print(f"Irrigation improvement: {irrigation_improvement} | Score: {score}")
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved() or self.max_steps_achieved():
@@ -357,7 +358,6 @@ class GraphEnv:
         prepared_data = graph.prepare_for_reward_evaluation(node_added=node_added, start_node=start_node,
                                                             end_node=end_node)
 
-        irrigation_improvement = 0
         irrigation_score = -1
         if prepared_data is not None:
             if prepared_data == -1:  # No irrigation
@@ -389,16 +389,15 @@ class GraphEnv:
 
                 over_irrigation_value = irrigation - self.irrigation_goal
                 over_irrigation_value[over_irrigation_value < 0] = -1
-                over_irrigation_value[over_irrigation_value != -1] = \
-                    -np.power(0.8, over_irrigation_value[over_irrigation_value != -1])
+
+                over_irrigation_value[over_irrigation_value != -1] = -1.0 + (2.0 - np.exp(0.2 * over_irrigation_value[over_irrigation_value != -1]))
+
+                over_irrigation_value = over_irrigation_value.clip(min=-1.0, max=1.0)
+
+                #over_irrigation_value[over_irrigation_value != -1] = \
+                #    np.power(0.8, over_irrigation_value[over_irrigation_value != -1]) - 1.0
 
                 irrigation_score = np.mean(over_irrigation_value)
-
-                if self.previous_irrigation_score is not None:
-                    irrigation_improvement = irrigation_score - self.previous_irrigation_score[graph_idx]
-
-                if self.previous_irrigation_score:
-                    self.previous_irrigation_score[graph_idx] = irrigation_score
 
                 self.last_irrigation_map = irrigation
                 self.last_irrigation_graph = prepared_data[3]
@@ -406,6 +405,14 @@ class GraphEnv:
                 self.last_edge_sources = edges_source
                 self.last_pressures = pressures
                 self.last_edges_list = edges_list
+
+        irrigation_improvement = 0
+        if self.previous_irrigation_score is not None:
+            #print("Irrigation Score: ", irrigation_score, " Previous: ", self.previous_irrigation_score[graph_idx])
+            irrigation_improvement = irrigation_score - self.previous_irrigation_score[graph_idx]
+
+        if self.previous_irrigation_score:
+            self.previous_irrigation_score[graph_idx] = irrigation_score
 
         return irrigation_improvement, irrigation_score
 
