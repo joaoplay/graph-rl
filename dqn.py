@@ -165,7 +165,7 @@ class DQN:
         # Log step results
         #NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
         #NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
-        #wandb.log({'training/instant_reward': reward, 'training/epsilon': epsilon}, commit=False)
+        wandb.log({'training/instant_reward': reward, 'training/epsilon': epsilon}, commit=False)
 
         return reward, done, solved
 

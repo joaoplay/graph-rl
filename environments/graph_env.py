@@ -55,7 +55,7 @@ class GraphEnv:
         self.irrigation_grid_dim = np.array(irrigation_grid_dim)
         self.irrigation_grid_cell_size = np.array(irrigation_grid_cell_size)
         self.irrigation_percentage_goal = irrigation_percentage_goal
-        self.use_irrigation_improvement = use_irrigation_improvement
+        self.use_irrigation_improvement = True
 
         self.steps_counter = 0
         self.action_type_statistics = []
@@ -131,19 +131,21 @@ class GraphEnv:
             if self.current_action_mode == ACTION_MODE_SELECTING_END_NODE:
                 node_added = edge_insertion_cost > 0
                 # Calculate irrigation in order to check if the episode is over
-                irrigation_improvement = self.calculate_reward(graph_idx=graph_idx, node_added=node_added,
-                                                               start_node=start_node, end_node=actions[graph_idx])
+                irrigation_improvement, _ = self.calculate_reward(graph_idx=graph_idx,
+                                                                  node_added=node_added,
+                                                                  start_node=start_node,
+                                                                  end_node=actions[graph_idx])
 
                 rewards[graph_idx] = -1.0
                 if self.use_irrigation_improvement:
                     rewards[graph_idx] += irrigation_improvement
+                    print(rewards[graph_idx])
 
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
-            if self.irrigation_goal_achieved() or self.max_steps_achieved() or self.irrigation_percentage_goal_achieved():
+            if self.irrigation_goal_achieved() or self.max_steps_achieved():
                 self.done[graph_idx] = True
 
-                if self.irrigation_goal_achieved() or self.irrigation_percentage_goal_achieved():
-                    self.solved[graph_idx] = True
+                self.solved[graph_idx] = self.irrigation_goal_achieved()
 
             if new_graph.allowed_actions_not_found:
                 print("Allowed actions not found")
@@ -195,9 +197,6 @@ class GraphEnv:
             return False
 
         return np.all((self.last_irrigation_map > self.irrigation_goal))
-
-    def irrigation_percentage_goal_achieved(self):
-        return self.previous_irrigation_score[0] >= self.irrigation_percentage_goal
 
     @property
     def current_action_mode(self):
@@ -282,7 +281,7 @@ class GraphEnv:
         self.last_edges_list = None
         self.previous_irrigation_score = None
 
-        self.previous_irrigation_score = [self.calculate_reward(graph_idx=graph_idx) for graph_idx in
+        self.previous_irrigation_score = [self.calculate_reward(graph_idx=graph_idx)[1] for graph_idx in
                                           range(len(graphs_list))]
 
         self.start_node_selection_statistics = {node: 0 for node in self.graphs_list[0].nx_graph.nodes}
@@ -319,7 +318,7 @@ class GraphEnv:
             compressed_irrigation = self.last_irrigation_map
             if self.irrigation_compression:
                 compressed_irrigation = skimage.measure.block_reduce(self.last_irrigation_map, (
-                self.irrigation_compression, self.irrigation_compression), np.max)
+                    self.irrigation_compression, self.irrigation_compression), np.max)
 
             # Inject irrigation matrix when required
             irrigated_cells = np.where(compressed_irrigation > self.irrigation_goal, 1, 0).reshape(1, -1).astype(
@@ -360,10 +359,11 @@ class GraphEnv:
                                                             end_node=end_node)
 
         irrigation_improvement = 0
+        irrigation_score = -1
         if prepared_data is not None:
             if prepared_data == -1:  # No irrigation
                 self.last_irrigation_map = None
-                self.previous_irrigation_score[graph_idx] = 0
+                self.previous_irrigation_score[graph_idx] = -1.0
             elif prepared_data != -1:
                 irrigation, sources, pressures, edges_source, edges_list = calculate_network_irrigation(
                     prepared_data[0], prepared_data[1],
@@ -390,7 +390,8 @@ class GraphEnv:
 
                 over_irrigation_value = irrigation - self.irrigation_goal
                 over_irrigation_value[over_irrigation_value < 0] = -1
-                over_irrigation_value[over_irrigation_value != -1] = np.power(0.8, over_irrigation_value[over_irrigation_value != -1])
+                over_irrigation_value[over_irrigation_value != -1] = \
+                    -np.power(0.8, over_irrigation_value[over_irrigation_value != -1])
 
                 irrigation_score = np.mean(over_irrigation_value)
 
@@ -407,7 +408,7 @@ class GraphEnv:
                 self.last_pressures = pressures
                 self.last_edges_list = edges_list
 
-        return irrigation_improvement
+        return irrigation_improvement, irrigation_score
 
     """def calculate_reward(self, graph_idx, node_added=True, start_node=None, end_node=None, reward_multi=10):
         graph = self.graphs_list[graph_idx]
