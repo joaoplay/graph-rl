@@ -56,7 +56,7 @@ def run_hierarchical_experiment(cfg: DictConfig):
 
 def run_experiment(cfg: DictConfig):
     # graph_generator = SingleVesselGraphGenerator(**cfg.environment)
-    graph_generator = VascularNetworkFromFileGenerator(BASE_PATH + '/environments/graph_examples/functional2.yml')
+    graph_generator = VascularNetworkFromFileGenerator(BASE_PATH + '/environments/graph_examples/two_vessels.yml')
 
     environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal,
                            inject_irrigation=cfg.inject_irrigation,
