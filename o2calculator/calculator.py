@@ -105,9 +105,8 @@ def build_pressures_matrix(node_features: list[list[float]], edges: list[list[in
     for node_idx, neighbour_edges in node_neighbours_map.items():
         node = node_features[node_idx]
 
-        if node[4] != 0:
-            # The current node is input or output. Corresponding pressures are constant, as defined in the
-            # feature's map
+        if node[4] == 2:
+            # The current node is an output node.
             row = [0] * n_nodes
             # Every element in the row is 0 except the diagonal
             row[node_idx] = 1

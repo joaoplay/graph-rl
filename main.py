@@ -8,8 +8,9 @@ from pytorch_lightning import seed_everything
 
 from dqn import DQN
 from environments.generator.single_vessel_graph_generator import SingleVesselGraphGenerator
+from environments.generator.vascular_network_from_file_generator import VascularNetworkFromFileGenerator
 from environments.graph_env import GraphEnv
-from settings import USE_CUDA, WANDB_PATH
+from settings import USE_CUDA, WANDB_PATH, BASE_PATH
 
 os.environ["WANDB_API_KEY"] = '237099249b3c0e91437061c393ab089d03339bc3'
 
@@ -54,7 +55,8 @@ def run_hierarchical_experiment(cfg: DictConfig):
 
 
 def run_experiment(cfg: DictConfig):
-    graph_generator = SingleVesselGraphGenerator(**cfg.environment)
+    # graph_generator = SingleVesselGraphGenerator(**cfg.environment)
+    graph_generator = VascularNetworkFromFileGenerator(BASE_PATH + '/environments/graph_examples/functional2.yml')
 
     environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal,
                            inject_irrigation=cfg.inject_irrigation,
