@@ -84,6 +84,7 @@ class DQN:
         self.total_training_wins = 0
         self.total_training_losses = 0
         self.current_validation_step = 0
+        self.total_solved = 0
 
     def populate(self, steps: int = 1000) -> None:
         """Carries out several random steps through the environment to initially fill up the replay buffer with
@@ -210,8 +211,11 @@ class DQN:
             action_mode, loss, goal_mean = self.train_batch(batch)
 
             if done:
+                self.total_solved += solved
                 # The episode has ended. Log the episode reward and reset it
                 #NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
+                wandb.log({'training/episode_length': step}, commit=False)
+                wandb.log({'training/total_solved': self.total_solved}, commit=False)
                 wandb.log({'training/cum_reward': self.episode_reward}, commit=True)
                 self.total_reward = self.episode_reward
                 self.episode_reward = 0
