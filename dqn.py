@@ -94,12 +94,15 @@ class DQN:
             steps: number of random steps to populate the buffer with
         """
         for i in range(steps):
-            reward, done, _ = self.agent.play_step(self.q_networks, epsilon=1.0)
+            reward, done, solved = self.agent.play_step(self.q_networks, epsilon=1.0)
             #NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
 
             self.episode_reward += reward
             if done:
+                self.total_solved += solved
                 #NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
+                wandb.log({'training/episode_length': i}, commit=False)
+                wandb.log({'training/total_solved': self.total_solved}, commit=False)
                 wandb.log({'training/cum_reward': self.episode_reward}, commit=True)
                 self.episode_reward = 0
 
