@@ -101,8 +101,8 @@ class DQN:
             if done:
                 self.total_solved += solved
                 #NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
-                #wandb.log({'training/episode_length': i}, commit=False)
-                wandb.log({'training/total_solved': self.total_solved}, commit=False)
+                #wandb.log({'training/episode_length': i}, commit=True)
+                wandb.log({'training/total_solved': self.total_solved}, commit=True)
                 wandb.log({'training/cum_reward': self.episode_reward}, commit=True)
                 self.episode_reward = 0
 
@@ -169,7 +169,7 @@ class DQN:
         # Log step results
         #NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
         #NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
-        wandb.log({'training/instant_reward': reward, 'training/epsilon': epsilon}, commit=False)
+        wandb.log({'training/instant_reward': reward, 'training/epsilon': epsilon}, commit=True)
 
         return reward, done, solved
 
@@ -217,8 +217,8 @@ class DQN:
                 self.total_solved += solved
                 # The episode has ended. Log the episode reward and reset it
                 #NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
-                #wandb.log({'training/episode_length': step}, commit=False)
-                wandb.log({'training/total_solved': self.total_solved}, commit=False)
+                #wandb.log({'training/episode_length': step}, commit=True)
+                wandb.log({'training/total_solved': self.total_solved}, commit=True)
                 wandb.log({'training/cum_reward': self.episode_reward}, commit=True)
                 self.total_reward = self.episode_reward
                 self.episode_reward = 0
@@ -249,7 +249,7 @@ class DQN:
             cum_reward += reward
 
         # NEPTUNE_INSTANCE[f'validation/episode-length'].log(validation_agent.env.steps_counter)
-        wandb.log({'validation/episode-length': validation_agent.env.steps_counter, 'validation_step': self.current_validation_step}, commit=False)
+        wandb.log({'validation/episode-length': validation_agent.env.steps_counter, 'validation_step': self.current_validation_step}, commit=True)
 
         fig, axs = plt.subplots(2)
         axs[0].bar(validation_agent.env.start_node_selection_statistics.keys(),
@@ -264,7 +264,7 @@ class DQN:
             ax_irrigation.imshow(np.flipud(validation_agent.env.last_irrigation_map), cmap='hot', vmin=0,
                                  interpolation='nearest')
 
-            wandb.log({'validation/irrigation': wandb.Image(fig_irrigation)}, commit=False)
+            wandb.log({'validation/irrigation': wandb.Image(fig_irrigation)}, commit=True)
             # NEPTUNE_INSTANCE[f'validation/{self.global_step}/irrigation-map'].log(File.as_image(fig_irrigation))
             # NEPTUNE_INSTANCE[f'validation/{self.global_step}/irrigation'].log(File.as_image(fig_irrigation))
 
