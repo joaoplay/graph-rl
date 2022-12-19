@@ -8,7 +8,7 @@ from util import draw_nx_irrigation_network
 
 
 def validate_reward():
-    gen = VascularNetworkFromFileGenerator(BASE_PATH + '/environments/graph_examples/functional.yml')
+    gen = VascularNetworkFromFileGenerator(BASE_PATH + '/environments/graph_examples/two_vessels.yml')
     graph = gen.generate()
 
     prepared_data = graph.prepare_for_reward_evaluation()
@@ -17,6 +17,8 @@ def validate_reward():
                                                                                             prepared_data[1],
                                                                                             prepared_data[2], [10, 10],
                                                                                             [0.1, 0.1])
+
+    print(np.min(irrigation))
 
     fig_irrigation, ax_irrigation = plt.subplots()
     ax_irrigation.imshow(np.flipud(irrigation), cmap='hot', vmin=0,
