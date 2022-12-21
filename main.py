@@ -55,8 +55,10 @@ def run_hierarchical_experiment(cfg: DictConfig):
 
 
 def run_experiment(cfg: DictConfig):
-    # graph_generator = SingleVesselGraphGenerator(**cfg.environment)
-    graph_generator = VascularNetworkFromFileGenerator(BASE_PATH + '/environments/graph_examples/two_vessels.yml')
+    if cfg.constant_flow:
+        graph_generator = VascularNetworkFromFileGenerator(BASE_PATH + '/environments/graph_examples/two_vessels.yml')
+    else:
+        graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
     environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal,
                            inject_irrigation=cfg.inject_irrigation,
@@ -65,12 +67,14 @@ def run_experiment(cfg: DictConfig):
                            irrigation_grid_cell_size=cfg.irrigation_grid_cell_size,
                            irrigation_percentage_goal=1.0,
                            exclude_isolated_from_start_nodes=cfg.exclude_isolated_from_start_nodes,
-                           use_irrigation_improvement=cfg.use_irrigation_improvement)
+                           use_irrigation_improvement=cfg.use_irrigation_improvement,
+                           constant_flow=cfg.constant_flow)
+
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
     model = DQN(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
                 multi_action_q_network=cfg.multi_action_q_network, **cfg.core, device='cuda' if USE_CUDA else 'cpu',
-                use_hindsight=cfg.use_hindsight)
+                use_hindsight=cfg.use_hindsight, double_dqn=cfg.double_dqn)
     model.populate(model.hparams.warm_start_steps)
 
     model.train(10000000, validation_interval=cfg.validation_interval)

@@ -85,7 +85,8 @@ def convert_edges_list_to_node_neighbourhood_map(edges_list, edges_features):
     return neighbour_edges_map
 
 
-def build_pressures_matrix(node_features: list[list[float]], edges: list[list[int]], edges_features: list[list[float]]):
+def build_pressures_matrix(node_features: list[list[float]], edges: list[list[int]], edges_features: list[list[float]],
+                           constant_flow=False):
     """
     Builds a matrix o pressures (FIXME: This is not the right name for this matrix. Ask Rui for the proper name)
     :param node_features: A list with shape (num_nodes, num_node_features) containing the the features for each node
@@ -105,7 +106,7 @@ def build_pressures_matrix(node_features: list[list[float]], edges: list[list[in
     for node_idx, neighbour_edges in node_neighbours_map.items():
         node = node_features[node_idx]
 
-        if node[4] == 2:
+        if (constant_flow and node[4] == 2) or (not constant_flow and node[4] != 0):
             # The current node is an output node.
             row = [0] * n_nodes
             # Every element in the row is 0 except the diagonal
@@ -281,9 +282,10 @@ def calculate_pressures(matrix, static_pressures):
     return np.dot(matrix, static_pressures)
 
 
-def calculate_network_irrigation(node_features, edges_list, edges_features, environment_dim, cell_size):
+def calculate_network_irrigation(node_features, edges_list, edges_features, environment_dim, cell_size,
+                                 constant_flow=False):
     # Build matrix from adjacency matrix and features
-    matrix = build_pressures_matrix(node_features, edges_list, edges_features)
+    matrix = build_pressures_matrix(node_features, edges_list, edges_features, constant_flow)
     # Convert matrix to numpy
 
     pressures_tensor = torch.FloatTensor(matrix)

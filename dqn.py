@@ -24,7 +24,9 @@ class DQN:
                  gamma: float = 0.99, sync_rate: int = 10000, replay_size: int = 10 ** 6,
                  eps_last_frame: int = 5 * 10 ** 5, eps_start: float = 1.0, eps_end: float = 0.2,
                  warm_start_steps: int = 50000, action_modes: tuple[int] = DEFAULT_ACTION_MODES,
-                 multi_action_q_network: dict = None, num_dataloader_workers: int = 1, device='cpu', use_hindsight=False) -> None:
+                 multi_action_q_network: dict = None, num_dataloader_workers: int = 1, device='cpu',
+                 use_hindsight=False,
+                 double_dqn=False) -> None:
         super().__init__()
 
         self.hparams = Namespace(
@@ -85,6 +87,7 @@ class DQN:
         self.total_training_losses = 0
         self.current_validation_step = 0
         self.total_solved = 0
+        self.double_dqn = double_dqn
 
     def populate(self, steps: int = 1000) -> None:
         """Carries out several random steps through the environment to initially fill up the replay buffer with
@@ -95,13 +98,13 @@ class DQN:
         """
         for i in range(steps):
             reward, done, solved = self.agent.play_step(self.q_networks, epsilon=1.0)
-            #NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
+            # NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
 
             self.episode_reward += reward
             if done:
                 self.total_solved += solved
-                #NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
-                #wandb.log({'training/episode_length': i}, commit=True)
+                # NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
+                # wandb.log({'training/episode_length': i}, commit=True)
                 wandb.log({'training/total_solved': self.total_solved}, commit=True)
                 wandb.log({'training/cum_reward': self.episode_reward}, commit=True)
                 self.episode_reward = 0
@@ -146,9 +149,20 @@ class DQN:
                 next_action_mode = (action_mode + 1) % len(self.hparams.action_modes)
 
                 # Get the q-value for the next state
-                next_state_values, forbidden_actions = self.target_q_networks(next_action_mode, not_done_next_states)
-                _, not_done_next_station_action_values = self.target_q_networks.select_action_from_q_values(
-                    next_action_mode, next_state_values, forbidden_actions)
+                if self.double_dqn:
+                    next_state_values, forbidden_actions = self.q_networks(next_action_mode, not_done_next_states)
+                    not_done_next_station_action_indices, not_done_next_station_action_values = self.q_networks \
+                        .select_action_from_q_values(next_action_mode, next_state_values, forbidden_actions)
+                    next_state_values, forbidden_actions = self.target_q_networks(next_action_mode,
+                                                                                  not_done_next_states)
+                    not_done_next_station_action_values = next_state_values.gather(1,
+                                                                                   not_done_next_station_action_indices)
+                else:
+                    next_state_values, forbidden_actions = self.target_q_networks(next_action_mode,
+                                                                                  not_done_next_states)
+                    _, expected_state_action_values = self.target_q_networks.select_action_from_q_values(
+                        next_action_mode, next_state_values, forbidden_actions)
+
                 expected_state_action_values = not_done_next_station_action_values * self.hparams.gamma + rewards[
                     not_solved]
 
@@ -167,8 +181,8 @@ class DQN:
         self.episode_reward += reward
 
         # Log step results
-        #NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
-        #NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
+        # NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
+        # NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
         wandb.log({'training/instant_reward': reward, 'training/epsilon': epsilon}, commit=True)
 
         return reward, done, solved
@@ -184,7 +198,7 @@ class DQN:
         # else:
         #     NEPTUNE_INSTANCE['training/end-node-selection-loss'].log(loss)
 
-        #NEPTUNE_INSTANCE['training/goal'].log(torch.mean(batch[6]))
+        # NEPTUNE_INSTANCE['training/goal'].log(torch.mean(batch[6]))
 
         goal_mean = torch.mean(batch[6])
 
@@ -216,8 +230,8 @@ class DQN:
             if done:
                 self.total_solved += solved
                 # The episode has ended. Log the episode reward and reset it
-                #NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
-                #wandb.log({'training/episode_length': step}, commit=True)
+                # NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
+                # wandb.log({'training/episode_length': step}, commit=True)
                 wandb.log({'training/total_solved': self.total_solved}, commit=True)
                 wandb.log({'training/cum_reward': self.episode_reward}, commit=True)
                 self.total_reward = self.episode_reward
@@ -249,7 +263,8 @@ class DQN:
             cum_reward += reward
 
         # NEPTUNE_INSTANCE[f'validation/episode-length'].log(validation_agent.env.steps_counter)
-        wandb.log({'validation/episode-length': validation_agent.env.steps_counter, 'validation_step': self.current_validation_step}, commit=True)
+        wandb.log({'validation/episode-length': validation_agent.env.steps_counter,
+                   'validation_step': self.current_validation_step}, commit=True)
 
         fig, axs = plt.subplots(2)
         axs[0].bar(validation_agent.env.start_node_selection_statistics.keys(),
@@ -305,15 +320,3 @@ class DQN:
             self.target_q_networks.load_state_dict(torch.load(f'{path}target_q_networks.pt'))
         else:
             print("No model found. Starting from scratch.")
-
-
-
-
-
-
-
-
-
-
-
-

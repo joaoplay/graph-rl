@@ -42,7 +42,8 @@ class GraphEnv:
 
     def __init__(self, max_steps, irrigation_goal, inject_irrigation,
                  irrigation_compression, irrigation_grid_dim, irrigation_grid_cell_size, irrigation_percentage_goal,
-                 exclude_isolated_from_start_nodes=False, use_irrigation_improvement=False) -> None:
+                 exclude_isolated_from_start_nodes=False, use_irrigation_improvement=False,
+                 constant_flow=False) -> None:
         super().__init__()
 
         # Batch of graphs
@@ -55,7 +56,8 @@ class GraphEnv:
         self.irrigation_grid_dim = np.array(irrigation_grid_dim)
         self.irrigation_grid_cell_size = np.array(irrigation_grid_cell_size)
         self.irrigation_percentage_goal = irrigation_percentage_goal
-        self.use_irrigation_improvement = True
+        self.use_irrigation_improvement = use_irrigation_improvement
+        self.constant_flow = constant_flow
 
         self.steps_counter = 0
         self.action_type_statistics = []
@@ -366,7 +368,8 @@ class GraphEnv:
             elif prepared_data != -1:
                 irrigation, sources, pressures, edges_source, edges_list = calculate_network_irrigation(
                     prepared_data[0], prepared_data[1],
-                    prepared_data[2], self.irrigation_grid_dim, self.irrigation_grid_cell_size)
+                    prepared_data[2], self.irrigation_grid_dim, self.irrigation_grid_cell_size,
+                    constant_flow=self.constant_flow)
 
                 # sections_x = np.array_split(irrigation, 20, axis=0)
                 # sections_y = np.array_split(irrigation, 20, axis=1)
