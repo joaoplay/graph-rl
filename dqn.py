@@ -105,8 +105,8 @@ class DQN:
                 self.total_solved += solved
                 # NEPTUNE_INSTANCE['training/cum_reward'].log(self.episode_reward)
                 # wandb.log({'training/episode_length': i}, commit=True)
-                wandb.log({'training/total_solved': self.total_solved}, commit=True)
-                wandb.log({'training/cum_reward': self.episode_reward}, commit=True)
+                #wandb.log({'training/total_solved': self.total_solved}, commit=True)
+                #wandb.log({'training/cum_reward': self.episode_reward}, commit=True)
                 self.episode_reward = 0
 
             # wandb.log({'training/instant_reward': reward}, commit=True)
@@ -183,7 +183,7 @@ class DQN:
         # Log step results
         # NEPTUNE_INSTANCE['training/instant_reward'].log(reward)
         # NEPTUNE_INSTANCE['training/epsilon'].log(epsilon)
-        wandb.log({'training/instant_reward': reward, 'training/epsilon': epsilon}, commit=True)
+        # wandb.log({'training/instant_reward': reward, 'training/epsilon': epsilon}, commit=True)
 
         return reward, done, solved
 
