@@ -38,8 +38,8 @@ def draw_nx_irrigation_network(networkx_graph, pressures, edges_flow, edges, ax,
     coordinates = merge_dicts(node_x, node_y)
 
     pressures_by_idx = {idx: round(pressure, 3) for idx, pressure in enumerate(pressures)}
-    edges_flow = {(edges[0][edge_idx], edges[1][edge_idx]): round(edges_flow[edge_idx], 3) for edge_idx in
-                  range(len(edges[0]))}
+    #edges_flow = {(edges[0][edge_idx], edges[1][edge_idx]): round(edges_flow[edge_idx], 3) for edge_idx in
+    #              range(len(edges[0]))}
     edges_q_with_node = {(edges[0][edge_idx], edges[1][edge_idx]): round(edge_q[edge_idx], 3) for edge_idx in
                          range(len(edges[0]))}
 

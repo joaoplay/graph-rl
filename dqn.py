@@ -289,7 +289,8 @@ class DQN:
             ax.title.set_text(f'Global Step: {validation_agent.total_steps}')
 
             draw_nx_irrigation_network(validation_agent.env.last_irrigation_graph, validation_agent.env.last_pressures,
-                                       validation_agent.env.last_edge_sources, validation_agent.env.last_edges_list, ax)
+                                       validation_agent.env.last_edge_sources, validation_agent.env.last_edges_list, ax,
+                                       validation_agent.env.last_edge_q)
 
             wandb.log({'validation/network-debug': wandb.Image(fig)}, commit=True)
             # NEPTUNE_INSTANCE[f'validation/{self.global_step}/network-debug'].log(File.as_image(fig))

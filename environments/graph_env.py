@@ -72,6 +72,7 @@ class GraphEnv:
         self.last_irrigation_graph = None
         self.last_edge_sources = None
         self.last_edges_list = None
+        self.last_edge_q = None
 
         self.previous_irrigation_score = None
 
@@ -282,6 +283,7 @@ class GraphEnv:
         self.last_edge_sources = None
         self.last_edges_list = None
         self.previous_irrigation_score = None
+        self.last_edge_q = None
 
         self.previous_irrigation_score = [self.calculate_reward(graph_idx=graph_idx)[1] for graph_idx in
                                           range(len(graphs_list))]
@@ -409,6 +411,7 @@ class GraphEnv:
                 self.last_edge_sources = edges_source
                 self.last_pressures = pressures
                 self.last_edges_list = edges_list
+                self.last_edge_q = q
 
         irrigation_improvement = 0
         if self.previous_irrigation_score is not None:
