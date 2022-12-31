@@ -141,6 +141,8 @@ def build_edges_source(edges, edges_features, pressures):
     """
     edges_source = []
 
+    edge_q_abs = []
+
     # Iterate over edges
     for edge_idx in range(len(edges[0])):
         # Select start and end nodes
@@ -154,11 +156,13 @@ def build_edges_source(edges, edges_features, pressures):
         # Calculate Q of the current edge
         edge_q = (start_node_p - end_node_p) / edges_features[edge_idx][0]
 
+        edge_q_abs.append(abs(edge_q))
+
         edge_source = abs(edge_q) * ((start_node_p + end_node_p) / 2)
 
         edges_source += [edge_source]
 
-    return edges_source
+    return edges_source, edge_q_abs
 
 
 def find_cells_in_dim(dim, min_cell, max_cell, end_node_cell, start_node_cell):
@@ -309,8 +313,8 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     # Remove duplicated edges
     duplicated_free_edges = remove_duplicated_edges(edges_list)
     # Calculate source for each edge
-    edges_source = build_edges_source(edges=duplicated_free_edges, edges_features=edges_features,
-                                      pressures=pressures)
+    edges_source, edge_q = build_edges_source(edges=duplicated_free_edges, edges_features=edges_features,
+                                              pressures=pressures)
 
     np_environment_dim = np.array(environment_dim)
     number_of_cells = np.divide((np_environment_dim - 1), cell_size).astype(int) + 1
@@ -348,4 +352,4 @@ def calculate_network_irrigation(node_features, edges_list, edges_features, envi
     oxygen = calc_oxygen(sources_by_cell, k2, 15)
     oxygen = np.real(oxygen)
 
-    return oxygen, sources_by_cell, pressures, edges_source, duplicated_free_edges
+    return oxygen, sources_by_cell, pressures, edges_source, duplicated_free_edges, edge_q

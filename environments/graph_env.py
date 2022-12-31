@@ -19,7 +19,7 @@ class GraphEnv:
     """
     This class represents a simulation environment composed of multiple graphs (stored in the graph_list attribute).
 
-    An environment a step() method responsible for moving to the next time step. It consists of applying a set of actions
+    An environment a step() method respnsible for moving to the next time step. It consists of applying a set of actions
     on each graph.
 
     Reward Assignment: The model only allows EPISODIC reward. Intermediate rewards are not calculated and will be implemented included later.
@@ -366,7 +366,7 @@ class GraphEnv:
                 self.last_irrigation_map = None
                 self.previous_irrigation_score[graph_idx] = -1.0
             elif prepared_data != -1:
-                irrigation, sources, pressures, edges_source, edges_list = calculate_network_irrigation(
+                irrigation, sources, pressures, edges_source, edges_list, q = calculate_network_irrigation(
                     prepared_data[0], prepared_data[1],
                     prepared_data[2], self.irrigation_grid_dim, self.irrigation_grid_cell_size,
                     constant_flow=self.constant_flow)

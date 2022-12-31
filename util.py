@@ -32,13 +32,16 @@ def draw_nx_graph_with_coordinates(networkx_graph, ax):
     nx.draw(networkx_graph, coordinates, ax, connectionstyle="arc3,rad=0.1", arrowsize=1, with_labels=True)
 
 
-def draw_nx_irrigation_network(networkx_graph, pressures, edges_flow, edges, ax):
+def draw_nx_irrigation_network(networkx_graph, pressures, edges_flow, edges, ax, edge_q):
     node_x = nx.get_node_attributes(networkx_graph, 'x')
     node_y = nx.get_node_attributes(networkx_graph, 'y')
     coordinates = merge_dicts(node_x, node_y)
 
     pressures_by_idx = {idx: round(pressure, 3) for idx, pressure in enumerate(pressures)}
-    edges_flow = {(edges[0][edge_idx], edges[1][edge_idx]): round(edges_flow[edge_idx], 3) for edge_idx in range(len(edges[0]))}
+    edges_flow = {(edges[0][edge_idx], edges[1][edge_idx]): round(edges_flow[edge_idx], 3) for edge_idx in
+                  range(len(edges[0]))}
+    edges_q_with_node = {(edges[0][edge_idx], edges[1][edge_idx]): round(edge_q[edge_idx], 3) for edge_idx in
+                         range(len(edges[0]))}
 
     options = {"edgecolors": "tab:gray", "node_size": 20, "alpha": 0.5}
     nx.draw_networkx_nodes(networkx_graph, coordinates, ax=ax, node_color="tab:red", **options)
@@ -47,5 +50,5 @@ def draw_nx_irrigation_network(networkx_graph, pressures, edges_flow, edges, ax)
 
     nx.draw_networkx_labels(networkx_graph, coordinates, pressures_by_idx, font_size=8, font_color="black", ax=ax)
 
-    nx.draw_networkx_edge_labels(networkx_graph, coordinates, edge_labels=edges_flow, font_color='black', font_size=8,
+    nx.draw_networkx_edge_labels(networkx_graph, coordinates, edge_labels=edges_q_with_node, font_color='black', font_size=8,
                                  bbox=dict(alpha=0), label_pos=0.4, ax=ax)
