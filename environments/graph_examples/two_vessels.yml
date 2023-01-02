@@ -12,5 +12,5 @@ interval_between_nodes: 1
 static_pressures:
   0: -0.935
   9: 5
-  50: -2
-  59: -0.935
+  50: -0.935
+  59: 5

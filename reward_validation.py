@@ -24,7 +24,7 @@ def validate_reward():
     ax_irrigation.imshow(np.flipud(irrigation), cmap='hot', vmin=0,
                          interpolation='nearest')
 
-    fig, ax = plt.subplots(figsize=(50, 50))
+    fig, ax = plt.subplots(figsize=(15, 15))
     draw_nx_irrigation_network(prepared_data[3], pressures,
                                edges_source, edges_list, ax, edge_q)
 

@@ -48,7 +48,7 @@ def draw_nx_irrigation_network(networkx_graph, pressures, edges_flow, edges, ax,
 
     nx.draw_networkx_edges(networkx_graph, coordinates, width=3, alpha=0.5, edge_color="tab:red", ax=ax)
 
-    nx.draw_networkx_labels(networkx_graph, coordinates, pressures_by_idx, font_size=8, font_color="black", ax=ax)
+    nx.draw_networkx_labels(networkx_graph, coordinates, pressures_by_idx, font_size=6, font_color="black", ax=ax)
 
-    nx.draw_networkx_edge_labels(networkx_graph, coordinates, edge_labels=edges_q_with_node, font_color='black', font_size=8,
+    nx.draw_networkx_edge_labels(networkx_graph, coordinates, edge_labels=edges_q_with_node, font_color='black', font_size=6,
                                  bbox=dict(alpha=0), label_pos=0.4, ax=ax)
