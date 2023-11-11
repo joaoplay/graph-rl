@@ -60,6 +60,7 @@ def run_experiment(cfg: DictConfig):
     else:
         graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
+    print(f'Setting up environment...')
     environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal,
                            inject_irrigation=cfg.inject_irrigation,
                            irrigation_compression=cfg.irrigation_compression,
@@ -70,13 +71,17 @@ def run_experiment(cfg: DictConfig):
                            use_irrigation_improvement=cfg.use_irrigation_improvement,
                            constant_flow=cfg.constant_flow)
 
+    print(f'Generating graphs...')
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
+
 
     model = DQN(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
                 multi_action_q_network=cfg.multi_action_q_network, **cfg.core, device='cuda' if USE_CUDA else 'cpu',
                 use_hindsight=cfg.use_hindsight, double_dqn=cfg.double_dqn)
+    print(f'Populating replay buffer...')
     model.populate(model.hparams.warm_start_steps)
 
+    print(f'Training...')
     model.train(10000000, validation_interval=cfg.validation_interval)
 
 
@@ -84,8 +89,6 @@ def run_experiment(cfg: DictConfig):
 def run_from_config_file(cfg: DictConfig):
     wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"), config=cfg,
                name=os.getenv("NEPTUNE_RUN_NAME", None))
-
-    #NEPTUNE_INSTANCE['config'] = cfg
 
     seed_everything(cfg.random_seed, workers=True)
 
