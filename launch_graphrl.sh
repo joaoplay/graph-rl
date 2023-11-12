@@ -11,4 +11,5 @@
 #SBATCH --mail-type=ALL # Type of email notification- BEGIN,END,FAIL,ALL
 #SBATCH --mail-user=jbsimoes@dei.uc.pt # Email to which notifications will be sent
 
-poetry run python /veracruz/projects/v/vascnetgen/graph-rl/main.py
+# Run the program and pass the arguments from the command line
+poetry run python /veracruz/projects/v/vascnetgen/graph-rl/main.py "$@"
