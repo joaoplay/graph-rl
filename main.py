@@ -56,7 +56,7 @@ def run_hierarchical_experiment(cfg: DictConfig):
 
 def run_experiment(cfg: DictConfig):
     if cfg.constant_flow:
-        graph_generator = VascularNetworkFromFileGenerator(BASE_PATH + '/environments/graph_examples/two_vessels.yml')
+        graph_generator = VascularNetworkFromFileGenerator(f"{BASE_PATH}/{cfg.environment.initial_env_file}")
     else:
         graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
@@ -82,7 +82,7 @@ def run_experiment(cfg: DictConfig):
     model.populate(model.hparams.warm_start_steps)
 
     print(f'Training...')
-    model.train(10000000, validation_interval=cfg.validation_interval)
+    model.train(50000010, validation_interval=cfg.validation_interval)
 
 
 @hydra.main(config_path="configs", config_name="default_config")
