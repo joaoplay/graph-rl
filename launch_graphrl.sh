@@ -12,4 +12,4 @@
 #SBATCH --mail-user=jbsimoes@dei.uc.pt # Email to which notifications will be sent
 
 # Run the program and pass the arguments from the command line
-poetry run python /veracruz/projects/v/vascnetgen/graph-rl/main.py "$@"
+poetry run python /veracruz/projects/v/vascnetgen/graph-rl/main.py
