@@ -1,4 +1,4 @@
 size_x: 10
 size_y: 10
 interval_between_nodes: 1
-initial_env_file: environments/graph_examples/result1.yml
+initial_env_file: environments/graph_examples/two_vessels.yml
