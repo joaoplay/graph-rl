@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 
@@ -60,7 +61,7 @@ def run_experiment(cfg: DictConfig):
     else:
         graph_generator = SingleVesselGraphGenerator(**cfg.environment)
 
-    print(f'Setting up environment...')
+    logging.error(f'Setting up environment...')
     environment = GraphEnv(max_steps=cfg.max_steps, irrigation_goal=cfg.irrigation_goal,
                            inject_irrigation=cfg.inject_irrigation,
                            irrigation_compression=cfg.irrigation_compression,
@@ -71,17 +72,17 @@ def run_experiment(cfg: DictConfig):
                            use_irrigation_improvement=cfg.use_irrigation_improvement,
                            constant_flow=cfg.constant_flow)
 
-    print(f'Generating graphs...')
+    logging.error(f'Generating graphs...')
     train_graphs = graph_generator.generate_multiple_graphs(cfg.number_of_graphs)
 
 
     model = DQN(env=environment, graphs=train_graphs, num_dataloader_workers=cfg.num_dataloader_workers,
                 multi_action_q_network=cfg.multi_action_q_network, **cfg.core, device='cuda' if USE_CUDA else 'cpu',
                 use_hindsight=cfg.use_hindsight, double_dqn=cfg.double_dqn)
-    print(f'Populating replay buffer...')
+    logging.error(f'Populating replay buffer...')
     model.populate(model.hparams.warm_start_steps)
 
-    print(f'Training...')
+    logging.error(f'Training...')
     model.train(650001, validation_interval=cfg.validation_interval)
 
 
