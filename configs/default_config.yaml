@@ -17,7 +17,7 @@ irrigation_grid_cell_size: [0.1,0.1]
 early_stopping_patience: 10
 use_hindsight: false
 exclude_isolated_from_start_nodes: true
-use_irrigation_improvement: false
+use_irrigation_improvement: true
 gpu_device: 0
 double_dqn: false
 constant_flow: true
