@@ -6,7 +6,7 @@ number_of_graphs: 1
 deterministic: true
 random_seed: 873
 max_steps: 300
-irrigation_goal: 2.0
+irrigation_goal: 2.2
 training_duration_in_hours: 360
 validation_interval: 5000
 num_dataloader_workers: 0.5
