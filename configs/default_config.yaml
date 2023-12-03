@@ -19,5 +19,5 @@ use_hindsight: false
 exclude_isolated_from_start_nodes: true
 use_irrigation_improvement: false
 gpu_device: 0
-double_dqn: true
+double_dqn: false
 constant_flow: true
