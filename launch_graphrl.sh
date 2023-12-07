@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH -A vascnetgen # Project name
-#SBATCH -n 64 # Number of cores
+#SBATCH -n 50 # Number of cores
 #SBATCH -N 1 # Ensure that all cores are on one machine
 #SBATCH -t 2-00:00 # Runtime in D-HH:MM
 #SBATCH -p cpu2 # Partition to submit to
