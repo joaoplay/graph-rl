@@ -9,7 +9,7 @@
 #SBATCH --mail-user=jbsimoes@dei.uc.pt # Email to which notifications will be sent
 #SBATCH --partition=gpu    # Specify the partition name
 #SBATCH --gres=gpu:1       # Number of GPUs
-#SBATCH --cpus-per-task=50 # Number of CPUs per task
+#SBATCH --cpus-per-task=20 # Number of CPUs per task
 
 # Run the program and pass the arguments from the command line
 poetry run python /veracruz/projects/v/vascnetgen/graph-rl/main.py
