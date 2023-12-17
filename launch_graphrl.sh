@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH -A vascnetgen # Project name
-#SBATCH -n 500 # Number of cores
+#SBATCH -n 400 # Number of cores
 #SBATCH -t 2-00:00 # Runtime in D-HH:MM
 #SBATCH --mem=7000 # Memory pool for all cores (see also --mem-per-cpu)
 #SBATCH -o log.out # File to which STDOUT will be written
