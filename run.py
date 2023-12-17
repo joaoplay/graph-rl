@@ -58,6 +58,5 @@ def run_from_config_file(cfg: DictConfig):
 
     agent.train(train_graphs, validation_graphs, cfg.max_steps)
 
-
 if __name__ == '__main__':
     run_from_config_file()
