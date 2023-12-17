@@ -91,6 +91,8 @@ def run_from_config_file(cfg: DictConfig):
     wandb.init(project="graph-rl", entity="jbsimoes", mode=os.getenv("WANDB_UPLOAD_MODE", "online"), config=cfg,
                name=os.getenv("NEPTUNE_RUN_NAME", None))
 
+    print(f"Using CUDA: {USE_CUDA}")
+
     seed_everything(cfg.random_seed, workers=True)
 
     if 'hierarchical' in cfg and cfg.hierarchical is not None:
