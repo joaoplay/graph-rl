@@ -83,7 +83,7 @@ def run_experiment(cfg: DictConfig):
     model.populate(model.hparams.warm_start_steps)
 
     logging.error(f'Training...')
-    model.train(650001, validation_interval=cfg.validation_interval)
+    model.train(65000100000, validation_interval=cfg.validation_interval)
 
 
 @hydra.main(config_path="configs", config_name="default_config")
