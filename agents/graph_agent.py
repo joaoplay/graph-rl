@@ -9,6 +9,7 @@ from neptune.new.types import File
 from torch import nn
 
 from agents.replay_memory.multi_action_replay_buffer import MultiActionReplayBuffer
+from agents.replay_memory.replay_buffer import Experience
 from agents.util.sample_tracker import BatchSampler
 from environments.graph_env import GraphEnv, ACTION_MODE_SELECTING_START_NODE, ACTION_MODE_SELECTING_END_NODE
 from graphs.graph_state import GraphState
@@ -198,6 +199,21 @@ class GraphAgent:
             # Add retrospective transitions to the replay buffer when hindsight mode is enabled
             if self.use_hindsight and not self.env.irrigation_goal_achieved():
                 irrigation_score = self.env.previous_irrigation_score
+
+                # Check if all cells of the irrigation_map are above the threshold. If so, the goal is achieved and assign 1
+                irrigation_diff = self.env.last_irrigation_map - self.env.irrigation_goal
+                all_cells_above_threshold = 1 if np.all(irrigation_diff >= 0) else 0
+
+                # Change the reward of the last transition to the goal reward. We assume we achieved our goal
+                self.current_episode_transitions[ACTION_MODE_SELECTING_END_NODE][-1] = Experience(
+                    state=self.current_episode_transitions[ACTION_MODE_SELECTING_END_NODE][-1].state,
+                    action=self.current_episode_transitions[ACTION_MODE_SELECTING_END_NODE][-1].action,
+                    reward=1,
+                    solved=True,
+                    new_state=self.current_episode_transitions[ACTION_MODE_SELECTING_END_NODE][-1].new_state,
+                    goal=all_cells_above_threshold
+                )
+
                 for act_mode, action_mode_experiences in self.current_episode_transitions.items():
                     self.replay_buffer.append_many(action_mode=act_mode,
                                                    states=[e.state[:-1] for e in action_mode_experiences],
@@ -205,7 +221,7 @@ class GraphAgent:
                                                    rewards=[e.reward for e in action_mode_experiences],
                                                    terminals=[e.solved for e in action_mode_experiences],
                                                    next_states=[e.new_state[:-1] for e in action_mode_experiences],
-                                                   goals=[irrigation_score[0] for _ in range(len(action_mode_experiences))])
+                                                   goals=[all_cells_above_threshold for _ in range(len(action_mode_experiences))])
             # Reset environment
             self.reset()
 

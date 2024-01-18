@@ -160,7 +160,7 @@ class DQN:
                 else:
                     next_state_values, forbidden_actions = self.target_q_networks(next_action_mode,
                                                                                   not_done_next_states)
-                    _, expected_state_action_values = self.target_q_networks.select_action_from_q_values(
+                    _, not_done_next_station_action_values = self.target_q_networks.select_action_from_q_values(
                         next_action_mode, next_state_values, forbidden_actions)
 
                 expected_state_action_values = not_done_next_station_action_values * self.hparams.gamma + rewards[

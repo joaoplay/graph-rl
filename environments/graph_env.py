@@ -147,8 +147,9 @@ class GraphEnv:
             # FIXME: The irrigation map only support 1 graph. Adapt it for multi graph
             if self.irrigation_goal_achieved() or self.max_steps_achieved():
                 self.done[graph_idx] = True
-
                 self.solved[graph_idx] = self.irrigation_goal_achieved()
+                if self.solved[graph_idx]:
+                    rewards[graph_idx] = 1.0
 
             if new_graph.allowed_actions_not_found:
                 print("Allowed actions not found")
