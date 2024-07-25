@@ -221,7 +221,7 @@ class GraphAgent:
                                                    rewards=[e.reward for e in action_mode_experiences],
                                                    terminals=[e.solved for e in action_mode_experiences],
                                                    next_states=[e.new_state[:-1] for e in action_mode_experiences],
-                                                   goals=[all_cells_above_threshold for _ in range(len(action_mode_experiences))])
+                                                   goals=[irrigation_score[0] for _ in range(len(action_mode_experiences))])
             # Reset environment
             self.reset()
 
